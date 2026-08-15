@@ -109,8 +109,8 @@ const PLANES = {
      in lanes: strips of empty page between one block of content and the next.
      One creature to a lane, sized to the lane, so a whale is a detail passing
      through a gap rather than something crossing the words. */
-  drift: { n: 1, kind: "whale", size: [26, 40], cross: [58, 88], y: [0, 96], cap: 74, opacity: 0.44, beat: [1.6, 2.6] },
-  sparse: { n: 2, kind: "fish", size: [14, 22], cross: [70, 100], y: [0, 96], cap: 40, opacity: 0.5, beat: [0.7, 1.1] },
+  drift: { n: 1, kind: "whale", size: [26, 40], cross: [58, 88], y: [8, 92], cap: 74, opacity: 0.44, beat: [1.6, 2.6] },
+  sparse: { n: 2, kind: "fish", size: [14, 22], cross: [70, 100], y: [8, 92], cap: 36, opacity: 0.5, beat: [0.7, 1.1] },
 };
 
 const POD_SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];

@@ -1,31 +1,65 @@
-const ALWAYS = [
+import { Link } from "../router.jsx";
+import { address } from "../format.js";
+
+/** Sections of the landing page. Only reachable from the landing page. */
+const SECTIONS = [
   ["Stats", "#stats"],
   ["How", "#how"],
   ["Trench", "#trench"],
 ];
 
-/** Only linkable once there is a chain to read them from. */
-const LIVE_ONLY = [
-  ["Pod", "#pod"],
-  ["Dashboard", "#dashboard"],
+/** Pages. Always reachable, from anywhere. */
+const PAGES = [
+  ["Activate", "/activate"],
+  ["Portfolio", "/portfolio"],
 ];
 
-/** Sticky pill nav. It inverts below the thermocline so it stays legible as
-    the water darkens. */
-export default function Nav({ deep, live }) {
-  const links = live ? [...ALWAYS, ...LIVE_ONLY] : ALWAYS;
+/**
+ * The pill. It inverts below the thermocline so it stays legible as the water
+ * darkens, and it carries the wallet, because from here on every page has
+ * something to do with one.
+ */
+export default function Nav({ deep, live, route = "/", wallet }) {
+  const home = route === "/";
+  const account = wallet?.account;
 
   return (
     <nav className="nav">
       <div className={`nav-pill${deep ? " deep" : ""}`}>
-        <a className="nav-brand" href="#top">
+        <Link className="nav-brand" to="/">
           Whales
-        </a>
-        {links.map(([label, href]) => (
-          <a className="nav-link" href={href} key={href}>
-            {label}
+        </Link>
+
+        {/* Section jumps only exist where the sections do. */}
+        {home &&
+          SECTIONS.map(([label, href]) => (
+            <a className="nav-link" href={href} key={href}>
+              {label}
+            </a>
+          ))}
+
+        {home && live && (
+          <a className="nav-link" href="#pod">
+            Pod
           </a>
+        )}
+
+        {PAGES.map(([label, to]) => (
+          <Link className={`nav-link${route === to ? " on" : ""}`} to={to} key={to}>
+            {label}
+          </Link>
         ))}
+
+        {wallet && (
+          <button
+            className="nav-wallet mono"
+            onClick={() => !account && wallet.connect()}
+            title={account || "Connect a wallet"}
+          >
+            <span className={`nav-dot${account ? " on" : ""}`} aria-hidden="true" />
+            {account ? address(account) : "Connect"}
+          </button>
+        )}
       </div>
     </nav>
   );

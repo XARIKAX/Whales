@@ -2241,7 +2241,8 @@ p {
 .lane {
   position: relative;
   height: clamp(46px, 5.4vw, 76px);
-  margin-block: clamp(10px, 1.6vw, 22px);
+  /* Clear of whatever it sits between, with room for the bob. */
+  margin-block: clamp(18px, 2.2vw, 32px);
   container-type: size;
   pointer-events: none;
   --bob: 3px;
@@ -3744,4 +3745,676 @@ input:focus {
   .weed-front {
     animation: none !important;
   }
+}
+
+/* --- The wallet pages --------------------------------------------------- */
+
+/* Two pages that are not the pitch: one to switch a whale on, one to read your
+   own position. They stand in the same water and use the same instruments as
+   the landing page, because a wallet page that dropped the environment would
+   read as a different site entirely. Nothing new is invented here that the
+   landing page had not already earned. */
+
+.sheet {
+  position: relative;
+  display: block;
+}
+
+/* The nav is fixed, so the first thing on a page has to clear it. */
+.sheet-head {
+  padding-top: clamp(104px, 12vh, 168px);
+}
+
+.sheet-title {
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.01em;
+  color: var(--foam);
+  margin: 0 0 22px;
+}
+
+.addr-pill {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--surface-2);
+  background: rgba(143, 212, 238, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.2);
+  text-transform: none;
+}
+
+/* --- Nav wallet ---------------------------------------------------------- */
+
+.nav-wallet {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--navy);
+  background: rgba(8, 31, 51, 0.08);
+  transition: background 240ms ease, color 240ms ease;
+}
+
+.nav-pill.deep .nav-wallet {
+  color: var(--foam);
+  background: rgba(190, 231, 245, 0.12);
+}
+
+.nav-wallet:hover {
+  background: rgba(14, 122, 184, 0.18);
+}
+
+.nav-link.on {
+  color: var(--accent);
+}
+
+.nav-pill.deep .nav-link.on {
+  color: var(--surface-2);
+}
+
+/* A lamp, not a badge: lit when a wallet is attached, dark when it is not.
+   The same dot does duty on every state in these two pages. */
+.nav-dot,
+.pick-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-block;
+  background: rgba(143, 212, 238, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.3);
+}
+
+.nav-dot.on,
+.pick-dot.on {
+  background: var(--surface-2);
+  box-shadow: 0 0 8px rgba(143, 212, 238, 0.9);
+}
+
+/* --- The activation console ---------------------------------------------- */
+
+.console {
+  display: grid;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+/* Three readings across the top: who you are, what you hold, what is asleep. */
+.console-rail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(190, 231, 245, 0.12);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  overflow: hidden;
+}
+
+.console-cell {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: clamp(18px, 2.2vw, 26px);
+  background: rgba(6, 34, 58, 0.72);
+}
+
+.console-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.56);
+}
+
+.console-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  color: var(--foam);
+}
+
+.console-value.mono {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  align-items: center;
+}
+
+.console-note {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(190, 231, 245, 0.46);
+}
+
+.console-note.up {
+  color: #7ff0d8;
+}
+
+.console-note.down {
+  color: #f4a26b;
+}
+
+/* --- The picker ---------------------------------------------------------- */
+
+.picker {
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(6, 34, 58, 0.56);
+  overflow: hidden;
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(16px, 2vw, 24px);
+  border-bottom: 1px solid rgba(190, 231, 245, 0.12);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.56);
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--surface-2);
+  background: rgba(143, 212, 238, 0.12);
+}
+
+/* One row per whale. It is a button because it is one: the whole row is the
+   target, not a checkbox hiding at the end of it. */
+.pick {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px clamp(16px, 2vw, 24px);
+  border: 0;
+  border-top: 1px solid rgba(190, 231, 245, 0.08);
+  background: transparent;
+  color: var(--on-dark);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 200ms ease;
+}
+
+.pick:first-of-type {
+  border-top: 0;
+}
+
+.pick:hover:not(:disabled) {
+  background: rgba(143, 212, 238, 0.07);
+}
+
+.pick.on {
+  background: rgba(143, 212, 238, 0.13);
+  box-shadow: inset 3px 0 0 var(--surface-2);
+}
+
+.pick:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pick-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+}
+
+.pick-id {
+  display: grid;
+  gap: 3px;
+}
+
+.pick-id b {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--foam);
+}
+
+.pick-tier {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.44);
+}
+
+.pick-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.74);
+}
+
+.pick-go {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.4);
+}
+
+.pick.on .pick-go {
+  color: var(--surface-2);
+}
+
+.picker-empty {
+  padding: 28px clamp(16px, 2vw, 24px);
+  color: var(--on-dark-dim);
+}
+
+/* --- The commit ---------------------------------------------------------- */
+
+/* The only irreversible thing on the site, so it is given its own plate, its
+   own rule down the side and nothing else competing with it. */
+.commit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: clamp(20px, 2.6vw, 30px);
+  border: 1px solid rgba(190, 231, 245, 0.2);
+  border-left: 3px solid var(--gold);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(9, 42, 68, 0.66);
+}
+
+.commit-body {
+  display: grid;
+  gap: 8px;
+  max-width: 56ch;
+}
+
+.commit-line {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  color: var(--foam);
+}
+
+.commit-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--on-dark-body);
+}
+
+.commit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* --- What changes -------------------------------------------------------- */
+
+.effects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.effect {
+  display: grid;
+  gap: 9px;
+  padding: 20px;
+  border: 1px solid rgba(190, 231, 245, 0.12);
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(6, 34, 58, 0.5);
+}
+
+.effect-swap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.effect-before {
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.4);
+  text-decoration: line-through;
+}
+
+/* Drawn rather than typed, because the character for it is an em dash's
+   cousin and this platform does not use those. */
+.effect-arrow {
+  flex: none;
+  width: 18px;
+  height: 1px;
+  position: relative;
+  background: rgba(190, 231, 245, 0.35);
+}
+
+.effect-arrow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -2.5px;
+  border: 3px solid transparent;
+  border-left-color: rgba(190, 231, 245, 0.5);
+}
+
+.effect-after {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--foam);
+}
+
+/* --- The portfolio ------------------------------------------------------- */
+
+.connect-call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 26px;
+  padding: 20px clamp(18px, 2.4vw, 28px);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 16px 4px 16px 16px;
+  background: rgba(6, 34, 58, 0.55);
+}
+
+.connect-call p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--on-dark-body);
+}
+
+.holdings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* One whale, one plate. Dormant ones sit back; awake ones are lit from the
+   top edge, the same rule the rest of the page uses for anything alive. */
+.holding {
+  position: relative;
+  display: grid;
+  gap: 11px;
+  align-content: start;
+  padding: 22px 20px;
+  border: 1px solid rgba(190, 231, 245, 0.13);
+  border-radius: 18px 5px 18px 18px;
+  background:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.2) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.2) 0 1.5px, transparent 2.4px),
+    linear-gradient(180deg, rgba(190, 231, 245, 0.075), rgba(8, 49, 82, 0.3));
+  background-repeat: no-repeat;
+  transition: transform 240ms ease, border-color 240ms ease;
+}
+
+.holding.fed {
+  border-color: rgba(143, 212, 238, 0.3);
+  box-shadow: inset 0 1px 0 rgba(190, 231, 245, 0.26), 0 0 34px -14px rgba(127, 212, 255, 0.5);
+}
+
+.holding:hover {
+  transform: translateY(-2px);
+}
+
+.holding-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 62px;
+  margin-bottom: 2px;
+}
+
+.holding:not(.fed) .holding-art {
+  opacity: 0.4;
+  filter: saturate(0.2);
+}
+
+.holding-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.holding-head h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--foam);
+}
+
+.holding-tier {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--surface-2);
+  opacity: 0.8;
+}
+
+.holding-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.72);
+}
+
+.holding-rows {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.holding-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.holding-rows dt {
+  color: rgba(190, 231, 245, 0.44);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holding-rows dd {
+  margin: 0;
+  color: var(--foam);
+}
+
+.holding-cta {
+  margin-top: 8px;
+  justify-self: start;
+}
+
+/* --- The ledger ---------------------------------------------------------- */
+
+.ledger {
+  margin-top: 12px;
+  border: 1px solid rgba(190, 231, 245, 0.14);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(6, 34, 58, 0.5);
+  overflow: hidden;
+}
+
+.ledger-head,
+.ledger-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 13px clamp(16px, 2vw, 24px);
+}
+
+.ledger-head {
+  border-bottom: 1px solid rgba(190, 231, 245, 0.12);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.5);
+}
+
+.ledger-row {
+  border-top: 1px solid rgba(190, 231, 245, 0.07);
+  font-size: 12px;
+  color: rgba(190, 231, 245, 0.78);
+}
+
+.ledger-row:first-of-type {
+  border-top: 0;
+}
+
+.ledger-when {
+  display: grid;
+  gap: 2px;
+}
+
+.ledger-when b {
+  font-weight: 500;
+  color: var(--foam);
+}
+
+.ledger-when em {
+  font-style: normal;
+  font-size: 10px;
+  color: rgba(190, 231, 245, 0.36);
+}
+
+/* Money in is the one figure on the page allowed to be green. */
+.ledger-share {
+  color: #7ff0d8;
+}
+
+/* --- The collection ------------------------------------------------------ */
+
+.market {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  margin-top: 30px;
+  background: rgba(190, 231, 245, 0.12);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  overflow: hidden;
+}
+
+.market-cell {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 20px;
+  background: rgba(6, 34, 58, 0.72);
+}
+
+/* --- Buttons the wallet pages need --------------------------------------- */
+
+.btn-sm {
+  padding: 9px 16px;
+  font-size: 10px;
+}
+
+.btn-foam {
+  background: var(--surface-2);
+  color: var(--navy);
+  border: 1px solid rgba(190, 231, 245, 0.6);
+}
+
+.btn-foam:hover:not(:disabled) {
+  background: var(--surface-1);
+}
+
+.btn-foam:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost.on-dark {
+  color: var(--foam);
+  border-color: rgba(190, 231, 245, 0.34);
+}
+
+.btn-ghost.on-dark:hover {
+  background: rgba(190, 231, 245, 0.1);
+}
+
+@media (max-width: 900px) {
+  .console-rail {
+    grid-template-columns: 1fr;
+  }
+  .ledger-head {
+    display: none;
+  }
+  .ledger-row {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pick {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+  .pick-go {
+    display: none;
+  }
+  .commit,
+  .connect-call {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* The wallet pages open below the thermocline. There is no hero on them and no
+   surface to look up at, and starting them in bright water put foam type on
+   white light. The variables are redeclared on the page rather than on the
+   root, so the one scroll subscription still runs and simply loses the
+   argument inside this subtree. */
+.page-deep {
+  --sun: 0;
+  --depth: 1;
+  --pressure: 1;
+}
+
+.page-deep .dive {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(2, 12, 22, 0.42),
+      transparent 26%,
+      transparent 74%,
+      rgba(2, 12, 22, 0.42)
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(
+      180deg,
+      #0a3a5e 0%,
+      var(--trench-1) 14%,
+      #06283f 34%,
+      #051f33 54%,
+      var(--trench-2) 72%,
+      #030f1d 88%,
+      #020a14 100%
+    );
 }

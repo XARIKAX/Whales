@@ -24,6 +24,18 @@ export const FRAMES = 4;
 /** The stroke, in whole cells of tip travel. Neutral, up, neutral, down. */
 const STROKE = [0, -2, 0, 2];
 
+/**
+ * A blank cell either side of every frame.
+ *
+ * The four frames sit in one image and are shown by sliding the background, so
+ * a frame boundary lands wherever the element's width puts it. Upscaled to a
+ * non-integer multiple of the grid, the sampler reaches a fraction of a pixel
+ * past the edge and picks up the next frame's tail, which shows as a stray bar
+ * floating beside the animal. A cell of transparency on each side means that
+ * overreach can only ever find nothing.
+ */
+const GUTTER = 1;
+
 /** Collapses each row into runs of identical cells — far fewer rects to encode. */
 function runs(grid, offsetX = 0, offsetY = 0) {
   const out = [];
@@ -73,11 +85,11 @@ const ESCAPE = { "<": "%3C", ">": "%3E", "#": "%23", '"': "%22", "&": "%26" };
  */
 export function buildSheet({ body, fluke, join, palette }) {
   const height = body.length;
-  const width = join + body[0].length;
+  const width = join + body[0].length + GUTTER * 2;
   let rects = "";
 
   for (let f = 0; f < FRAMES; f += 1) {
-    const offsetX = f * width;
+    const offsetX = f * width + GUTTER;
     const tail = shear(fluke, STROKE[f]);
     for (const c of [...runs(tail, offsetX), ...runs(body, offsetX + join)]) {
       const fill = palette[c.ch];
