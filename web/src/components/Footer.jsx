@@ -8,9 +8,34 @@ const CONTRACTS = [
   ["Account registry", "registry"],
 ];
 
+/** Deterministic, so the lanterns never reshuffle between renders. */
+const LANTERNS = Array.from({ length: 14 }, (_, i) => {
+  const seed = (i * 2654435761) % 997;
+  return {
+    left: `${(seed % 94) + 3}%`,
+    top: `${(seed % 78) + 8}%`,
+    delay: -((seed % 13) + i * 0.7),
+    duration: 9 + (seed % 11),
+  };
+});
+
 export default function Footer() {
   return (
     <footer className="abyss" id="abyss">
+      {/* The only things visible this deep are the ones making their own light. */}
+      <div className="abyss-glow" aria-hidden="true">
+        {LANTERNS.map((l, i) => (
+          <span
+            key={i}
+            style={{
+              left: l.left,
+              top: l.top,
+              animationDelay: `${l.delay}s`,
+              animationDuration: `${l.duration}s`,
+            }}
+          />
+        ))}
+      </div>
       <div className="wrap">
         <Reveal className="abyss-grid" stagger step={80}>
           <div>

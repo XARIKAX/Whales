@@ -615,9 +615,11 @@ a:hover {
   transition: max-width 600ms linear;
 }
 
+/* Tightened from 128px. Two sections' worth of that padding meeting in the
+   middle left a quarter-screen of empty water between every idea on the page. */
 section {
   position: relative;
-  padding-block: clamp(64px, 9vw, 128px);
+  padding-block: clamp(48px, 5.5vw, 84px);
 }
 
 /* --- Reveal ----------------------------------------------------------- */
@@ -2128,13 +2130,66 @@ section > .wrap {
    — which read as a different website spliced in below the hero. Glass instead:
    the same instrument band, still bright enough to carry navy figures, but with
    the water visibly running behind it so the column is never actually cut. */
+/* The readout at the waterline.
+   This was an opaque white slab, and it cut the column of water in half — the
+   one thing this page cannot afford, because the whole conceit is that you
+   never leave the water. It is submerged glass now: dark, lit along its top
+   edge because the light is above, with the figures glowing rather than
+   printed. It is also the moment the page changes hands from bright water to
+   dark, so it carries the transition instead of interrupting it. */
 .strip {
   position: relative;
   overflow: hidden;
-  background: rgba(245, 251, 254, 0.74);
-  backdrop-filter: blur(14px) saturate(155%);
-  border-block: 2px solid var(--navy);
   z-index: 1;
+  background: linear-gradient(180deg, rgba(9, 42, 68, 0.82), rgba(5, 26, 44, 0.9));
+  backdrop-filter: blur(18px) saturate(130%);
+  border-block: 1px solid rgba(190, 231, 245, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(190, 231, 245, 0.34),
+    0 30px 70px rgba(2, 12, 22, 0.4);
+  color: var(--on-dark);
+}
+
+.strip .strip-label {
+  color: rgba(190, 231, 245, 0.62);
+}
+
+.strip .strip-value {
+  color: var(--foam);
+  text-shadow: 0 0 22px rgba(127, 212, 255, 0.35);
+}
+
+.strip .strip-value .unit,
+.strip .strip-sub {
+  color: var(--surface-2);
+}
+
+.strip-cell {
+  border-left: 1px solid rgba(190, 231, 245, 0.14);
+}
+
+.strip-cell:nth-child(even) {
+  background: rgba(190, 231, 245, 0.03);
+}
+
+.strip-cell::before {
+  background: var(--surface-2);
+  box-shadow: 0 0 14px rgba(143, 212, 238, 0.6);
+}
+
+.strip-foot {
+  border-top: 1px solid rgba(190, 231, 245, 0.14);
+  color: rgba(190, 231, 245, 0.5);
+}
+
+.strip-ghost {
+  background: linear-gradient(
+    100deg,
+    rgba(190, 231, 245, 0.07) 28%,
+    rgba(143, 212, 238, 0.2) 46%,
+    rgba(190, 231, 245, 0.07) 64%
+  );
+  background-size: 300% 100%;
 }
 
 /* The same wave of light that crosses the hero, on the same nine seconds. */
@@ -2145,11 +2200,11 @@ section > .wrap {
   pointer-events: none;
   background: linear-gradient(
     99deg,
-    transparent 42%,
-    rgba(255, 255, 255, 0.3) 47%,
-    rgba(255, 255, 255, 0.52) 50%,
-    rgba(255, 255, 255, 0.3) 53%,
-    transparent 58%
+    transparent 44%,
+    rgba(190, 231, 245, 0.07) 48%,
+    rgba(214, 245, 255, 0.13) 50%,
+    rgba(190, 231, 245, 0.07) 52%,
+    transparent 56%
   );
   animation: swell 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
@@ -2271,27 +2326,72 @@ section > .wrap {
 
 /* --- Steps ------------------------------------------------------------ */
 
+/* A staircase rather than a row. Each step sits lower than the one before it,
+   so the section performs the descent the copy is describing instead of just
+   listing it. */
 .steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 44px;
+  gap: 16px;
+  margin-top: 40px;
+  align-items: start;
 }
 
+.steps > *:nth-child(2) {
+  margin-top: clamp(14px, 2.6vw, 38px);
+}
+
+.steps > *:nth-child(3) {
+  margin-top: clamp(28px, 5.2vw, 76px);
+}
+
+.steps > *:nth-child(4) {
+  margin-top: clamp(42px, 7.8vw, 114px);
+}
+
+/* Submerged glass. Pale cards on dark water read as paper stuck to a window;
+   these are lit along the top edge only, because down here the light is above
+   and there is not much of it. */
 .step {
   position: relative;
   padding: clamp(24px, 3vw, 34px);
   border-radius: var(--radius);
-  background: rgba(245, 251, 254, 0.6);
-  backdrop-filter: blur(14px) saturate(145%);
-  box-shadow: 0 20px 44px rgba(4, 24, 43, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, rgba(190, 231, 245, 0.11), rgba(8, 49, 82, 0.28));
+  border: 1px solid rgba(190, 231, 245, 0.14);
+  backdrop-filter: blur(14px) saturate(130%);
+  box-shadow:
+    inset 0 1px 0 rgba(190, 231, 245, 0.3),
+    0 24px 50px rgba(2, 16, 30, 0.36);
   isolation: isolate;
-  transition: transform 240ms ease, box-shadow 240ms ease;
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
 }
 
 .step:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 28px 56px rgba(4, 24, 43, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-3px);
+  border-color: rgba(190, 231, 245, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(190, 231, 245, 0.44),
+    0 30px 64px rgba(2, 16, 30, 0.46),
+    0 0 40px -12px rgba(127, 212, 255, 0.4);
+}
+
+/* A bubble trail leaving each step, so the staircase reads as one descent
+   rather than four unrelated boxes. */
+.step::before {
+  content: "";
+  position: absolute;
+  left: clamp(24px, 3vw, 34px);
+  bottom: -14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(190, 231, 245, 0.5);
+  box-shadow: 10px 8px 0 -2px rgba(190, 231, 245, 0.3), 20px 2px 0 -3px rgba(190, 231, 245, 0.2);
+}
+
+.step-num {
+  color: var(--surface-2);
+  text-shadow: 0 0 26px rgba(127, 212, 255, 0.4);
 }
 
 .step-num {
@@ -2305,13 +2405,13 @@ section > .wrap {
 
 .step h3 {
   margin: 0 0 10px;
-  color: var(--navy);
+  color: var(--foam);
 }
 
 .step p {
   margin: 0;
   font-size: 0.92rem;
-  color: var(--ink-dim);
+  color: var(--on-dark-body);
   max-width: 34ch;
 }
 
@@ -2319,25 +2419,27 @@ section > .wrap {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
+  background: rgba(190, 231, 245, 0.14);
+  border: 1px solid rgba(190, 231, 245, 0.16);
   border-radius: 999px;
   overflow: hidden;
-  margin-top: 22px;
+  margin-top: clamp(48px, 7vw, 84px);
+  box-shadow: inset 0 1px 0 rgba(190, 231, 245, 0.24), 0 24px 50px rgba(2, 16, 30, 0.34);
 }
 
 .claim {
-  background: rgba(245, 251, 254, 0.76);
+  background: rgba(8, 42, 70, 0.5);
   padding: 18px 20px;
   text-align: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 
 .claim b {
   display: block;
   font-family: var(--display);
   font-size: 1.5rem;
-  color: var(--navy);
+  color: var(--foam);
+  text-shadow: 0 0 22px rgba(127, 212, 255, 0.32);
   line-height: 1;
   margin-bottom: 6px;
   font-variant-numeric: tabular-nums;
@@ -2346,7 +2448,7 @@ section > .wrap {
 .claim span {
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: var(--ink-faint);
+  color: rgba(190, 231, 245, 0.6);
   text-transform: uppercase;
 }
 
@@ -3015,23 +3117,74 @@ input:focus {
 }
 
 .notice.pending {
-  color: var(--ink-dim);
-  background: rgba(245, 251, 254, 0.6);
-  border-color: rgba(8, 31, 51, 0.16);
+  color: rgba(190, 231, 245, 0.72);
+  background: rgba(8, 42, 70, 0.42);
+  border-color: rgba(190, 231, 245, 0.16);
   backdrop-filter: blur(12px);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+  box-shadow: inset 0 1px 0 rgba(190, 231, 245, 0.2);
 }
 
 /* --- Footer ----------------------------------------------------------- */
 
+/* The bottom. The dive has to arrive somewhere, and a flat dark block is not
+   somewhere — it is the absence of one. So: a floor, the last of the light
+   dying against it, and the only things still visible are the ones that make
+   their own. */
 .abyss {
   position: relative;
+  overflow: hidden;
   background: var(--trench-2);
   color: var(--on-dark);
-  padding-block: clamp(56px, 7vw, 92px) 44px;
+  padding-block: clamp(56px, 7vw, 92px) 96px;
   border-top: 1px solid rgba(245, 251, 254, 0.08);
+}
+
+/* The seabed, rolling across the bottom of the page. */
+.abyss::after {
+  content: "";
+  position: absolute;
+  inset: auto -4% -30px -4%;
+  height: 190px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 30% 100% at 12% 100%, #030d18 60%, transparent 72%),
+    radial-gradient(ellipse 42% 100% at 44% 100%, #04121f 58%, transparent 70%),
+    radial-gradient(ellipse 34% 100% at 78% 100%, #030d18 62%, transparent 74%),
+    linear-gradient(180deg, transparent, #020a13 62%);
+}
+
+/* Bioluminescence. Nothing down here reflects light, so anything you can see
+   is making its own — and it should breathe rather than blink. */
+.abyss-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.abyss-glow span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #7ff0d8;
+  box-shadow: 0 0 10px 2px rgba(127, 240, 216, 0.55);
+  animation: lantern var(--tempo-2, 12s) ease-in-out infinite;
+}
+
+@keyframes lantern {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translateY(-14px);
+  }
 }
 
 /* The water closes in completely down here. */
