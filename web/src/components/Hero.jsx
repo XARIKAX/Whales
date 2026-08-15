@@ -95,9 +95,9 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
         <Reveal stagger step={70}>
           <p className="eyebrow">$WHALE · Robinhood Chain</p>
           <h1 className="display">
-            1000 Whales.
+            Every trade
             <br />
-            Every fee in the ocean.
+            feeds the pod.
           </h1>
           <p className="hero-sub">
             2% buy / 3% sell on every trade — all of it flows to activated whales. In ETH, tracked in
