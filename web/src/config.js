@@ -37,5 +37,15 @@ export const POLL_MS = Number(env.VITE_POLL_MS || 12_000);
 export const PRICE_URL = env.VITE_PRICE_URL || "";
 export const PRICE_PATH = env.VITE_PRICE_PATH || "ethereum.usd";
 
+/** Outbound links. Anything unset is simply not rendered, never a dead link. */
+export const LINKS = {
+  x: env.VITE_X_URL || "",
+  opensea: env.VITE_OPENSEA_URL || "",
+  docs: env.VITE_DOCS_URL || "",
+};
+
+/** "Read the docs" falls back to the on-page explainer so it is never dead. */
+export const DOCS_URL = LINKS.docs || "#how";
+
 export const explorerUrl = (kind, value) =>
   CHAIN.blockExplorers?.default?.url ? `${CHAIN.blockExplorers.default.url}/${kind}/${value}` : null;

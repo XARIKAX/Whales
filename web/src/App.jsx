@@ -1,23 +1,27 @@
-import { useEffect, useState } from "react";
-import { useOcean, useWhales, useEthPrice, useDepth, useWallet } from "./hooks.js";
-import { eth, usd, whale, percent, ago, address, plural } from "./format.js";
-import { ADDRESSES, CONFIGURED, CHAIN, explorerUrl } from "./config.js";
-import Pod from "./components/Pod.jsx";
-import Actions from "./components/Actions.jsx";
-
-const BILLION = 1_000_000_000n * 10n ** 18n;
+import { useEffect, useMemo } from "react";
+import { useOcean, useWhales, useEthPrice, useDepth, useWallet, useHaulSignal } from "./hooks.js";
+import { CONFIGURED, CHAIN } from "./config.js";
+import Nav from "./components/Nav.jsx";
+import Hero from "./components/Hero.jsx";
+import StatsStrip from "./components/StatsStrip.jsx";
+import Steps from "./components/Steps.jsx";
+import Trench from "./components/Trench.jsx";
+import Carousel from "./components/Carousel.jsx";
+import Dashboard from "./components/Dashboard.jsx";
+import Footer from "./components/Footer.jsx";
+import Celebration from "./components/Celebration.jsx";
 
 export default function App() {
-  const { data: ocean, error, loading, refresh } = useOcean();
+  const { data: ocean, error, refresh } = useOcean();
   const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
   const price = useEthPrice();
   const depth = useDepth();
   const wallet = useWallet();
-  const [filter, setFilter] = useState("all");
+  const haulSignal = useHaulSignal(ocean?.haulCount);
 
-  // The sunlight fades as the reader sinks.
+  // Sun shafts fade out by the time the reader reaches open water.
   useEffect(() => {
-    document.documentElement.style.setProperty("--sunlight", String(Math.max(0, 1 - depth * 1.6)));
+    document.documentElement.style.setProperty("--sun", String(Math.max(0, 1 - depth * 3.4)));
   }, [depth]);
 
   const refreshAll = () => {
@@ -25,236 +29,69 @@ export default function App() {
     refreshWhales();
   };
 
-  const metres = Math.round(depth * 10_900);
+  // The whale on the hero card: whoever has earned the most, falling back to
+  // the first fed whale, then to the first whale at all.
+  const featured = useMemo(() => {
+    if (whales.length === 0) return null;
+    const fed = whales.filter((w) => w.activatedAt !== 0n);
+    if (fed.length === 0) return whales[0];
+    return fed.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), fed[0]);
+  }, [whales]);
 
   return (
-    <>
-      <div className="ocean" />
-      <div className="shafts" />
+    <div className="page">
+      <div className="dive" />
+      <div className="rays" />
 
-      <div className="wrap">
-        <header className="masthead">
-          <p className="ticker">$WHALE · {CHAIN.name}</p>
-          <h1 className="wordmark">WHALES</h1>
-          <p className="lede">
-            Whales don't chase liquidity. <em>They are liquidity.</em>
-          </p>
-          <p className="sub">
-            1000 pixel whales. Every fee in the ocean flows to them — paid in ETH, delivered into
-            each whale's own wallet. No claim forms. No admin keys. No trust.
-          </p>
-        </header>
+      {/* The pill inverts once the water is dark enough that a light pill
+          stops reading — a little before the section boundary, not after. */}
+      <Nav deep={depth > 0.2} />
+      <Celebration trigger={haulSignal} />
 
-        {!CONFIGURED && (
-          <section>
-            <p className="notice error">
-              No deployment configured. Copy <code>.env.example</code> to <code>.env</code>, fill in
-              the addresses from <code>contracts/deployments/&lt;network&gt;.json</code>, and
-              restart the dev server.
-            </p>
-          </section>
-        )}
+      <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} />
 
-        {CONFIGURED && (
-          <>
-            <section id="trench">
-              <div className="section-head">
-                <h2>The Trench</h2>
-                <span className="depth">{metres.toLocaleString()} m</span>
-              </div>
-
-              {loading && !ocean && <p className="muted">Sounding the depths…</p>}
-              {error && error !== "not-configured" && (
-                <p className="notice error">Could not reach {CHAIN.name}: {error}</p>
-              )}
-
-              {ocean && (
-                <div className="panel pot">
-                  <div>
-                    <div className="pot-figure">
-                      {eth(ocean.pot, 5)}
-                      <span>ETH IN THE NET</span>
-                    </div>
-                    {usd(ocean.pot, price) && <div className="pot-usd">{usd(ocean.pot, price)}</div>}
-                  </div>
-
-                  <div>
-                    <div className="net">
-                      <div
-                        className={`net-fill${ocean.readyToHaul ? " ready" : ""}`}
-                        style={{ width: `${percent(ocean.pot, ocean.haulThreshold)}%` }}
-                      />
-                    </div>
-                    <div className="net-label">
-                      <span>
-                        {ocean.readyToHaul
-                          ? "ready — anyone can haul it"
-                          : `${eth(ocean.haulThreshold - ocean.pot, 5)} ETH to go`}
-                      </span>
-                      <span>threshold {eth(ocean.haulThreshold)} ETH</span>
-                    </div>
-                  </div>
-
-                  <p className="muted">
-                    The Trench has no withdraw function. What enters leaves one way: the haul, split
-                    across every activated whale by weight, in a single transaction.{" "}
-                    {explorerUrl("address", ADDRESSES.trench) ? (
-                      <a href={explorerUrl("address", ADDRESSES.trench)} target="_blank" rel="noreferrer">
-                        Read the contract
-                      </a>
-                    ) : (
-                      <span className="mono">{address(ADDRESSES.trench)}</span>
-                    )}
-                    .
-                  </p>
-                </div>
-              )}
-            </section>
-
-            {ocean && (
-              <section id="all-time">
-                <div className="section-head">
-                  <h2>All time</h2>
-                  <span className="depth">{metres.toLocaleString()} m</span>
-                </div>
-
-                <dl className="stats">
-                  <div className="stat">
-                    <dt>Distributed</dt>
-                    <dd>
-                      {eth(ocean.totalDistributed)} ETH
-                      {usd(ocean.totalDistributed, price) && <small>{usd(ocean.totalDistributed, price)}</small>}
-                    </dd>
-                  </div>
-                  <div className="stat">
-                    <dt>Delivered to whales</dt>
-                    <dd>
-                      {eth(ocean.totalDelivered)} ETH
-                      <small>
-                        {plural(ocean.haulCount, "haul")} · last {ago(ocean.lastHaulAt, ocean.now)}
-                      </small>
-                    </dd>
-                  </div>
-                  <div className="stat">
-                    <dt>$WHALE burned</dt>
-                    <dd>
-                      {whale(ocean.burned)}
-                      <small>{percent(ocean.burned, BILLION).toFixed(2)}% of supply gone</small>
-                    </dd>
-                  </div>
-                  <div className="stat">
-                    <dt>Whales fed</dt>
-                    <dd>
-                      {String(ocean.activated)} / {String(ocean.minted)}
-                      <small>{String(ocean.maxSupply)} will ever exist</small>
-                    </dd>
-                  </div>
-                  <div className="stat">
-                    <dt>Total weight</dt>
-                    <dd>
-                      {(Number(ocean.totalWeight) / 10_000).toFixed(2)}x
-                      <small>1.00x at feeding, 3.33x at the cap</small>
-                    </dd>
-                  </div>
-                  <div className="stat">
-                    <dt>Paid to keepers</dt>
-                    <dd>
-                      {eth(ocean.totalTipped)} ETH
-                      <small>0.5% of every haul, to whoever calls it</small>
-                    </dd>
-                  </div>
-                </dl>
-              </section>
-            )}
-
-            <section id="pod">
-              <div className="section-head">
-                <h2>The Pod</h2>
-                <span className="depth">{metres.toLocaleString()} m</span>
-              </div>
-
-              <div className="row" style={{ marginBottom: 20 }}>
-                {["all", "fed", "dormant", "owed"].map((option) => (
-                  <button
-                    key={option}
-                    className={`small${filter === option ? "" : " ghost"}`}
-                    onClick={() => setFilter(option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-                <button className="small ghost" onClick={refreshAll}>
-                  refresh
-                </button>
-              </div>
-
-              <Pod
-                whales={whales}
-                price={price}
-                revealed={ocean?.revealed}
-                filter={filter}
-                now={ocean?.now}
-              />
-            </section>
-
-            <section id="act">
-              <div className="section-head">
-                <h2>Press the buttons</h2>
-                <span className="depth">{metres.toLocaleString()} m</span>
-              </div>
-              <p className="muted" style={{ marginBottom: 20 }}>
-                A keeper bot normally does this. It has no special powers — every call below is one
-                any wallet can make, and hauling pays the caller 0.5%.
+      {!CONFIGURED ? (
+        <section>
+          <div className="wrap">
+            <div className="glass" style={{ padding: 28 }}>
+              <h3 className="display">No deployment configured</h3>
+              <p className="lede" style={{ marginTop: 12 }}>
+                Copy <code>.env.example</code> to <code>.env</code>, fill in the addresses from{" "}
+                <code>contracts/deployments/&lt;network&gt;.json</code>, and restart the dev server.
               </p>
-              <Actions
-                ocean={ocean && { ...ocean, activationBurn: 1_000_000n * 10n ** 18n }}
-                wallet={wallet}
-                onDone={refreshAll}
-              />
-            </section>
-          </>
-        )}
-
-        <section id="loop">
-          <div className="section-head">
-            <h2>The Loop</h2>
-            <span className="depth">{metres.toLocaleString()} m</span>
-          </div>
-          <div className="loop">
-            <div className="loop-step">
-              <strong>01 — Trade</strong>2% buy, 3% sell. Flap collects the tax in ETH.
-            </div>
-            <div className="loop-step">
-              <strong>02 — Trench</strong>The tax lands in a contract with no withdraw function.
-            </div>
-            <div className="loop-step">
-              <strong>03 — Haul</strong>Anyone splits the pot across fed whales. Caller keeps 0.5%.
-            </div>
-            <div className="loop-step">
-              <strong>04 — Weight</strong>Every fed whale starts at 1x, climbs toward 3.33x.
-            </div>
-            <div className="loop-step">
-              <strong>05 — Deliver</strong>Each share lands in the whale's own wallet, as ETH or the
-              stock its holder elected.
             </div>
           </div>
         </section>
+      ) : (
+        <>
+          <StatsStrip ocean={ocean} price={price} />
 
-        <footer>
-          <p>
-            Feed the whale. Haul the Trench. Own the tide. — Activating burns 1,000,000 $WHALE
-            permanently. Selling a whale takes it off the payroll in the same transaction; the new
-            owner burns another million to put it back on.
-          </p>
-          <p className="mono">
-            {Object.entries(ADDRESSES).map(([name, value]) => (
-              <span key={name} style={{ display: "block" }}>
-                {name}: {value || "unset"}
-              </span>
-            ))}
-          </p>
-        </footer>
-      </div>
-    </>
+          {error && error !== "not-configured" && (
+            <section style={{ paddingBlock: 32 }}>
+              <div className="wrap">
+                <div className="glass" style={{ padding: 20 }}>
+                  <p className="lede" style={{ margin: 0 }}>
+                    Could not reach {CHAIN.name}: {error}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <Steps />
+          <Trench ocean={ocean} />
+          <Carousel whales={whales} />
+          <Dashboard
+            ocean={ocean}
+            whales={whales}
+            price={price}
+            wallet={wallet}
+            onDone={refreshAll}
+          />
+        </>
+      )}
+
+      <Footer />
+    </div>
   );
 }

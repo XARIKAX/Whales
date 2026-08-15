@@ -54,15 +54,35 @@ export async function readOcean() {
   };
 }
 
-/** Per-whale rows for the pod. */
+/**
+ * Per-whale rows for the pod.
+ *
+ * Asking for all 1000 in one call exceeds the gas an `eth_call` is willing to
+ * spend — every row reads the NFT, the registry and four Trench slots. Chunked,
+ * each call is comfortably within budget and the chunks run concurrently.
+ */
+const WHALE_CHUNK = 100;
+
 export async function readWhales(tokenIds) {
   if (tokenIds.length === 0) return [];
-  return publicClient.readContract({
-    address: ADDRESSES.trench,
-    abi: trenchAbi,
-    functionName: "whaleStates",
-    args: [tokenIds],
-  });
+
+  const chunks = [];
+  for (let i = 0; i < tokenIds.length; i += WHALE_CHUNK) {
+    chunks.push(tokenIds.slice(i, i + WHALE_CHUNK));
+  }
+
+  const results = await Promise.all(
+    chunks.map((ids) =>
+      publicClient.readContract({
+        address: ADDRESSES.trench,
+        abi: trenchAbi,
+        functionName: "whaleStates",
+        args: [ids],
+      })
+    )
+  );
+
+  return results.flat();
 }
 
 /** The whale's own art, straight off the chain. */

@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { parseEther, maxUint256, isAddress, zeroAddress } from "viem";
+import { maxUint256, isAddress, zeroAddress } from "viem";
 import { publicClient, ADDRESSES, trenchAbi, whalesAbi, erc20Abi } from "../chain.js";
 import { eth } from "../format.js";
+
+const ACTIVATION_BURN = 1_000_000n * 10n ** 18n;
 
 /**
  * Every button here calls a function anyone can call. The haul button is the
@@ -10,7 +12,6 @@ import { eth } from "../format.js";
 export default function Actions({ ocean, wallet, onDone }) {
   const [busy, setBusy] = useState(null);
   const [message, setMessage] = useState(null);
-  const [quantity, setQuantity] = useState(1);
   const [tokenId, setTokenId] = useState("");
   const [stock, setStock] = useState("");
 
@@ -20,7 +21,7 @@ export default function Actions({ ocean, wallet, onDone }) {
     try {
       const client = await wallet.client();
       const hash = await build(client, client.account.address);
-      setMessage({ kind: "info", text: `Sent ${hash}. Waiting for the block…` });
+      setMessage({ kind: "info", text: `Sent ${hash.slice(0, 14)}… waiting for the block.` });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted.");
       setMessage({ kind: "ok", text: `${label} confirmed in block ${receipt.blockNumber}.` });
@@ -35,23 +36,12 @@ export default function Actions({ ocean, wallet, onDone }) {
   const write = (client, account, address, abi, functionName, args, value) =>
     client.writeContract({ account, address, abi, functionName, args, value, chain: client.chain });
 
-  const mint = () =>
-    run("Mint", (client, account) =>
-      write(
-        client,
-        account,
-        ADDRESSES.whales,
-        whalesAbi,
-        "mint",
-        [BigInt(quantity)],
-        ocean.mintPrice * BigInt(quantity)
-      )
-    );
+  const haul = () =>
+    run("Haul", (client, account) => write(client, account, ADDRESSES.trench, trenchAbi, "haul", []));
 
   /** Activation burns $WHALE, so it needs an allowance first. */
-  const activate = () =>
-    run("Activate", async (client, account) => {
-      const id = BigInt(tokenId);
+  const feed = () =>
+    run("Feed", async (client, account) => {
       const allowance = await publicClient.readContract({
         address: ADDRESSES.whaleToken,
         abi: erc20Abi,
@@ -59,7 +49,7 @@ export default function Actions({ ocean, wallet, onDone }) {
         args: [account, ADDRESSES.whales],
       });
 
-      if (allowance < ocean.activationBurn) {
+      if (allowance < ACTIVATION_BURN) {
         const approval = await write(
           client,
           account,
@@ -71,13 +61,8 @@ export default function Actions({ ocean, wallet, onDone }) {
         await publicClient.waitForTransactionReceipt({ hash: approval });
       }
 
-      return write(client, account, ADDRESSES.whales, whalesAbi, "activate", [id]);
+      return write(client, account, ADDRESSES.whales, whalesAbi, "activate", [BigInt(tokenId)]);
     });
-
-  const haul = () =>
-    run("Haul", (client, account) =>
-      write(client, account, ADDRESSES.trench, trenchAbi, "haul", [])
-    );
 
   const deliver = () =>
     run("Deliver", (client, account) =>
@@ -98,44 +83,33 @@ export default function Actions({ ocean, wallet, onDone }) {
 
   if (!wallet.available) {
     return (
-      <p className="notice info">
-        No browser wallet detected. The dashboard reads the chain without one — connect a wallet to
-        mint, feed a whale, or haul the Trench yourself.
+      <p className="notice">
+        No browser wallet detected. Everything above is read straight from the chain without one —
+        connect a wallet to feed a whale, haul the Trench, or elect a stock.
       </p>
     );
   }
 
   return (
-    <div className="panel" style={{ display: "grid", gap: 20 }}>
+    <div style={{ display: "grid", gap: 16, borderTop: "1px solid var(--rule-dark)", paddingTop: 26 }}>
       <div className="row">
-        <button className="ghost" onClick={() => wallet.connect()} disabled={Boolean(wallet.account)}>
-          {wallet.account ? `connected ${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}` : "connect wallet"}
+        <button
+          className="btn btn-ghost on-dark"
+          onClick={() => wallet.connect()}
+          disabled={Boolean(wallet.account)}
+        >
+          {wallet.account
+            ? `Connected ${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`
+            : "Connect wallet"}
         </button>
-        <button className="gold" onClick={haul} disabled={busy || !ocean?.readyToHaul}>
-          {ocean?.readyToHaul ? `haul the trench — tip ${eth(tip)} ETH` : "not ready to haul"}
-        </button>
-      </div>
-
-      <div className="row">
-        <div className="field" style={{ maxWidth: 130 }}>
-          <label htmlFor="qty">quantity</label>
-          <input
-            id="qty"
-            type="number"
-            min="1"
-            max="10"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-          />
-        </div>
-        <button onClick={mint} disabled={busy || !ocean}>
-          mint {quantity} · {ocean ? eth(ocean.mintPrice * BigInt(quantity)) : "—"} ETH
+        <button className="btn btn-gold" onClick={haul} disabled={Boolean(busy) || !ocean?.readyToHaul}>
+          {ocean?.readyToHaul ? `Haul the Trench — keep ${eth(tip)} ETH` : "Net not full yet"}
         </button>
       </div>
 
       <div className="row">
-        <div className="field" style={{ maxWidth: 130 }}>
-          <label htmlFor="token">whale #</label>
+        <div className="field" style={{ maxWidth: 140 }}>
+          <label htmlFor="token">Whale #</label>
           <input
             id="token"
             inputMode="numeric"
@@ -144,17 +118,17 @@ export default function Actions({ ocean, wallet, onDone }) {
             onChange={(e) => setTokenId(e.target.value)}
           />
         </div>
-        <button onClick={activate} disabled={busy || !validId}>
-          feed — burn 1,000,000 $WHALE
+        <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId}>
+          Feed — burn 1,000,000 $WHALE
         </button>
-        <button className="ghost" onClick={deliver} disabled={busy || !validId}>
-          deliver
+        <button className="btn btn-ghost on-dark" onClick={deliver} disabled={Boolean(busy) || !validId}>
+          Deliver
         </button>
       </div>
 
       <div className="row">
-        <div className="field">
-          <label htmlFor="stock">pay this whale in (token address, blank for ETH)</label>
+        <div className="field" style={{ flex: 1, minWidth: 220 }}>
+          <label htmlFor="stock">Pay this whale in (token address, blank for ETH)</label>
           <input
             id="stock"
             placeholder="0x… tokenised equity"
@@ -162,12 +136,16 @@ export default function Actions({ ocean, wallet, onDone }) {
             onChange={(e) => setStock(e.target.value)}
           />
         </div>
-        <button className="ghost" onClick={elect} disabled={busy || !validId || !validStock}>
-          elect
+        <button
+          className="btn btn-ghost on-dark"
+          onClick={elect}
+          disabled={Boolean(busy) || !validId || !validStock}
+        >
+          Elect
         </button>
       </div>
 
-      {busy && <p className="notice info">{busy} — confirm in your wallet…</p>}
+      {busy && <p className="notice">{busy} — confirm in your wallet…</p>}
       {message && <p className={`notice ${message.kind}`}>{message.text}</p>}
       {wallet.error && <p className="notice error">{wallet.error}</p>}
     </div>

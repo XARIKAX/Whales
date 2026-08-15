@@ -47,7 +47,9 @@ export function useWhales(count) {
 
   useEffect(() => {
     refresh();
-    const id = setInterval(refresh, POLL_MS);
+    // Whale rows are an order of magnitude heavier to read than the pot, and
+    // they change far less often, so they refresh on a slower beat.
+    const id = setInterval(refresh, POLL_MS * 4);
     return () => clearInterval(id);
   }, [refresh]);
 
@@ -69,6 +71,25 @@ export function useArt(tokenId) {
   }, [tokenId]);
 
   return art;
+}
+
+/**
+ * Watches the chain's haul counter and returns a value that changes whenever a
+ * haul lands — from anyone, not just this browser. Null until the first one.
+ */
+export function useHaulSignal(haulCount) {
+  const previous = useRef(undefined);
+  const [signal, setSignal] = useState(null);
+
+  useEffect(() => {
+    if (haulCount === undefined) return;
+    if (previous.current !== undefined && haulCount > previous.current) {
+      setSignal(Number(haulCount));
+    }
+    previous.current = haulCount;
+  }, [haulCount]);
+
+  return signal;
 }
 
 export function useEthPrice() {

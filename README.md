@@ -192,7 +192,7 @@ Addresses are written to `contracts/deployments/<network>.json`, which the keepe
 cd contracts
 npx hardhat node                                            # terminal 1
 npx hardhat run scripts/deploy.js     --network localhost   # terminal 2
-npx hardhat run scripts/seed-local.js --network localhost   # mints, feeds, ages, funds
+npx hardhat run scripts/seed-local.js --network localhost   # see below
 
 cd ../keeper && npm install
 RPC_URL=http://127.0.0.1:8545 \
@@ -203,6 +203,8 @@ cd ../web && npm install
 cp .env.example .env                                        # addresses from the deploy
 npm run dev
 ```
+
+`seed-local.js` mints the collection out, reveals rarity, then feeds forty whales in waves and rewinds the clock between them so the whole loyalty curve — 1.00x through 3.33x — is visible on the site rather than a wall of identical multipliers.
 
 ### The keeper
 
@@ -215,7 +217,7 @@ npm run dry-run                              # report only, sends nothing
 
 Each pass syncs stale tiers, hauls if the net is full, then delivers. A failed pass is not fatal — the next one retries, and in the meantime anyone else can do the same work for the same tip.
 
-### The dashboard
+### The website
 
 ```bash
 cd web
@@ -223,9 +225,15 @@ cp .env.example .env    # fill in from contracts/deployments/<network>.json
 npm run dev
 ```
 
-Live Trench pot in ETH and dollars, the haul countdown as the net fills, per-whale lifetime earnings and weight multiplier and activation status, total burned and distributed all-time — and an ocean-depth UI where the deeper you scroll, the darker the water.
+**The page is a dive.** Bright sky-cyan at the surface, darkening with every scroll — lagoon, open ocean, trench — until the footer sits in the abyss. The gradient lives on one full-document layer rather than a stack of differently-coloured sections, so the descent is continuous. Sun shafts fade out by open water, and the sticky pill nav inverts as the water darkens so it stays legible the whole way down.
 
-Dollar figures come from whatever price feed you configure. With none configured, or when it is unreachable, the dashboard shows ETH only rather than inventing a number.
+Sections, in order: a surface hero with rising bubbles, an animated waveline and a glass card showing a real whale's live USD earnings; a hard-bordered live stats strip; the four-step grid with oversized accent numbers; the Trench, deep, with a card that fills like rising water as the real pot grows and a whale silhouette drifting behind; a full-width carousel where fed whales glow gold and dormant ones sit grey-blue; a frosted dashboard panel with a filling gauge and a per-whale table; and the abyss footer with contract addresses and the trust line.
+
+When a haul lands — from anyone, not just this browser — the page answers with a bubble burst and gold settling to the seafloor. It is driven off the chain's haul counter, so everyone watching sees it.
+
+Fonts are self-hosted through `@fontsource`, so the site pulls nothing from a third party at runtime. Every whale's art comes from `tokenURI`, loaded lazily as tiles come into view and capped at six concurrent reads so a wall of whales doesn't stampede the RPC.
+
+Dollar figures come from whatever price feed you configure in `.env`. With none configured, or when it is unreachable, the site shows ETH only rather than inventing a number. The same goes for the footer's social links: anything unset is simply not rendered, never a dead link.
 
 ---
 
