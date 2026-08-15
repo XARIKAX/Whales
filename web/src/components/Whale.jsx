@@ -13,7 +13,14 @@ import { outline } from "./pixel/whales.js";
  */
 const ART = outline();
 
-export default function Whale({ className = "", style }) {
+/* The flip lives on the inner group rather than on a CSS class, because every
+   place this silhouette is used already animates `transform` on the element
+   itself and a class would simply be overwritten. Inside the SVG it is baked
+   into the geometry: rasterised once, free thereafter. */
+const WIDTH = Number(ART.viewBox.split(" ")[2]);
+const FLIP = `translate(${WIDTH} 0) scale(-1 1)`;
+
+export default function Whale({ className = "", style, mirrored = false }) {
   return (
     <svg
       className={className}
@@ -23,7 +30,7 @@ export default function Whale({ className = "", style }) {
       focusable="false"
       preserveAspectRatio="xMidYMid meet"
     >
-      <g fill="currentColor">
+      <g fill="currentColor" transform={mirrored ? FLIP : undefined}>
         {ART.paths.map((d, i) => (
           <path key={i} d={d} />
         ))}

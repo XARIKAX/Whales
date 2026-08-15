@@ -402,52 +402,6 @@ a:hover {
   }
 }
 
-/* --- Depth gauge ------------------------------------------------------ */
-/* The rail is the dive meter: a tick per zone and an indicator that tracks
-   scroll, so the descent is measurable rather than only felt. */
-
-.gauge-rail {
-  position: absolute;
-  left: 3px;
-  top: 4px;
-  bottom: 4px;
-  width: 1px;
-  background: linear-gradient(
-    180deg,
-    rgba(245, 251, 254, 0.05),
-    rgba(245, 251, 254, 0.22),
-    rgba(245, 251, 254, 0.05)
-  );
-}
-
-.gauge-needle {
-  position: absolute;
-  left: -2px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  box-shadow: 0 0 8px rgba(143, 212, 238, 0.9);
-  transition: top 220ms linear;
-}
-
-.depth-mark {
-  position: relative;
-  padding-left: 16px;
-}
-
-/* A tick joining each label to the rail. */
-.depth-mark::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 50%;
-  width: 7px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.5;
-}
-
 /* --- Section transitions ---------------------------------------------- */
 
 /* Light → Trench: a tall zone where the light visibly dies. Saturation
@@ -564,9 +518,11 @@ a:hover {
   }
 }
 
+/* Aligned with the content column rather than the window edge, so it never
+   lands on top of the dive gauge in the left margin. */
 .waterline-label {
   position: absolute;
-  left: var(--gutter);
+  left: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
   top: 0;
   font-size: 11px;
   letter-spacing: 0.16em;
@@ -574,42 +530,195 @@ a:hover {
   color: rgba(245, 251, 254, 0.62);
 }
 
-/* Depth ticking down the left margin: the scroll as a descent. */
-/* Hidden until the reader is actually under way. It reads as stray debris on
+/* --- The dive gauge ---------------------------------------------------- */
+/* A sounding gauge down the left margin: a graduated column of water, a needle
+   and a live reading. The descent is the whole idea of this page, so it gets an
+   instrument rather than four labels that light up in turn.
+   Hidden until the reader is actually under way: it reads as stray debris on
    the hero, which is the one screen that has to be uncluttered. */
-.depth-rail {
+
+.sounder {
   position: fixed;
-  left: max(14px, calc((100vw - var(--max)) / 2 - 58px));
+  left: max(14px, calc((100vw - var(--max)) / 2 - 62px));
   top: 50%;
+  width: 50px;
+  height: min(54vh, 480px);
   transform: translateY(-50%);
   z-index: 60;
   display: grid;
-  gap: 14px;
+  grid-template-rows: auto 1fr auto;
+  gap: 11px;
   opacity: 0;
-  transition: opacity 400ms ease;
+  transition: opacity 500ms ease;
   pointer-events: none;
 }
 
-.depth-rail.visible {
+.sounder.under {
   opacity: 1;
 }
 
-.depth-mark {
+.sounder-cap,
+.sounder-zone {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sounder-cap {
+  color: rgba(245, 251, 254, 0.32);
+}
+
+/* The one part of the gauge that is a word rather than a number, so it is the
+   one part allowed any colour. */
+.sounder-zone {
+  color: var(--surface-2);
+  opacity: 0.9;
+}
+
+.sounder-track {
+  position: relative;
+}
+
+/* The column of water the scale is engraved on: lit at the surface, nothing at
+   the floor. It is the instrument and the subject at once. */
+.sounder-column,
+.sounder-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  border-radius: 5px;
+}
+
+.sounder-column {
+  background: linear-gradient(
+    180deg,
+    rgba(190, 231, 245, 0.36),
+    rgba(23, 92, 138, 0.34) 26%,
+    rgba(6, 34, 58, 0.6) 62%,
+    rgba(2, 12, 22, 0.85)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(190, 231, 245, 0.16),
+    inset 0 2px 5px rgba(2, 12, 22, 0.6);
+}
+
+/* How far down you have got. Scaled from the top rather than resized, so the
+   one thing on this page that moves every frame never touches layout. */
+.sounder-fill {
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  background: linear-gradient(180deg, rgba(143, 212, 238, 0.5), rgba(127, 212, 255, 0.16));
+}
+
+.sounder-tick {
+  position: absolute;
+  left: 2px;
+  width: 5px;
+  height: 1px;
+  background: rgba(190, 231, 245, 0.24);
+}
+
+.sounder-tick.major {
+  left: 0;
+  width: 14px;
+  background: rgba(190, 231, 245, 0.46);
+}
+
+.sounder-figure {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: rgba(245, 251, 254, 0.3);
+  white-space: nowrap;
+}
+
+/* The floor is not on a round thousand, and the gauge says so rather than
+   rounding the seabed off. Its figure is pulled back inside the track. */
+.sounder-floor .sounder-figure {
+  transform: translateY(-90%);
+  color: rgba(245, 251, 254, 0.44);
+}
+
+.sounder-needle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 0;
+  will-change: transform;
+}
+
+/* A return on the sounder: a bright bar across the column with the ping at its
+   centre. */
+.sounder-pointer {
+  position: absolute;
+  left: -2px;
+  top: -1px;
+  width: 13px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--foam);
+  box-shadow: 0 0 9px rgba(127, 212, 255, 0.85), 0 0 22px rgba(127, 212, 255, 0.4);
+}
+
+.sounder-pointer::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: -2.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--foam);
+  box-shadow: 0 0 12px rgba(127, 212, 255, 0.9);
+}
+
+/* The flag. It occludes the engraved figures it passes, which is exactly what
+   a pointer on a real scale does. */
+.sounder-read {
+  position: absolute;
+  left: 17px;
+  top: -9px;
+  min-width: 40px;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 1px;
+  padding: 3px 6px;
+  border-radius: 4px;
   font-size: 10px;
-  letter-spacing: 0.14em;
-  color: rgba(245, 251, 254, 0.26);
-  text-shadow: 0 1px 5px rgba(2, 12, 22, 0.95);
-  transition: color 300ms ease, transform 300ms ease;
-  transform: translateX(-2px);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--foam);
+  background: rgba(4, 24, 43, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(190, 231, 245, 0.3),
+    0 6px 16px rgba(2, 12, 22, 0.55);
+  white-space: nowrap;
 }
 
-.depth-mark.on {
-  color: rgba(245, 251, 254, 0.82);
-  transform: translateX(0);
+.sounder-read b {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1180px) {
-  .depth-rail {
+.sounder-read em {
+  font-style: normal;
+  opacity: 0.5;
+}
+
+/* Below this the margin is narrower than the instrument, and a gauge sitting on
+   the words it is measuring is worse than no gauge. */
+@media (max-width: 1299px) {
+  .sounder {
     display: none;
   }
 }
@@ -1448,12 +1557,15 @@ p {
   animation-direction: alternate;
 }
 
+/* The bob amplitude is a variable because a fifteen-pixel swing is nothing on
+   a whale in open water and half its own body on a whale in a band a hundred
+   pixels tall, where it is the difference between a pod and a collision. */
 @keyframes bob {
   from {
-    transform: translate3d(0, -7px, 0) rotate(-2.5deg);
+    transform: translate3d(0, calc(var(--bob, 7px) * -1), 0) rotate(-2.5deg);
   }
   to {
-    transform: translate3d(0, 8px, 0) rotate(3deg);
+    transform: translate3d(0, var(--bob, 8px), 0) rotate(3deg);
   }
 }
 
@@ -1661,6 +1773,34 @@ p {
   transform: translate3d(0, calc(var(--sy) * 54px), 0);
 }
 
+/* --- The free water ---------------------------------------------------- */
+
+/* The two strips of hero the message is not standing in. Their edges come from
+   JS measuring the message, because the message is 17% to 87% of the hero on a
+   short laptop and 29% to 75% on a phone: any band picked by eye is right at
+   one window size and puts a whale through the headline at the next.
+   `container-type: size` is what lets a sprite ask how much water it has. */
+.band {
+  position: absolute;
+  --bob: 3px;
+  left: 0;
+  right: 0;
+  container-type: size;
+  pointer-events: none;
+}
+
+.band-top {
+  top: 0;
+  height: max(0px, calc(var(--free-top, 20%) - 14px));
+  transform: translate3d(0, calc(var(--sy) * 34px), 0);
+}
+
+.band-bottom {
+  top: calc(var(--free-bottom, 84%) + 14px);
+  bottom: 0;
+  transform: translate3d(0, calc(var(--sy) * 26px), 0);
+}
+
 .plane-mid {
   transform: translate3d(0, calc(var(--sy) * 68px), 0);
 }
@@ -1816,11 +1956,14 @@ p {
 .hero-scrim {
   position: absolute;
   inset: 0;
+  /* Barely there. It exists to lift the water a little under the headline, not
+     to draw a panel behind it — at half opacity it read as a rectangle with
+     edges, which is the last thing type this size needs. */
   background: radial-gradient(
-    ellipse 56% 50% at 50% 47%,
-    rgba(222, 244, 252, 0.5),
-    rgba(200, 236, 250, 0.2) 44%,
-    transparent 72%
+    ellipse 62% 54% at 50% 44%,
+    rgba(226, 246, 253, 0.22),
+    rgba(205, 238, 251, 0.08) 48%,
+    transparent 76%
   );
 }
 
@@ -1873,7 +2016,6 @@ p {
   color: var(--navy);
   line-height: 1.02;
   letter-spacing: -0.004em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 26px 60px rgba(4, 36, 62, 0.22);
 }
 
 /* Both layers of the stack must be set here, and by a selector that outranks
@@ -1908,8 +2050,6 @@ p {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  /* Its own shadow, since the parent's is painted over the clipped fill. */
-  text-shadow: 0 18px 44px rgba(4, 36, 62, 0.28);
 }
 
 /* The same words again, painted only where the swell is crossing them. */
@@ -2151,70 +2291,42 @@ section > .wrap {
 
 /* --- Stat strip ------------------------------------------------------- */
 
-/* The one hard-data moment on the page, and it used to be an opaque white slab
-   — which read as a different website spliced in below the hero. Glass instead:
-   the same instrument band, still bright enough to carry navy figures, but with
-   the water visibly running behind it so the column is never actually cut. */
-/* The readout at the waterline.
-   This was an opaque white slab, and it cut the column of water in half — the
-   one thing this page cannot afford, because the whole conceit is that you
-   never leave the water. It is submerged glass now: dark, lit along its top
-   edge because the light is above, with the figures glowing rather than
-   printed. It is also the moment the page changes hands from bright water to
-   dark, so it carries the transition instead of interrupting it. */
+/* The readout at the waterline: the one hard-data moment on the page.
+   It started as an opaque white slab, which cut the column of water in half.
+   It then became dark glass with four labels floating over empty placeholder
+   boxes, which on a dark band are invisible: a row of headings above nothing,
+   reading as a page that failed rather than a page waiting to start.
+   It is a panel now. Every reading carries a figure and a meter of the thing
+   that bounds it, so a pot at zero still shows you the shape of what fills.
+   The blur is gone with it. A full-bleed backdrop-filter over a moving scene
+   is re-composited every frame for an effect a gradient can fake exactly. */
 .strip {
   position: relative;
   overflow: hidden;
   z-index: 1;
-  background: linear-gradient(180deg, rgba(9, 42, 68, 0.82), rgba(5, 26, 44, 0.9));
-  backdrop-filter: blur(18px) saturate(130%);
-  border-block: 1px solid rgba(190, 231, 245, 0.18);
-  box-shadow:
-    inset 0 1px 0 rgba(190, 231, 245, 0.34),
-    0 30px 70px rgba(2, 12, 22, 0.4);
   color: var(--on-dark);
+  background:
+    linear-gradient(180deg, rgba(11, 48, 78, 0.94), rgba(4, 22, 39, 0.97)),
+    var(--trench-2);
+  border-block: 1px solid rgba(190, 231, 245, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(190, 231, 245, 0.32),
+    inset 0 -1px 0 rgba(190, 231, 245, 0.08),
+    0 30px 70px rgba(2, 12, 22, 0.4);
 }
 
-.strip .strip-label {
-  color: rgba(190, 231, 245, 0.62);
-}
-
-.strip .strip-value {
-  color: var(--foam);
-  text-shadow: 0 0 22px rgba(127, 212, 255, 0.35);
-}
-
-.strip .strip-value .unit,
-.strip .strip-sub {
-  color: var(--surface-2);
-}
-
-.strip-cell {
-  border-left: 1px solid rgba(190, 231, 245, 0.14);
-}
-
-.strip-cell:nth-child(even) {
-  background: rgba(190, 231, 245, 0.03);
-}
-
-.strip-cell::before {
-  background: var(--surface-2);
-  box-shadow: 0 0 14px rgba(143, 212, 238, 0.6);
-}
-
-.strip-foot {
-  border-top: 1px solid rgba(190, 231, 245, 0.14);
-  color: rgba(190, 231, 245, 0.5);
-}
-
-.strip-ghost {
-  background: linear-gradient(
-    100deg,
-    rgba(190, 231, 245, 0.07) 28%,
-    rgba(143, 212, 238, 0.2) 46%,
-    rgba(190, 231, 245, 0.07) 64%
-  );
-  background-size: 300% 100%;
+/* A sounder grid, engraved rather than drawn: two hairline gradients, no
+   filter, no blend mode, rasterised once and never touched again. */
+.strip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(190, 231, 245, 0.05) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(180deg, rgba(190, 231, 245, 0.04) 0 1px, transparent 1px 64px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 78%);
 }
 
 /* The same wave of light that crosses the hero, on the same nine seconds. */
@@ -2243,110 +2355,145 @@ section > .wrap {
 
 .strip-cell {
   position: relative;
-  padding: clamp(22px, 3vw, 38px) clamp(16px, 2.2vw, 30px);
-  border-left: 2px solid var(--navy);
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: clamp(24px, 3vw, 40px) clamp(18px, 2.2vw, 32px);
 }
 
-.strip-cell:first-child {
-  border-left: none;
-}
-
-/* Alternating luminance gives the strip a spine rather than one flat plane. */
-.strip-cell:nth-child(even) {
-  background: rgba(8, 31, 51, 0.022);
-}
-
-/* A short accent tick above each label. */
-.strip-cell::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: clamp(16px, 2.2vw, 30px);
-  width: 28px;
-  height: 3px;
-  background: var(--accent);
-}
-
-/* Darker than the other faint labels on the page: this one sits on glass with
-   moving water behind it, and --ink-faint does not survive that. */
-.strip-label {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-  margin: 0 0 12px;
-}
-
-.strip-value {
-  font-family: var(--display);
-  font-size: clamp(1.7rem, 3.6vw, 3rem);
-  line-height: 0.95;
-  color: var(--navy);
-  font-variant-numeric: tabular-nums;
-}
-
-.strip-value .unit {
-  font-size: 0.4em;
-  margin-left: 6px;
-  color: var(--ink-faint);
-}
-
-.strip-sub {
-  margin: 10px 0 0;
-  font-size: 0.8rem;
-  color: var(--accent);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Waiting should look intentional, not broken. */
-/* Waiting, on theme: a sonar line sweeping the cell rather than a skeleton bar. */
-.strip-sweep {
-  position: relative;
-  height: 34px;
-  width: 76%;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(8, 31, 51, 0.05);
-  border: 1px solid rgba(8, 31, 51, 0.08);
-}
-
-.strip-sweep::before {
+/* Cells are divided by light falling through water, not by a ruled line: the
+   hairline is brightest in the middle and gone at both ends. */
+.strip-cell + .strip-cell::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 50%;
-  width: 150%;
-  height: 150%;
-  transform-origin: 0 0;
-  background: conic-gradient(
-    from 0deg,
-    rgba(14, 122, 184, 0.26),
-    rgba(14, 122, 184, 0.04) 22%,
-    transparent 42%
+  top: 12%;
+  bottom: 12%;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(190, 231, 245, 0.26) 42%,
+    rgba(190, 231, 245, 0.1)
   );
-  animation: sweep var(--tempo-2) linear infinite;
 }
 
-@keyframes sweep {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.strip-label {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.6);
 }
 
+/* Inherits the page's figure rule: value in Anton, unit in mono at 40% on the
+   same baseline. */
+.strip-value {
+  margin: 0;
+  font-size: clamp(1.8rem, 3.4vw, 2.9rem);
+  color: var(--foam);
+  text-shadow: 0 0 26px rgba(127, 212, 255, 0.32);
+}
+
+.strip-value .unit {
+  color: var(--surface-2);
+  opacity: 0.72;
+}
+
+/* The meter. Each reading against whatever bounds it: the pot against the haul
+   threshold, the whales against the thousand, the burn against the supply. */
+.strip-meter {
+  position: relative;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(190, 231, 245, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.06);
+  overflow: hidden;
+}
+
+.strip-meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--v, 0) * 100%);
+  min-width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(14, 122, 184, 0.7), var(--surface-2));
+  box-shadow: 0 0 12px rgba(127, 212, 255, 0.5);
+  transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Even at zero the meter has a lit end, so an empty reading looks like an
+   instrument at rest rather than a bar that failed to render. */
+.strip-meter-fill::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 50%;
+  background: var(--foam);
+  box-shadow: 0 0 8px rgba(127, 212, 255, 0.9);
+}
+
+.strip-sub {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(190, 231, 245, 0.46);
+}
+
+/* The status rail: what the panel is doing, with a light on it. */
 .strip-foot {
   position: relative;
   z-index: 1;
-  border-top: 2px solid var(--navy);
-  padding: 12px var(--gutter);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 13px var(--gutter);
+  border-top: 1px solid rgba(190, 231, 245, 0.12);
+  background: rgba(2, 14, 26, 0.4);
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: rgba(190, 231, 245, 0.52);
   text-align: center;
+}
+
+.strip-ping {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface-2);
+  box-shadow: 0 0 10px rgba(143, 212, 238, 0.9);
+}
+
+/* One ring a beat, on the page's shared tempo. It is the only thing in the
+   panel that moves, and it is the thing that says the panel is awake. */
+.strip-ping::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 1px solid var(--surface-2);
+  animation: ping var(--tempo-2) ease-out infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
 }
 
 /* --- Steps ------------------------------------------------------------ */
@@ -2495,12 +2642,14 @@ section > .wrap {
   z-index: -1;
 }
 
-/* Cropped by the section edge, so it reads as bigger than the page. */
+/* Cropped by the section edge, so it reads as bigger than the page. Only the
+   tail goes over the edge: at -14% the crop reached past the eye and what was
+   left was a pale mass rather than an animal. */
 .whale-near {
   top: 10%;
-  right: -14%;
-  width: min(76vw, 960px);
-  opacity: 0.1;
+  right: -7%;
+  width: min(70vw, 880px);
+  opacity: 0.11;
   animation: cruise calc(var(--tempo-12) * 2) ease-in-out infinite alternate;
 }
 
@@ -2737,25 +2886,9 @@ section > .wrap {
   }
 }
 
-/* --- Type as environment ---------------------------------------------- */
-/* One oversized word behind the Trench, big enough to stop being a word. */
-
-.watermark {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
-  font-family: var(--display);
-  text-transform: uppercase;
-  font-size: 20vw;
-  line-height: 0.8;
-  color: var(--foam);
-  opacity: 0.04;
-  letter-spacing: 0.02em;
-  pointer-events: none;
-  z-index: -2;
-  white-space: nowrap;
-}
+/* The oversized word that used to sit behind the Trench is gone. At 4% opacity
+   it never became texture, it stayed a word — one you could half-read and not
+   quite dismiss, which is the worst thing a background can be. */
 
 /* --- Carousel --------------------------------------------------------- */
 
@@ -3325,11 +3458,13 @@ input:focus {
   .claims {
     border-radius: var(--radius);
   }
-  .strip-cell:nth-child(3) {
-    border-left: none;
+  /* Two up: the vertical divider is wrong on the first cell of the second row,
+     and the rows need one of their own. */
+  .strip-cell:nth-child(odd)::before {
+    display: none;
   }
   .strip-cell:nth-child(n + 3) {
-    border-top: 2px solid var(--navy);
+    border-top: 1px solid rgba(190, 231, 245, 0.12);
   }
   .whale-near {
     top: 4%;
@@ -3347,11 +3482,11 @@ input:focus {
   .claims {
     grid-template-columns: 1fr;
   }
-  .strip-cell {
-    border-left: none;
+  .strip-cell::before {
+    display: none;
   }
   .strip-cell + .strip-cell {
-    border-top: 2px solid var(--navy);
+    border-top: 1px solid rgba(190, 231, 245, 0.12);
   }
   .nav-brand {
     display: none;
@@ -3404,7 +3539,7 @@ input:focus {
   .whale-near,
   .whale-far,
   .waterline path,
-  .strip-sweep::before,
+  .strip-ping::after,
   .coin,
   .burst {
     animation: none !important;

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { onDive } from "../dive.js";
 
 /**
  * The water itself. Everything here is fixed to the viewport and driven by one
@@ -33,31 +34,20 @@ const MOTES = PLANES.map((plane, planeIndex) =>
 export default function Atmosphere() {
   const ref = useRef(null);
 
-  // Parallax is written straight to CSS variables inside a rAF, so scrolling
-  // never triggers a React render.
+  /* Parallax through the page's one shared scroll subscription. This used to
+     own a second scroll listener and a second rAF of its own; there is now
+     exactly one of each for the whole document. */
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        const y = window.scrollY;
-        node.style.setProperty("--p1", `${y * -PLANES[0].speed}px`);
-        node.style.setProperty("--p2", `${y * -PLANES[1].speed}px`);
-        node.style.setProperty("--p3", `${y * -PLANES[2].speed}px`);
-      });
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) cancelAnimationFrame(frame);
-    };
+    return onDive(() => {
+      const y = window.scrollY;
+      node.style.setProperty("--p1", `${y * -PLANES[0].speed}px`);
+      node.style.setProperty("--p2", `${y * -PLANES[1].speed}px`);
+      node.style.setProperty("--p3", `${y * -PLANES[2].speed}px`);
+    });
   }, []);
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useOcean, useWhales, useEthPrice, useDepth, useWallet, useHaulSignal } from "./hooks.js";
+import { useOcean, useWhales, useEthPrice, useDive, useWallet, useHaulSignal } from "./hooks.js";
 import { CONFIGURED, CHAIN } from "./config.js";
 import Nav from "./components/Nav.jsx";
 import Hero from "./components/Hero.jsx";
@@ -11,7 +11,7 @@ import Dashboard from "./components/Dashboard.jsx";
 import Footer from "./components/Footer.jsx";
 import Celebration from "./components/Celebration.jsx";
 import Atmosphere, { AtmosphereDefs } from "./components/Atmosphere.jsx";
-import { Waterline, DepthMarkers } from "./components/Depth.jsx";
+import { Waterline, DiveGauge } from "./components/Depth.jsx";
 import Cursor, { useCardTilt } from "./components/Cursor.jsx";
 import Overture, { useOverture } from "./components/Overture.jsx";
 
@@ -19,23 +19,11 @@ export default function App() {
   const { data: ocean, error, refresh } = useOcean();
   const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
   const price = useEthPrice();
-  const depth = useDepth();
+  const deep = useDive();
   const wallet = useWallet();
   const haulSignal = useHaulSignal(ocean?.haulCount);
   const overture = useOverture();
   useCardTilt();
-
-  // One scroll value drives the whole water column.
-  //   sun      — light exists only in the top slice of the dive.
-  //   depth    — darkness, arriving with the Trench.
-  //   pressure — the physical cues: the column narrows, shadows spread,
-  //              timings lengthen. Imperceptible one at a time.
-  useEffect(() => {
-    const root = document.documentElement.style;
-    root.setProperty("--sun", String(Math.max(0, 1 - depth / 0.15)));
-    root.setProperty("--depth", String(Math.min(1, Math.max(0, (depth - 0.26) / 0.5))));
-    root.setProperty("--pressure", String(Math.min(1, Math.max(0, depth))));
-  }, [depth]);
 
   const refreshAll = () => {
     refresh();
@@ -62,11 +50,11 @@ export default function App() {
       <div className="dive" />
       <AtmosphereDefs />
       <Atmosphere />
-      <DepthMarkers />
+      <DiveGauge />
 
       {/* The pill inverts once the water is dark enough that a light pill
           stops reading — a little before the section boundary, not after. */}
-      <Nav deep={depth > 0.2} live={live} />
+      <Nav deep={deep} live={live} />
       <Celebration trigger={haulSignal} />
       <Overture playing={overture} />
       <Cursor />

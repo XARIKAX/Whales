@@ -9,6 +9,9 @@ import { FISH, SHOALS } from "./fish.js";
  * its own. `beat` is seconds per tail stroke — small creatures beat fast and
  * whales beat slowly, and that difference in cadence is most of what sells the
  * difference in size, more than the scale itself.
+ *
+ * `height` takes a number of pixels or any CSS length, so a caller can hand it
+ * a `min()` against the band it is swimming in rather than a fixed size.
  */
 export default function Creature({
   kind = "whale",
@@ -34,7 +37,7 @@ export default function Creature({
       style={{
         backgroundImage: art.url,
         aspectRatio: `${art.width} / ${art.height}`,
-        height: `${height}px`,
+        height: typeof height === "number" ? `${height}px` : height,
         animationDuration: `${beat}s`,
         animationDelay: `${-phase}s`,
         ...style,

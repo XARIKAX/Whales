@@ -2,7 +2,7 @@ import { formatEther } from "viem";
 
 /** ETH with enough precision to see a small pot move, without noise. */
 export function eth(wei, places = 4) {
-  if (wei === undefined || wei === null) return "—";
+  if (wei === undefined || wei === null) return "0";
   const value = Number(formatEther(wei));
   if (value === 0) return "0";
   if (value < 10 ** -places) return `<${10 ** -places}`;
@@ -21,7 +21,7 @@ export function usd(wei, price) {
 
 /** $WHALE amounts, which run to the billions. */
 export function whale(wei) {
-  if (wei === undefined || wei === null) return "—";
+  if (wei === undefined || wei === null) return "0";
   const value = Number(formatEther(wei));
   if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
   if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
@@ -35,7 +35,7 @@ export function multiplier(weight) {
 }
 
 export function address(value) {
-  if (!value) return "—";
+  if (!value) return "not set";
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 

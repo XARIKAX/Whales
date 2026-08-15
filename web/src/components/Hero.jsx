@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import WhaleArt from "./WhaleArt.jsx";
-import Marine, { useOnScreen } from "./Marine.jsx";
+import Marine, { Leviathan, useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
 import { eth, usd, multiplier } from "../format.js";
 import { DOCS_URL } from "../config.js";
 import Reveal from "./Reveal.jsx";
+import { onDive } from "../dive.js";
 
 /* --- Bubbles ------------------------------------------------------------ */
 
@@ -27,38 +28,60 @@ const BUBBLES = Array.from({ length: 34 }, (_, i) => {
 /* --- Drift -------------------------------------------------------------- */
 
 /**
- * How far the hero has scrolled past, written to one CSS variable inside a rAF.
- * The planes read it and move by different amounts, which is the cheapest
- * convincing parallax there is — and it never triggers a React render.
+ * How far the hero has scrolled past, plus where the message actually sits.
  *
- * There is deliberately no pointer term. Tying the scene to the cursor made
- * every plane twitch under the smallest mouse movement, and a whale that flinches
- * when you reach for a button is not a whale, it is a bug.
+ * Both are CSS variables the scene reads. The hero's geometry is measured on
+ * mount, on resize and once the display face has loaded, and cached in between.
+ * The previous version called `getBoundingClientRect()` inside the scroll
+ * handler, which forces a synchronous layout of the document on every frame you
+ * scroll — and it was one of three places doing that.
+ *
+ * `--free-top` and `--free-bottom` are the top and bottom of the message as a
+ * share of the hero, and they are the reason nothing swims over the words. The
+ * shoals used to sit in bands picked by eye, which held at one window size and
+ * put a whale through the readout at the next: the message runs from 17% to 87%
+ * of the hero on a short laptop and from 29% to 75% on a phone. Measured, the
+ * water above and below it is exactly the water that is free.
+ *
+ * There is deliberately no pointer term either. Tying the scene to the cursor
+ * made every plane twitch under the smallest mouse movement.
  */
 function useDrift(ref) {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let frame = 0;
-    const write = () => {
-      frame = 0;
-      const box = node.getBoundingClientRect();
-      const sy = Math.max(0, Math.min(1, -box.top / Math.max(1, box.height)));
-      node.style.setProperty("--sy", sy.toFixed(4));
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(write);
+    const inner = node.querySelector(".hero-inner");
+    let top = 0;
+    let height = 1;
+
+    const measure = () => {
+      top = node.offsetTop;
+      height = node.offsetHeight || 1;
+      if (!inner) return;
+      const from = (inner.offsetTop / height) * 100;
+      const to = ((inner.offsetTop + inner.offsetHeight) / height) * 100;
+      node.style.setProperty("--free-top", `${from.toFixed(2)}%`);
+      node.style.setProperty("--free-bottom", `${to.toFixed(2)}%`);
     };
 
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    measure();
+    /* Anton arrives after first paint and the headline changes height when it
+       does. Measured before that, the bands are set against the fallback face. */
+    document.fonts?.ready.then(measure).catch(() => {});
+    window.addEventListener("resize", measure);
+
+    let stop;
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      stop = onDive(() => {
+        const sy = Math.max(0, Math.min(1, (window.scrollY - top) / height));
+        node.style.setProperty("--sy", sy.toFixed(4));
+      });
+    }
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+      stop?.();
     };
   }, [ref]);
 }
@@ -234,19 +257,27 @@ export default function Hero({ featured, price, wallet, live }) {
         <div className="hero-water" />
         <Ceiling />
 
-        {/* Deepest first: the leviathan and the far shoal barely move with the
-            pointer, which is what makes them read as distant. */}
+        {/* Deepest first. The leviathan gets the whole hero because it is the
+            one thing big enough to pass behind the words without reading as a
+            collision: at that scale and that opacity it is weather, not an
+            animal in the way. */}
         <div className="plane plane-deep">
-          <Marine plane="far" seed={3} leviathan />
+          <Leviathan />
         </div>
 
         {/* The rays sit between the far and mid shoals, so distant fish are lit
             through them and nearer ones are silhouetted against them. */}
         <Rays />
 
-        {/* The pod, in the open water below the message. */}
-        <div className="plane plane-pod">
+        {/* The two bands of free water, measured off the message itself. The
+            pod takes the open water above it, the reef fish take the kelp
+            below it, and neither can reach the words in between. */}
+        <div className="band band-top">
           <Marine plane="pod" seed={11} />
+        </div>
+
+        <div className="band band-bottom">
+          <Marine plane="reef" seed={3} />
         </div>
 
         <Kelp side="left" />
@@ -330,12 +361,10 @@ export default function Hero({ featured, price, wallet, live }) {
         </Reveal>
       </div>
 
-      {/* --- The near field. It renders after the message, so these fish swim
-          between the reader and the headline — the single move that stops the
-          scene being a backdrop. */}
-      <div className="plane plane-near" aria-hidden="true">
-        <Marine plane="near" seed={47} />
-      </div>
+      {/* Nothing swims in front of the message. The near plane used to render
+          after the content so a whale crossed the headline; it was the best
+          trick in the scene and it was also a whale sitting on the only line
+          anybody reads. Bubbles are allowed in front. Animals are not. */}
 
       {/* The near bubbles rise in FRONT of the message. Water is between the
           reader and the page, not just behind it — this is the layer that says

@@ -32,6 +32,12 @@ import Whale from "./Whale.jsx";
  * looking at something else. Parking the animations the moment a scene leaves
  * the viewport is the largest saving available, and costs nothing visually
  * because nobody is looking.
+ *
+ * Coming back is immediate; leaving waits. Parked in both directions, a reader
+ * sitting on the boundary and nudging the wheel pauses and resumes seventy-one
+ * animations several times a second, which is the exact scroll-up stutter this
+ * was supposed to prevent. Asymmetry costs a few hundred milliseconds of
+ * animation nobody can see and removes the failure mode entirely.
  */
 export function useOnScreen(ref, margin = "300px") {
   const [near, setNear] = useState(true);
@@ -40,12 +46,22 @@ export function useOnScreen(ref, margin = "300px") {
     const node = ref.current;
     if (!node || typeof IntersectionObserver === "undefined") return;
 
+    let timer = 0;
     const observer = new IntersectionObserver(
-      (entries) => setNear(entries.some((entry) => entry.isIntersecting)),
+      (entries) => {
+        const visible = entries.some((entry) => entry.isIntersecting);
+        clearTimeout(timer);
+        if (visible) setNear(true);
+        else timer = setTimeout(() => setNear(false), 500);
+      },
       { rootMargin: margin }
     );
+
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, [ref, margin]);
 
   return near;
@@ -71,14 +87,24 @@ const pick = (r, [lo, hi]) => lo + r() * (hi - lo);
  * alone: a CSS blur on a moving element is re-rasterised every frame, and twenty
  * of them was half the reason this page could not hold a frame rate.
  */
+/*
+ * `y` is now a share of the band the plane is dropped into rather than of the
+ * whole hero, and `cap` is the tallest a sprite may be as a share of that band.
+ * On a short laptop the water below the message is a hundred pixels; three
+ * forty-pixel whales in a hundred pixels is a pile, not a pod, so they shrink
+ * to fit the water they have instead of climbing out of it.
+ */
 const PLANES = {
-  /* Small fish, hazy and slow, a long way out. Detail, not cast. */
-  far: { n: 4, kind: "fish", size: [9, 13], cross: [66, 94], y: [9, 25], opacity: 0.26, beat: [0.62, 0.92] },
-  /* The pod, in the open water below the message. */
-  pod: { n: 3, kind: "whale", size: [26, 42], cross: [50, 82], y: [56, 86], opacity: 0.9, beat: [1.4, 2.4] },
-  /* One, close enough to pass in front of the headline. One is the whole
-     effect; three was a traffic jam over the only words that matter. */
-  near: { n: 1, kind: "whale", size: [54, 66], cross: [34, 44], y: [31, 43], opacity: 0.7, beat: [1.1, 1.4] },
+  /* The pod, in the open water above the message. It gets the upper band
+     because the upper band is the one with room: measured across every window
+     size, the water above the headline runs 110px to 270px and the water below
+     the readout runs 55px to 115px, most of which is wave. Whales near the
+     surface is also simply where whales are. */
+  pod: { n: 3, kind: "whale", size: [26, 42], cross: [50, 82], y: [0, 96], cap: 24, opacity: 0.85, beat: [1.4, 2.4] },
+  /* Reef fish in the kelp at the foot of the hero. Scenery, not cast, but close
+     enough now to have colour: at the top of the scene they were nine grey
+     pixels at a quarter opacity, which is not detail, it is dust. */
+  reef: { n: 4, kind: "fish", size: [11, 18], cross: [58, 88], y: [0, 96], cap: 20, opacity: 0.44, beat: [0.6, 0.95] },
   /* Below the hero: life thins and slows as the page descends. */
   drift: { n: 3, kind: "whale", size: [22, 36], cross: [62, 92], y: [10, 84], opacity: 0.5, beat: [1.6, 2.6] },
   sparse: { n: 2, kind: "fish", size: [20, 32], cross: [74, 104], y: [14, 80], opacity: 0.55, beat: [0.7, 1.1] },
@@ -102,15 +128,24 @@ function school(plane, seed, shoal) {
     const rightward = r() > 0.55;
     /* One lane each, with the jitter kept inside it. Placed independently they
        clump: creatures drawn at random heights line up, cross, and blot each
-       other out, which reads as a rendering fault rather than as a pod. */
+       other out, which reads as a rendering fault rather than as a pod.
+       A sprite hangs below its anchor, so on a capped plane the jitter has to
+       stop a whole sprite short of the next lane. Jittering across the full
+       lane made lanes stop being lanes the moment the band got short, which is
+       exactly when the collisions actually happen. */
     const [y0, y1] = spec.y;
     const lane = (y1 - y0) / spec.n;
+    const slack = spec.cap ? Math.max(0, lane - spec.cap) : lane * 0.7;
     return {
       key: `${plane}-${i}`,
       species: palette[Math.floor(r() * palette.length)],
       kind: spec.kind,
-      size: pick(r, spec.size),
-      y: y0 + lane * (i + 0.15 + r() * 0.7),
+      /* A length, not a number: where a plane declares a cap, the sprite takes
+         whichever is smaller, its own size or that share of its band. */
+      size: spec.cap
+        ? `min(${Math.round(pick(r, spec.size))}px, ${spec.cap}cqh)`
+        : `${Math.round(pick(r, spec.size))}px`,
+      y: y0 + lane * i + (spec.cap ? 0 : lane * 0.15) + r() * slack,
       cross,
       rightward,
       beat: pick(r, spec.beat),
@@ -167,8 +202,12 @@ function Swimmer({ fish, opacity }) {
  * not pixel art. At six hundred pixels wide a pixel grid has cells the size of
  * a fingernail; upscaled at six percent opacity that does not read as distance,
  * it reads as a broken image.
+ *
+ * It is also the only thing allowed to cross behind the message, because at
+ * that scale and that opacity it stops being an animal in the way and becomes
+ * weather.
  */
-function Leviathan() {
+export function Leviathan() {
   return (
     <span className="swimmer leviathan" style={{ "--from": "calc(100vw + 34rem)", "--to": "-38rem" }}>
       <span className="swimmer-bob leviathan-bob">

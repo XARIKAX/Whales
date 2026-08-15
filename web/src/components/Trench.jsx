@@ -36,14 +36,15 @@ export default function Trench({ ocean, live, price }) {
 
   return (
     <section className="deep" id="trench">
-      <Whale className="whale-near" />
+      {/* The near one is mirrored because it is cropped by the right edge and
+          it drifts left: nose-right, the crop took the nose and left a pale
+          mass, and the drift ran it backwards. Nose-left, the crop takes the
+          tail, which nobody was reading, and it moves the way it points. */}
+      <Whale className="whale-near" mirrored />
       <Whale className="whale-far" />
       {/* Three of them, barely moving, and the only colour left down here is
           the lure. */}
       <SectionLife plane="sparse" shoal="abyss" seed={83} />
-      <span className="watermark" aria-hidden="true">
-        Deeper
-      </span>
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">The Trench</p>

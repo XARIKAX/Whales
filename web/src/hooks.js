@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { POLL_MS, CONFIGURED } from "./config.js";
 import { readOcean, readWhales, readArt, readEthPrice, getWalletClient } from "./chain.js";
+import { onDive } from "./dive.js";
 
 /** Re-reads the chain on an interval so the pot moves without a refresh. */
 export function useOcean() {
@@ -109,25 +110,38 @@ export function useEthPrice() {
   return price;
 }
 
-/** Tracks how deep the reader has scrolled, to fade the sunlight out. */
-export function useDepth() {
-  const [depth, setDepth] = useState(0);
+/**
+ * Drives the water column from one shared scroll subscription.
+ *
+ * The light, the darkness and the pressure are written straight to CSS
+ * variables — never through React. This fires on every scroll frame, and the
+ * previous version put it through `setState`, which re-rendered every component
+ * on the page sixty times a second for a value only the stylesheet consumes.
+ *
+ * The one thing that does come back as state is a coarse boolean for the nav,
+ * and it only changes twice in the whole document.
+ */
+export function useDive() {
+  const [deep, setDeep] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => {
-      const max = document.body.scrollHeight - window.innerHeight;
-      setDepth(max > 0 ? Math.min(1, window.scrollY / max) : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    const root = document.documentElement.style;
+    let wasDeep = false;
+
+    return onDive((progress) => {
+      root.setProperty("--sun", String(Math.max(0, 1 - progress / 0.15)));
+      root.setProperty("--depth", String(Math.min(1, Math.max(0, (progress - 0.26) / 0.5))));
+      root.setProperty("--pressure", String(progress));
+
+      const nowDeep = progress > 0.2;
+      if (nowDeep !== wasDeep) {
+        wasDeep = nowDeep;
+        setDeep(nowDeep);
+      }
+    });
   }, []);
 
-  return depth;
+  return deep;
 }
 
 /** Wallet connection, kept deliberately thin: one account, one chain. */
