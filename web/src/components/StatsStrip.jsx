@@ -23,12 +23,12 @@ function Pending() {
           {["Trench pot", "Total hauled all-time", "Whales activated", "$WHALE burned"].map(
             (label) => (
               <Cell key={label} label={label}>
-                <div className="strip-ghost" />
+                <div className="strip-sweep" aria-label="Awaiting deployment" />
               </Cell>
             )
           )}
         </div>
-        <p className="strip-foot">Goes live at deployment</p>
+        <p className="strip-foot">Awaiting deployment</p>
       </div>
     </>
   );

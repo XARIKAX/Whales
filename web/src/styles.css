@@ -1,5 +1,17 @@
-@import "@fontsource/anton/400.css";
 @import "@fontsource-variable/space-grotesk";
+
+/* Anton is declared here rather than imported from @fontsource so that the
+   file the browser preloads in index.html is the exact file the headline
+   uses — one copy, fetched once. `block` rather than `swap`: the hero
+   headline should arrive as Anton or not yet, never as a fallback that
+   reflows. */
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/anton-latin-400-normal.woff2") format("woff2");
+}
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
@@ -45,13 +57,46 @@
   --body: "Space Grotesk Variable", "Space Grotesk", "Inter", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
+  /* --- Type scale. Six steps on a 1.25 ratio; nothing lives outside it. --- */
+  --t-2: 0.64rem;   /* 10.2px — tick labels */
+  --t-1: 0.8rem;    /* 12.8px — mono labels, fine print */
+  --t0: 1rem;       /* 16px   — body */
+  --t1: 1.25rem;    /* 20px   — lede */
+  --t2: 1.5625rem;  /* 25px   — card titles */
+  --t3: 1.953rem;   /* 31.25px — section sub-heads */
+
+  /* --- Tempo. Every ambient loop is a multiple of one number, so the whole
+         page breathes at related rates. --- */
+  --tempo: 6s;
+  --tempo-2: 12s;
+  --tempo-4: 24s;
+  --tempo-8: 48s;
+  --tempo-12: 72s;
+
+  /* --- Motion. One curve for everything that moves under a finger. --- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --quick: 200ms;
+  --settle: 300ms;
+
   --gutter: clamp(16px, 4vw, 48px);
   --max: 1240px;
   --radius: 18px;
 
-  /* Written by JS: 1 at the surface, 0 in the deep. */
+  /* --- Written by JS on scroll. ---
+     --sun      1 at the surface, 0 by the light-death zone.
+     --depth    0 until the Trench, 1 in the abyss.
+     --pressure the same descent, but used for the physical cues: margins
+                tighten, shadows spread, timings lengthen. Individually
+                imperceptible; together they read as depth. */
   --sun: 1;
   --depth: 0;
+  --pressure: 0;
+
+  /* Derived from pressure — the column narrows by 4% as you sink. */
+  --squeeze: calc(1 - var(--pressure) * 0.04);
+  --shadow-spread: calc(60px + var(--pressure) * 34px);
+  --shadow-alpha: calc(0.2 + var(--pressure) * 0.3);
 }
 
 * {
@@ -305,6 +350,161 @@ a:hover {
   mix-blend-mode: overlay;
 }
 
+
+/* --- Figures: one rule for every number on the page -------------------- */
+/* Value in Anton, unit in mono at 40%, sitting on the same baseline. */
+
+.figure {
+  font-family: var(--display);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.32em;
+}
+
+.figure .unit {
+  font-family: var(--mono);
+  font-size: 0.4em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+/* --- Bioluminescence -------------------------------------------------- */
+/* In the abyss the only light left is the interface itself. Cards emit
+   rather than reflect, and the glow breathes on the shared tempo. */
+
+.glass.on-dark {
+  box-shadow:
+    0 24px var(--shadow-spread) rgba(4, 24, 43, var(--shadow-alpha)),
+    inset 0 1px 0 rgba(245, 251, 254, 0.1),
+    0 0 calc(var(--depth) * 46px) calc(var(--depth) * -12px) rgba(127, 212, 255, 0.28);
+}
+
+.fact,
+.whale-tile.fed {
+  animation: breathe var(--tempo) ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(calc(1 + var(--depth) * 0.045));
+  }
+}
+
+/* --- Depth gauge ------------------------------------------------------ */
+/* The rail is the dive meter: a tick per zone and an indicator that tracks
+   scroll, so the descent is measurable rather than only felt. */
+
+.gauge-rail {
+  position: absolute;
+  left: 3px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(245, 251, 254, 0.05),
+    rgba(245, 251, 254, 0.22),
+    rgba(245, 251, 254, 0.05)
+  );
+}
+
+.gauge-needle {
+  position: absolute;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  box-shadow: 0 0 8px rgba(143, 212, 238, 0.9);
+  transition: top 220ms linear;
+}
+
+.depth-mark {
+  position: relative;
+  padding-left: 16px;
+}
+
+/* A tick joining each label to the rail. */
+.depth-mark::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 7px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* --- Section transitions ---------------------------------------------- */
+
+/* Light → Trench: a tall zone where the light visibly dies. Saturation
+   drains on scroll, which is the most cinematic moment on the page. */
+.light-death {
+  position: relative;
+  height: 60vh;
+  margin-block: -12vh;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(6, 34, 58, calc(var(--depth) * 0.34)) 55%,
+    transparent
+  );
+}
+
+/* Trench → Pod: whale song, drawn as sonar. */
+.sonar {
+  position: relative;
+  height: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sonar span {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border: 1px solid rgba(143, 212, 238, 0.5);
+  border-radius: 50%;
+  opacity: 0;
+  animation: sonar var(--tempo-4) ease-out infinite;
+}
+
+.sonar span:nth-child(2) {
+  animation-delay: calc(var(--tempo-4) / 3);
+}
+
+.sonar span:nth-child(3) {
+  animation-delay: calc(var(--tempo-4) / 3 * 2);
+}
+
+@keyframes sonar {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.5;
+  }
+  60%,
+  100% {
+    transform: scale(9);
+    opacity: 0;
+  }
+}
+
 /* --- Waterline and depth rail ----------------------------------------- */
 
 .waterline {
@@ -333,12 +533,12 @@ a:hover {
 
 .waterline path:first-child {
   stroke-opacity: 0.3;
-  animation: waterline-a 26s ease-in-out infinite alternate;
+  animation: waterline-a var(--tempo-4) ease-in-out infinite alternate;
 }
 
 .waterline path:last-child {
   stroke-opacity: 0.14;
-  animation: waterline-b 34s ease-in-out infinite alternate;
+  animation: waterline-b calc(var(--tempo-4) * 1.5) ease-in-out infinite alternate;
 }
 
 @keyframes waterline-a {
@@ -409,9 +609,10 @@ a:hover {
 
 .wrap {
   width: 100%;
-  max-width: var(--max);
+  max-width: calc(var(--max) * var(--squeeze));
   margin: 0 auto;
   padding-inline: var(--gutter);
+  transition: max-width 600ms linear;
 }
 
 section {
@@ -459,6 +660,7 @@ section {
 
 .display {
   font-family: var(--display);
+  text-wrap: balance;
   text-transform: uppercase;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -518,9 +720,9 @@ h3.display {
 }
 
 .lede {
-  font-size: clamp(1.02rem, 1.5vw, 1.18rem);
+  font-size: clamp(1.02rem, 1.5vw, var(--t1));
   line-height: 1.65;
-  max-width: 60ch;
+  max-width: 58ch;
   margin: 0;
   color: var(--ink-body);
 }
@@ -532,6 +734,7 @@ h3.display {
 
 p {
   line-height: 1.65;
+  text-wrap: pretty;
 }
 
 .num {
@@ -706,6 +909,177 @@ p {
   color: var(--gold);
 }
 
+
+/* --- Micro-interactions ----------------------------------------------- */
+/* One physics family: everything under a finger uses --quick/--settle and
+   the single --ease curve, so the page feels like one object. */
+
+/* A bubble escapes from behind a button when it is pressed. Once per press. */
+.btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn:active:not(:disabled)::after {
+  animation: escape 620ms var(--ease-out);
+}
+
+@keyframes escape {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-30px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Cards lean toward the cursor, and only the lit edge brightens. */
+@media (hover: hover) and (pointer: fine) {
+  .fact,
+  .step,
+  .whale-tile {
+    transform: perspective(900px) rotateX(calc(var(--ty, 0) * -1.5deg))
+      rotateY(calc(var(--tx, 0) * 1.5deg)) translateY(var(--lift, 0));
+    transition: transform var(--settle) var(--ease), box-shadow var(--settle) var(--ease);
+  }
+
+  .fact:hover,
+  .step:hover,
+  .whale-tile:hover {
+    --lift: -2px;
+  }
+
+  /* The pod reacts: neighbours of a hovered whale lean away. */
+  .whale-tile:hover + .whale-tile {
+    --tx: -0.9;
+    transform: perspective(900px) rotateY(-1.4deg) translateX(2px);
+  }
+}
+
+/* Nav links underline with a waveline, not a rule. */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  bottom: 5px;
+  height: 4px;
+  background-repeat: repeat-x;
+  background-size: 12px 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M0 2c1.5-2 3-2 4.5 0S9 4 12 2' fill='none' stroke='%230e7ab8' stroke-width='1'/%3E%3C/svg%3E");
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity var(--quick) var(--ease), transform var(--quick) var(--ease);
+}
+
+.nav-pill.deep .nav-link::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='4' viewBox='0 0 12 4'%3E%3Cpath d='M0 2c1.5-2 3-2 4.5 0S9 4 12 2' fill='none' stroke='%238fd4ee' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.nav-link:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Wallet button states --------------------------------------------- */
+
+.btn .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #46e0b0;
+  box-shadow: 0 0 8px rgba(70, 224, 176, 0.85);
+  flex: none;
+}
+
+.btn.connecting {
+  pointer-events: none;
+}
+
+.btn.connecting::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid currentColor;
+  opacity: 0;
+  animation: connect-pulse calc(var(--tempo) / 4) ease-out infinite;
+}
+
+@keyframes connect-pulse {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.06);
+    opacity: 0;
+  }
+}
+
+/* --- Cursor ----------------------------------------------------------- */
+/* A soft ripple trailing the pointer. Desktop only; removed on touch. */
+
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  border: 1px solid rgba(143, 212, 238, 0.55);
+  pointer-events: none;
+  z-index: 90;
+  opacity: 0.2;
+  transition: opacity var(--settle) var(--ease);
+  will-change: transform;
+}
+
+.cursor-click {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  border: 1px solid rgba(143, 212, 238, 0.7);
+  pointer-events: none;
+  z-index: 90;
+  animation: click-ring 620ms var(--ease-out) forwards;
+}
+
+@keyframes click-ring {
+  from {
+    transform: scale(0.4);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(3.6);
+    opacity: 0;
+  }
+}
+
 /* --- Glass ------------------------------------------------------------ */
 
 .glass {
@@ -792,6 +1166,142 @@ p {
 .step:hover::after,
 .whale-tile:hover::after {
   animation: ripple 600ms ease-out;
+}
+
+/* --- The overture ----------------------------------------------------- */
+/* Deep water, light blooming from above, the surface rising past the camera.
+   1.5s, once per session, and never for reduced motion. */
+
+.overture {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.overture-deep {
+  position: absolute;
+  inset: 0;
+  background: var(--trench-2);
+  animation: overture-clear 1500ms var(--ease-out) forwards;
+}
+
+.overture-bloom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% -10%,
+    rgba(255, 255, 255, 0.9),
+    rgba(143, 212, 238, 0.4) 40%,
+    transparent 72%
+  );
+  opacity: 0;
+  animation: overture-bloom 1500ms var(--ease-out) forwards;
+}
+
+/* The surface itself, sweeping down past the viewer as they break through. */
+.overture-surface {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 42vh;
+  top: -46vh;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(190, 231, 245, 0.7) 62%,
+    rgba(255, 255, 255, 0.92) 82%,
+    transparent
+  );
+  filter: blur(6px);
+  animation: overture-rise 1500ms var(--ease-out) forwards;
+}
+
+@keyframes overture-clear {
+  0% {
+    opacity: 1;
+  }
+  58% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes overture-bloom {
+  0% {
+    opacity: 0;
+    transform: translateY(-8%) scale(1.1);
+  }
+  42% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes overture-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(150vh);
+    opacity: 0;
+  }
+}
+
+/* The headline sets in behind a mask rather than fading — type should arrive
+   already solid, the way it would be printed.
+   Selected on `.hero-title` rather than on `h1`, because the hero headline is
+   two stacked layers — the <h1> and its aria-hidden glint twin — and anything
+   that applies to one of them has to apply to both or the pair ghosts.
+   No padding to keep the mask off the glyphs, and deliberately no margins to
+   claw it back: Anton's uppercase ink runs from 0.13em to 0.86em below the top
+   of the line box, which clears this line-height on its own. A negative margin
+   here collapses out of the in-flow <h1> but not out of the absolutely
+   positioned twin, and the pair lands ten pixels apart. */
+.hero-title .line {
+  display: block;
+  overflow: hidden;
+}
+
+.hero-title .line > span {
+  display: block;
+  transform: translateY(102%);
+  animation: set-in 900ms var(--ease-out) forwards;
+  animation-delay: var(--line-delay, 0ms);
+}
+
+.hero-title .line:nth-child(2) > span {
+  --line-delay: 110ms;
+}
+
+@keyframes set-in {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* At rest, the hero card bobs on the shared tempo. */
+.featured.afloat {
+  animation: afloat var(--tempo) ease-in-out infinite;
+}
+
+@keyframes afloat {
+  0%,
+  100% {
+    transform: translateY(-3px) rotate(-0.3deg);
+  }
+  50% {
+    transform: translateY(3px) rotate(0.3deg);
+  }
 }
 
 /* --- Pixel life ------------------------------------------------------- */
@@ -1416,7 +1926,10 @@ p {
 /* --- Readout ----------------------------------------------------------- */
 
 /* The instrument rail: one horizontal plane that gives the centred composition
-   a base to stand on, the way the reference's subscribe bar does. */
+   a base to stand on, the way the reference's subscribe bar does. It replaces
+   the featured card that used to sit beside the headline, so the old `.featured`
+   block and the first-generation `.bubble` and `.wave-edge` rules that lived
+   here have gone with it — the hero has its own of each now. */
 .hero-readout {
   margin: clamp(26px, 3vw, 38px) auto 0;
   max-width: 960px;
@@ -1688,26 +2201,40 @@ section > .wrap {
 }
 
 /* Waiting should look intentional, not broken. */
-.strip-ghost {
-  height: 30px;
-  width: 72%;
+/* Waiting, on theme: a sonar line sweeping the cell rather than a skeleton bar. */
+.strip-sweep {
+  position: relative;
+  height: 34px;
+  width: 76%;
   border-radius: 6px;
-  background: linear-gradient(
-    100deg,
-    rgba(8, 31, 51, 0.07) 28%,
-    rgba(14, 122, 184, 0.16) 46%,
-    rgba(8, 31, 51, 0.07) 64%
-  );
-  background-size: 300% 100%;
-  animation: shimmer 4.5s ease-in-out infinite;
+  overflow: hidden;
+  background: rgba(8, 31, 51, 0.05);
+  border: 1px solid rgba(8, 31, 51, 0.08);
 }
 
-@keyframes shimmer {
+.strip-sweep::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 150%;
+  height: 150%;
+  transform-origin: 0 0;
+  background: conic-gradient(
+    from 0deg,
+    rgba(14, 122, 184, 0.26),
+    rgba(14, 122, 184, 0.04) 22%,
+    transparent 42%
+  );
+  animation: sweep var(--tempo-2) linear infinite;
+}
+
+@keyframes sweep {
   from {
-    background-position: 140% 0;
+    transform: rotate(0deg);
   }
   to {
-    background-position: -40% 0;
+    transform: rotate(360deg);
   }
 }
 
@@ -1828,7 +2355,7 @@ section > .wrap {
   right: -16%;
   width: min(84vw, 1040px);
   opacity: 0.07;
-  animation: cruise 120s ease-in-out infinite alternate;
+  animation: cruise calc(var(--tempo-12) * 2) ease-in-out infinite alternate;
 }
 
 /* A second whale, further out: smaller, fainter, heavily blurred. */
@@ -1838,7 +2365,7 @@ section > .wrap {
   width: min(28vw, 320px);
   opacity: 0.03;
   filter: blur(5px);
-  animation: cruise-far 150s ease-in-out infinite alternate;
+  animation: cruise-far calc(var(--tempo-12) * 2.5) ease-in-out infinite alternate;
 }
 
 @keyframes cruise {
@@ -1926,6 +2453,166 @@ section > .wrap {
   background: radial-gradient(ellipse 50% 100% at 50% 100%, rgba(190, 231, 245, 0.45), transparent 70%);
 }
 
+
+/* --- The pot ---------------------------------------------------------- */
+/* Not a progress bar with a number on it: a hoard that grows, under water
+   that rises, in a vessel that lights when it is ready to be emptied. */
+
+.pot {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 260px;
+}
+
+.pot-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--on-dark-body);
+  max-width: 30ch;
+}
+
+.hoard {
+  position: absolute;
+  inset: auto 0 6px 0;
+  height: 40px;
+  z-index: -1;
+}
+
+.hoard-coin {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff0bd, var(--gold) 58%, #9c6f08);
+  box-shadow: 0 0 7px rgba(244, 197, 66, 0.45);
+  animation: coin-settle 520ms var(--ease-out) backwards;
+}
+
+@keyframes coin-settle {
+  from {
+    transform: translateY(-18px) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.pot-water {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(180deg, rgba(63, 169, 217, 0.3), rgba(14, 122, 184, 0.14));
+  border-top: 1px solid rgba(190, 231, 245, 0.34);
+  z-index: -1;
+  transition: height 900ms var(--ease);
+}
+
+.pot-water::after {
+  content: "";
+  position: absolute;
+  inset: -8px 0 auto 0;
+  height: 10px;
+  background: radial-gradient(ellipse 50% 100% at 50% 100%, rgba(190, 231, 245, 0.4), transparent 70%);
+}
+
+.pot h3,
+.pot .pot-note {
+  text-shadow: 0 1px 8px rgba(4, 24, 43, 0.6);
+}
+
+/* Ready. The rim lights and the tag turns to treasure. */
+.pot.imminent {
+  box-shadow:
+    0 24px var(--shadow-spread) rgba(4, 24, 43, var(--shadow-alpha)),
+    inset 0 0 0 1px rgba(244, 197, 66, 0.5),
+    0 0 40px -8px rgba(244, 197, 66, 0.35);
+}
+
+.pot.imminent .fact-tag {
+  color: var(--gold);
+}
+
+/* The split, on hover or tap. */
+.pot-split {
+  position: absolute;
+  inset: auto 14px 52px 14px;
+  display: grid;
+  gap: 6px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: rgba(3, 16, 29, 0.9);
+  border: 1px solid rgba(245, 251, 254, 0.14);
+  backdrop-filter: blur(10px);
+  font-size: var(--t-1);
+  color: var(--on-dark-body);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity var(--settle) var(--ease), transform var(--settle) var(--ease);
+}
+
+.pot-split.open {
+  opacity: 1;
+  transform: none;
+}
+
+.pot-split > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pot-split span:first-child {
+  color: var(--on-dark-faint);
+}
+
+.pot-split-foot {
+  border-top: 1px solid rgba(245, 251, 254, 0.1);
+  padding-top: 7px;
+  margin-top: 1px;
+  font-size: var(--t-2);
+  color: var(--on-dark-faint) !important;
+}
+
+/* --- Instruments coming online ---------------------------------------- */
+/* The Trench cards do not fade in. They strike, flicker once, and settle. */
+
+.facts.reveal-stagger.in > * {
+  animation: instrument 520ms steps(1, end) backwards;
+  animation-delay: calc(var(--reveal-step) * var(--i, 0));
+}
+
+@keyframes instrument {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.55;
+  }
+  55% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 1;
+  }
+}
+
+/* --- Type as environment ---------------------------------------------- */
+/* One oversized word behind the Trench, big enough to stop being a word. */
+
+.watermark {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: 20vw;
+  line-height: 0.8;
+  color: var(--foam);
+  opacity: 0.04;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  z-index: -2;
+  white-space: nowrap;
+}
+
 /* --- Carousel --------------------------------------------------------- */
 
 .carousel {
@@ -1938,7 +2625,7 @@ section > .wrap {
   display: flex;
   gap: 16px;
   width: max-content;
-  animation: marquee 90s linear infinite;
+  animation: marquee calc(var(--tempo-12) * 1.25) linear infinite;
 }
 
 .carousel:hover .carousel-track {
@@ -2504,6 +3191,12 @@ input:focus {
   html {
     scroll-behavior: auto;
   }
+  .overture,
+  .featured.afloat,
+  .fact,
+  .sonar span,
+  .cursor-ring,
+  .cursor-click,
   .motes,
   .motes span,
   .bubble,
@@ -2520,7 +3213,7 @@ input:focus {
   .whale-near,
   .whale-far,
   .waterline path,
-  .strip-ghost,
+  .strip-sweep::before,
   .coin,
   .burst {
     animation: none !important;
@@ -2556,6 +3249,23 @@ input:focus {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+  }
+
+  /* These two animate *from* a hidden state, so switching the animation off
+     is not enough — without resetting the start state the headline would sit
+     masked off-screen and the hoard would stay invisible.
+     Matched on `.hero-title` rather than `h1`, so the headline's glint twin is
+     reset too; left on the <h1> alone it would stay parked a line below the
+     headline, visible as a second, offset copy of the words. */
+  .hero-title .line > span {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hoard-coin {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
   * {
     transition-duration: 0.01ms !important;

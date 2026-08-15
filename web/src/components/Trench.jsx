@@ -2,6 +2,7 @@ import { eth, percent } from "../format.js";
 import Whale from "./Whale.jsx";
 import Reveal from "./Reveal.jsx";
 import { SectionLife } from "./Marine.jsx";
+import Pot from "./Pot.jsx";
 
 const FACTS = [
   {
@@ -31,8 +32,7 @@ const FACTS = [
   },
 ];
 
-export default function Trench({ ocean, live }) {
-  const fill = ocean ? percent(ocean.pot, ocean.haulThreshold) : 0;
+export default function Trench({ ocean, live, price }) {
 
   return (
     <section className="deep" id="trench">
@@ -41,6 +41,9 @@ export default function Trench({ ocean, live }) {
       {/* Three of them, barely moving, and the only colour left down here is
           the lure. */}
       <SectionLife plane="sparse" shoal="abyss" seed={83} />
+      <span className="watermark" aria-hidden="true">
+        Deeper
+      </span>
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">The Trench</p>
@@ -55,16 +58,7 @@ export default function Trench({ ocean, live }) {
 
         <Reveal className="facts" stagger>
           {live && ocean ? (
-            <div className="glass on-dark fact filling">
-              <div className="fact-water" style={{ height: `${fill}%` }} aria-hidden="true" />
-              <span className="fact-tag">Filling now</span>
-              <h3 className="display">{eth(ocean.pot, 3)} ETH in the net</h3>
-              <p>
-                {ocean.readyToHaul
-                  ? "The net is full. Anyone can haul it right now and keep 0.5%."
-                  : `${eth(ocean.haulThreshold - ocean.pot, 4)} ETH to go before the pot can be hauled.`}
-              </p>
-            </div>
+            <Pot ocean={ocean} price={price} />
           ) : (
             <div className="glass on-dark fact">
               <span className="fact-tag">The threshold</span>
@@ -76,8 +70,8 @@ export default function Trench({ ocean, live }) {
             </div>
           )}
 
-          {FACTS.map((fact) => (
-            <div className="glass on-dark fact" key={fact.tag}>
+          {FACTS.map((fact, i) => (
+            <div className="glass on-dark fact" key={fact.tag} style={{ "--i": i + 1 }}>
               <span className="fact-tag">{fact.tag}</span>
               <h3 className="display">{fact.title}</h3>
               <p>{fact.body}</p>

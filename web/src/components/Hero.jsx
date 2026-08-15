@@ -208,8 +208,15 @@ function Readout({ featured, price, live }) {
           />
           <div className="specimen-body">
             <span className="readout-label">Top earner</span>
-            <span className="readout-value">
-              {usd(featured.lifetimeEarned, price) || `${eth(featured.lifetimeEarned)} ETH`}
+            {/* The page's figure rule: value in Anton, unit in mono at 40% on
+                the same baseline. */}
+            <span className="readout-value figure">
+              {usd(featured.lifetimeEarned, price) || (
+                <>
+                  {eth(featured.lifetimeEarned)}
+                  <span className="unit">ETH</span>
+                </>
+              )}
             </span>
             <span className="readout-note mono">
               #{String(featured.tokenId)} · {fed ? multiplier(featured.weight) : "dormant"}
@@ -302,18 +309,29 @@ export default function Hero({ featured, price, wallet, live }) {
             </span>
           </p>
 
+          {/* Both layers carry the same line wrappers so the headline sets in
+              behind its mask and its glint twin arrives on exactly the same
+              frames. Any difference between the two shows up as ghosting. */}
           <div className="title-stack">
             <h1 className="display hero-title">
-              Every trade
-              <br />
-              feeds the <span className="tide">pod.</span>
+              <span className="line">
+                <span>Every trade</span>
+              </span>
+              <span className="line">
+                <span>
+                  feeds the <span className="tide">pod.</span>
+                </span>
+              </span>
             </h1>
             {/* A second copy of the same words, painted only where the swell is
                 crossing them. Nothing to read here, so it is hidden. */}
             <div className="display hero-title title-glint" aria-hidden="true">
-              Every trade
-              <br />
-              feeds the pod.
+              <span className="line">
+                <span>Every trade</span>
+              </span>
+              <span className="line">
+                <span>feeds the pod.</span>
+              </span>
             </div>
           </div>
 

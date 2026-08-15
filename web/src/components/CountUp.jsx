@@ -4,7 +4,13 @@ const reduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+/* Overshoots ~2% just before the end, then settles — numbers arrive with
+   mass rather than easing politely into place. */
+const easeOvershoot = (t) => {
+  const c = 1.70158 * 0.6;
+  const p = t - 1;
+  return p * p * ((c + 1) * p + c) + 1;
+};
 
 /**
  * Counts a figure up when it first scrolls into view, then tracks the live
@@ -40,7 +46,7 @@ export default function CountUp({ value, format, duration = 800, className = "" 
         const from = 0;
         const tick = (now) => {
           const t = Math.min(1, (now - start) / duration);
-          setDisplay(from + (value - from) * easeOut(t));
+          setDisplay(from + (value - from) * easeOvershoot(t));
           if (t < 1) frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
