@@ -25,44 +25,35 @@ deployer role actually died), and `keeper/keeper.js`.
 
 ---
 
-## Blocker 1 — two rarity systems now contradict each other
+## ~~Blocker 1~~ — resolved
 
-This is the one to resolve first. It is a design decision, not a bug.
+The two rarity systems have been reconciled. `Whales.sol` no longer rolls tiers
+on chain or renders SVG; the on-chain renderer is gone. `tokenURI` now returns
+`<baseURI><id padded to 4>.json`, matching the generated files.
 
-`Whales.sol` currently derives rarity **on chain**:
+In its place the contract carries a **provenance hash** — the keccak of every
+metadata file in token order, fixed at deployment and immutable after it. The
+collection is reproducible from the `WHALES-2026` seed, so anyone can
+regenerate it, re-run `scripts/provenance.js` and prove the art was not
+changed after launch.
 
-```solidity
-// Whales.sol:179
-if (seed == 0) revert NotRevealed();
-return renderer.tierOf(tokenId, seed);      // random roll from a block hash
+`setBaseURI` is callable only by the curator, and `freezeMetadata()` is one-way:
+it locks the URI and destroys the curator role, after which no address in the
+system can change what a whale looks like. That is what backs the claim on the
+site.
 
-// Whales.sol:298
-return renderer.render(tokenId, seed, ...); // on-chain SVG
+Current provenance for the committed collection:
+
+```
+0x7f1908587224fd9d204fc67ef385aeccdb808c959fe19876fa167c949f36d709
 ```
 
-But `pipeline/` has since generated 1000 PNGs whose traits are **already fixed
-per token id** by the `WHALES-2026` seed. Token #1 is The Firstborn there. On
-chain it would roll a random tier.
+Regenerate and verify it with:
 
-The two cannot both be true. Pick one:
-
-**Option A — ship the PNGs (what the art implies).** Delete the renderer
-dependency, drop `commitSeed`/`revealSeed`/`tierOf`, and give `Whales.sol` a
-`baseURI` that returns `ipfs://<CID>/<id>.json`. Make it settable once and then
-permanently frozen, or the "no metadata anyone can swap out" claim on the site
-becomes false. Roughly a day including tests.
-
-**Option B — keep it on chain.** Throw away the PNG collection and keep
-`WhaleRenderer.sol`. Cheapest in effort, but the art is materially worse.
-
-**Option C — both.** On-chain SVG as the permanent fallback, IPFS as the
-preferred URI. More surface area, more to audit.
-
-Option A is the assumption the rest of this document makes. If you take it,
-the site also needs a copy edit: the Trench section and README both claim the
-art can never be swapped, which stops being strictly true.
-
----
+```bash
+cd pipeline && python3 generate.py
+cd ../contracts && node scripts/provenance.js ../pipeline/output/metadata
+```
 
 ## Blocker 2 — the contracts require a Cancun-era chain
 
