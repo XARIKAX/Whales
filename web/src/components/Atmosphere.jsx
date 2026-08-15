@@ -65,13 +65,11 @@ export default function Atmosphere() {
       {/* The sun, above the surface, seen from below. */}
       <div className="sun-glow" />
 
-      {/* God rays. Soft-light so they tint the water rather than paint over it. */}
-      <div className="rays">
-        <span style={{ "--x": "16%", "--w": "9vw", "--t": "-14deg", "--d": "68s" }} />
-        <span style={{ "--x": "38%", "--w": "6vw", "--t": "-9deg", "--d": "84s" }} />
-        <span style={{ "--x": "62%", "--w": "12vw", "--t": "-17deg", "--d": "76s" }} />
-        <span style={{ "--x": "84%", "--w": "7vw", "--t": "-11deg", "--d": "92s" }} />
-      </div>
+      {/* The god rays that used to live here have moved into the hero, which is
+          the only place sunlight ever reached anyway — they faded to nothing
+          below the thermocline. Keeping both sets meant paying for four blurred,
+          soft-light, viewport-tall elements to draw a second, fainter copy of
+          rays the hero was already drawing better. */}
 
       {/* Caustics: the shifting mesh of light under a moving surface. */}
       <div className="caustics" />
@@ -110,24 +108,12 @@ export function AtmosphereDefs() {
   return (
     <svg className="defs" aria-hidden="true" focusable="false">
       <defs>
-        <filter id="caustic-filter" x="0%" y="0%" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.011 0.024" numOctaves="2" seed="7">
-            <animate
-              attributeName="baseFrequency"
-              dur="90s"
-              values="0.011 0.024; 0.015 0.019; 0.011 0.024"
-              repeatCount="indefinite"
-            />
-          </feTurbulence>
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0.74
-                    0 0 0 0 0.91
-                    0 0 0 0 1
-                    1.45 0 0 0 -0.78"
-          />
-        </filter>
-
+        {/* The caustics used to live here as an animated `feTurbulence`. They
+            are now a baked, tiling background image in the stylesheet: a live
+            filter on a moving element is re-run every frame, and on this page
+            that one effect cost more than every fish, bubble and light shaft
+            put together. The grain stays — it never moves, so it rasterises
+            once and is free thereafter. */}
         <filter id="grain-filter" x="0%" y="0%" width="100%" height="100%">
           <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />

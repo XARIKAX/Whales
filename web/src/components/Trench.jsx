@@ -1,6 +1,7 @@
 import { eth, percent } from "../format.js";
 import Whale from "./Whale.jsx";
 import Reveal from "./Reveal.jsx";
+import { SectionLife } from "./Marine.jsx";
 
 const FACTS = [
   {
@@ -37,10 +38,15 @@ export default function Trench({ ocean, live }) {
     <section className="deep" id="trench">
       <Whale className="whale-near" />
       <Whale className="whale-far" />
+      {/* Three of them, barely moving, and the only colour left down here is
+          the lure. */}
+      <SectionLife plane="sparse" shoal="abyss" seed={83} />
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">The Trench</p>
-          <h2 className="display">Every fee lands in one contract.</h2>
+          <h2 className="display">
+            Every fee lands in <span className="tide on-dark">one contract.</span>
+          </h2>
           <p className="lede on-dark" style={{ marginTop: 20 }}>
             The Flap launch tax arrives here as ETH. So do mint proceeds. So does anything anyone
             throws in. That is the entire integration.

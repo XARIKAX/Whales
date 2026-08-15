@@ -201,52 +201,37 @@ a:hover {
   transition: opacity 500ms linear;
 }
 
-/* God rays. Soft-light tints the water instead of painting over it. */
-.rays {
-  position: absolute;
-  inset: -20vh 0 auto 0;
-  height: 170vh;
-  opacity: var(--sun);
-  mix-blend-mode: soft-light;
-  transition: opacity 500ms linear;
-}
-
-.rays span {
-  position: absolute;
-  top: 0;
-  left: var(--x);
-  width: var(--w);
-  height: 100%;
-  transform: skewX(var(--t));
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.32) 45%,
-    transparent 88%
-  );
-  filter: blur(14px);
-  opacity: 0.06;
-  animation: sway var(--d) ease-in-out infinite alternate;
-}
-
-@keyframes sway {
-  from {
-    transform: skewX(var(--t)) translateX(-3vw) scaleX(1);
-  }
-  to {
-    transform: skewX(calc(var(--t) + 4deg)) translateX(3vw) scaleX(1.14);
-  }
-}
-
-/* Caustics: the shifting mesh of light under a moving surface. Surface only. */
+/* Caustics: the shifting mesh of light under a moving surface. Surface only.
+   The noise is a tiling background image, not a live `filter: url()`. A CSS
+   filter on a moving element is re-run every frame — measured on this page, an
+   animated turbulence cost more than every fish, bubble and light shaft put
+   together. Baked into an image, the same mesh drifts on a composited
+   transform for nothing. `stitchTiles` is what makes the tile seamless. */
 .caustics {
   position: absolute;
-  inset: -10vh 0 auto 0;
-  height: 120vh;
+  /* One tile of slack on each side is all the drift needs; a soft-light layer
+     this size is billed by the pixel, so the extra area is not free. */
+  inset: -10vh -600px auto;
+  height: 104vh;
   opacity: calc(var(--sun) * 0.26);
   mix-blend-mode: soft-light;
-  filter: url(#caustic-filter);
   transition: opacity 500ms linear;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011 0.024' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.74 0 0 0 0 0.91 0 0 0 0 1 1.45 0 0 0 -0.78'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23c)'/%3E%3C/svg%3E");
+  background-size: 600px 600px;
+  background-repeat: repeat;
+  animation: caustic-drift 96s linear infinite;
+}
+
+/* Exactly one tile of travel, so the loop has no seam. Horizontal only: the
+   element carries a tile of slack on each side but none above, and surface
+   light travels across the water anyway. */
+@keyframes caustic-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-600px, 0, 0);
+  }
 }
 
 /* Suspended matter. Three planes, thickening and blurring with depth. */
@@ -487,6 +472,13 @@ h1.display {
 
 h2.display {
   font-size: clamp(2.1rem, 5.4vw, 4rem);
+  /* The same halo the hero uses. Heavy type on moving water needs one edge of
+     separation or it sits in the picture rather than on top of it. */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.16), 0 20px 46px rgba(4, 36, 62, 0.2);
+}
+
+.deep h2.display {
+  text-shadow: 0 20px 46px rgba(2, 12, 22, 0.55);
 }
 
 h3.display {
@@ -802,166 +794,680 @@ p {
   animation: ripple 600ms ease-out;
 }
 
-/* --- Hero ------------------------------------------------------------- */
+/* --- Pixel life ------------------------------------------------------- */
 
-.hero {
-  padding-top: clamp(48px, 8vw, 90px);
-  padding-bottom: clamp(90px, 12vw, 150px);
-  position: relative;
+/* Sprites are drawn on a whole-number grid, so they must never be resampled.
+   Both axes have to be released to `auto`: an <svg> with width/height
+   attributes will happily honour a CSS height and keep its attribute width,
+   which stretches every fish into a ribbon. */
+.sprite {
+  display: block;
+  width: auto;
+  height: auto;
+  image-rendering: pixelated;
+  overflow: visible;
 }
 
-.hero-grid {
+.sprite.mirror {
+  transform: scaleX(-1);
+}
+
+/* The tail pivots on the peduncle; the body breathes at half the tail's rate.
+   Two cheap transforms, and the sprite stops being a sticker. */
+.sprite-tail {
+  transform-box: view-box;
+  animation-name: tail-beat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.sprite-body {
+  transform-box: view-box;
+  animation-name: body-roll;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes tail-beat {
+  from {
+    transform: rotate(-13deg);
+  }
+  to {
+    transform: rotate(13deg);
+  }
+}
+
+@keyframes body-roll {
+  from {
+    transform: scaleY(0.98);
+  }
+  to {
+    transform: scaleY(1.03);
+  }
+}
+
+/* --- Shoals ----------------------------------------------------------- */
+
+.marine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Off-screen scenes stop paying for themselves. Parking rather than unmounting
+   keeps every animation's phase, so a scene the reader scrolls back up to is
+   exactly where they left it instead of snapping to the start. */
+.parked,
+.parked * {
+  animation-play-state: paused !important;
+}
+
+/* Crossing is one transform on the wrapper; the bob and the tail are nested
+   inside it, so all three compose without fighting each other. */
+.swimmer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+  animation-name: swim;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes swim {
+  from {
+    transform: translate3d(var(--from), 0, 0);
+  }
+  to {
+    transform: translate3d(var(--to), 0, 0);
+  }
+}
+
+.swimmer-bob {
+  display: block;
+  animation-name: bob;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes bob {
+  from {
+    transform: translate3d(0, -7px, 0) rotate(-2.5deg);
+  }
+  to {
+    transform: translate3d(0, 8px, 0) rotate(3deg);
+  }
+}
+
+/* The leviathan. Slow enough that you are never quite sure you saw it, and
+   already half way across on the first frame so nobody has to wait for it. */
+.leviathan {
+  top: 50%;
+  opacity: 0.3;
+  animation-duration: 96s;
+  animation-delay: -30s;
+}
+
+/* The blur is doing real work here: one grid cell is nearly twenty real pixels
+   at this scale, and unblurred the whale reads as a stack of boxes rather than
+   a body in the haze. Too much of it and it reads as a smudge — 3px is the
+   window where the silhouette survives and the steps do not. */
+.leviathan {
+  filter: blur(3px);
+}
+
+.leviathan-bob {
+  animation-duration: 23s;
+  animation-delay: -7s;
+}
+
+/* --- Hero ------------------------------------------------------------- */
+
+/* The hero is a place, not a panel. Five depth planes — water, surface, far
+   life, framing, near life — with the message standing in the clearing between
+   them. Three rules hold it together:
+     1. Everything behind the message is scenery: aria-hidden, pointer-events
+        none, and never a tab stop.
+     2. Every plane moves by a different amount. Distance IS the difference in
+        how far something travels, for the pointer and the scroll alike.
+     3. The near plane renders AFTER the message, so its fish swim between the
+        reader and the headline. That one inversion is what stops the whole
+        scene reading as a backdrop. */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1.28fr) minmax(290px, 0.8fr);
-  gap: clamp(28px, 4vw, 60px);
+  align-items: center;
+  min-height: clamp(660px, 96svh, 950px);
+  padding-block: clamp(104px, 13vh, 158px) clamp(92px, 11vh, 140px);
+
+  /* Written by JS every frame the pointer or the scroll moves. */
+  --mx: 0;
+  --my: 0;
+  --sy: 0;
+}
+
+.hero-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Lit shallow water of its own, so the hero is a place before the page's
+   column of water takes over below it. */
+.hero-water {
+  position: absolute;
+  inset: -14% -8% -2%;
+  background:
+    radial-gradient(
+      ellipse 58% 44% at 50% -4%,
+      rgba(255, 255, 255, 0.72),
+      rgba(214, 241, 251, 0.3) 36%,
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      #d3f0fc 0%,
+      #a9e1f4 11%,
+      #79cbea 30%,
+      #47ade0 54%,
+      #2b8dc6 78%,
+      #1c6fa8 100%
+    );
+  transform: translate3d(calc(var(--mx) * -10px), calc(var(--sy) * 46px), 0);
+}
+
+/* The surface, from underneath. */
+.ceiling {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(88px, 15vh, 196px);
+  transform: translate3d(calc(var(--mx) * -18px), calc(var(--sy) * -40px), 0);
+}
+
+.ceiling svg {
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  height: 100%;
+  animation: slide linear infinite;
+}
+
+.ceiling-a path {
+  fill: rgba(255, 255, 255, 0.15);
+}
+
+.ceiling-a {
+  animation-duration: 44s;
+}
+
+.ceiling-b path {
+  fill: rgba(255, 255, 255, 0.22);
+}
+
+.ceiling-b {
+  animation-duration: 29s;
+  animation-direction: reverse;
+}
+
+/* The sun burning through the ceiling, right where the rays converge. */
+.ceiling-glare {
+  position: absolute;
+  inset: -30% 0 auto 0;
+  height: 220%;
+  background: radial-gradient(
+    ellipse 32% 58% at 46% 0%,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.12) 44%,
+    transparent 74%
+  );
+}
+
+/* --- God rays ---------------------------------------------------------- */
+
+/* No blend mode. Screen-blending a white source over a backdrop produces
+   exactly what plain alpha compositing of that same white produces — the
+   formulas reduce to the same thing — so the blend was buying an identical
+   picture at the price of an extra full-viewport pass. */
+.hero-rays {
+  position: absolute;
+  inset: -8% 0 auto 0;
+  height: 132%;
+  transform: translate3d(calc(var(--mx) * -24px), calc(var(--sy) * -22px), 0);
+}
+
+/* Soft edges come from a mask, not from `filter: blur()`. These are six
+   elements taller than the viewport that move every frame, and blurring a
+   moving element re-rasterises it every frame; a mask is composited. Same
+   picture, a third of the frame budget back. */
+.hero-rays span {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-origin: 50% 0;
+  opacity: var(--o);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92),
+    rgba(216, 244, 255, 0.36) 36%,
+    transparent 82%
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 46%, #000 54%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 46%, #000 54%, transparent);
+  animation-name: ray-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes ray-sway {
+  from {
+    transform: skewX(var(--tilt)) translateX(-2.6vw) scaleX(0.84);
+  }
+  to {
+    transform: skewX(calc(var(--tilt) + 5deg)) translateX(2.6vw) scaleX(1.22);
+  }
+}
+
+/* Half the width slides past and the phase is identical, so the loop is seamless. */
+@keyframes slide {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* --- Depth planes ------------------------------------------------------ */
+
+/* Distance is how little a thing moves when the pointer does. */
+.plane {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plane-deep {
+  transform: translate3d(calc(var(--mx) * -12px), calc(var(--my) * -7px + var(--sy) * 34px), 0);
+}
+
+.plane-mid {
+  transform: translate3d(calc(var(--mx) * -30px), calc(var(--my) * -17px + var(--sy) * 68px), 0);
+}
+
+/* The near plane sits over the message. */
+.plane-near {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate3d(calc(var(--mx) * -76px), calc(var(--my) * -42px + var(--sy) * 132px), 0);
+}
+
+/* --- Kelp -------------------------------------------------------------- */
+
+/* Near enough to be badly out of focus and nearly colourless. If the kelp ever
+   competes with the headline it has stopped being a frame. */
+.kelp {
+  position: absolute;
+  bottom: -2%;
+  width: clamp(170px, 24vw, 380px);
+  height: clamp(250px, 56%, 560px);
+  opacity: 0.32;
+  filter: blur(3.4px);
+  transform: translate3d(calc(var(--mx) * -46px), calc(var(--sy) * 96px), 0);
+}
+
+.kelp svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.kelp-left {
+  left: -3%;
+}
+
+/* Mirrored on the inner SVG rather than the wrapper, so the flip survives the
+   parallax transform being switched off. */
+.kelp-right {
+  right: -3%;
+}
+
+.kelp-right svg {
+  transform: scaleX(-1);
+}
+
+.kelp-blade,
+.kelp-ledge {
+  fill: #0a3a5e;
+}
+
+.kelp-blade {
+  transform-box: view-box;
+  animation-name: kelp-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes kelp-sway {
+  from {
+    transform: rotate(calc(var(--sway) * -0.45));
+  }
+  to {
+    transform: rotate(var(--sway));
+  }
+}
+
+/* --- Bubbles ----------------------------------------------------------- */
+
+.hero-bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: translate3d(calc(var(--mx) * -22px), 0, 0);
+}
+
+/* A bubble is a lens, not a dot: bright rim, bright top-left specular, and
+   almost nothing in the middle. That is what stops it reading as a snowflake. */
+.bubble {
+  position: absolute;
+  bottom: -10%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.95), transparent 42%),
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 52%,
+      rgba(255, 255, 255, 0.34) 76%,
+      rgba(255, 255, 255, 0.08) 92%
+    );
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 -2px 4px rgba(255, 255, 255, 0.3);
+  animation: rise linear infinite;
+}
+
+/* Near bubbles are big and off the focal plane, like the near fish. */
+.bubble-near {
+  filter: blur(1.8px);
+  opacity: 0.55;
+}
+
+/* Real bubbles wobble as they rise — they do not travel in a straight line. */
+@keyframes rise {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.66);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  35% {
+    transform: translate3d(calc(var(--drift, 14px) * 0.55), -34vh, 0) scale(0.82);
+  }
+  65% {
+    transform: translate3d(calc(var(--drift, 14px) * -0.3), -72vh, 0) scale(0.93);
+  }
+  90% {
+    opacity: 0.75;
+  }
+  to {
+    transform: translate3d(var(--drift, 14px), -128vh, 0) scale(1);
+    opacity: 0;
+  }
+}
+
+/* --- Light ------------------------------------------------------------- */
+
+/* A bloom under the headline. Dark type has to survive a busy scene, and this
+   does it without drawing a box around the words. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 56% 50% at 50% 47%,
+    rgba(222, 244, 252, 0.5),
+    rgba(200, 236, 250, 0.2) 44%,
+    transparent 72%
+  );
+}
+
+/* The swell: one band of surface light crossing the whole hero, on the same
+   nine seconds as the headline's glint — so they read as a single wave. */
+.hero-swell {
+  position: absolute;
+  inset: -25% -35%;
+  background: linear-gradient(
+    99deg,
+    transparent 41%,
+    rgba(205, 240, 252, 0.2) 46.5%,
+    rgba(255, 255, 255, 0.34) 50%,
+    rgba(205, 240, 252, 0.18) 53.5%,
+    transparent 59%
+  );
+  animation: swell 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+@keyframes swell {
+  0% {
+    transform: translate3d(-46%, 0, 0);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(46%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* --- The message ------------------------------------------------------- */
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+/* The credential line, above the headline: a live shoal, then the one fact
+   that matters before anyone has read a word. */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 clamp(20px, 2.6vw, 30px);
+  padding: 7px 18px 7px 10px;
+  border-radius: 999px;
+  background: rgba(245, 251, 254, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: 0 10px 30px rgba(8, 31, 51, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.hero-badge b {
+  color: var(--navy);
+  font-weight: 500;
+}
+
+.badge-shoal {
+  display: inline-flex;
   align-items: center;
 }
 
-/* The line breaks are set explicitly in the markup; this cap only stops the
-   headline sprawling on very wide viewports. */
-.hero h1 {
+/* Overlapped like a stack of avatars, because that is exactly the job it does. */
+.badge-shoal .sprite + .sprite {
+  margin-left: -7px;
+}
+
+.title-stack {
+  position: relative;
+}
+
+.hero-title {
   color: var(--navy);
-  max-width: 18ch;
+  line-height: 0.86;
+  letter-spacing: -0.004em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 26px 60px rgba(4, 36, 62, 0.22);
+}
+
+/* Both layers of the stack must be set here, and by a selector that outranks
+   `h1.display`. The headline is an <h1> and its glint twin is a <div>: sized by
+   `.hero-title` alone the <h1> loses to `h1.display` and the two layers come out
+   at different sizes, which shows up as the headline being faintly doubled. */
+.title-stack .hero-title {
+  font-size: clamp(2.9rem, 9.4vw, 8rem);
+}
+
+/* The accent word is filled with the water itself — the pod IS the ocean.
+   Lit at the top and dark at the baseline, because light comes from above here
+   as it does everywhere else on the page. Running it the other way loses the
+   full stop entirely: a pale period on pale water is an invisible period.
+   The ramp stays close to the navy beside it on purpose. An accent word lighter
+   than its neighbours reads as de-emphasis, which is backwards for the word the
+   whole line is driving at — this one is set apart by being liquid, not faint. */
+/* Every stop is a dark water blue, deliberately. Where the cap band lands
+   inside the gradient depends on the font's ascent and descent, not on anything
+   stated here — so a ramp with a pale end is a ramp that renders pale on some
+   line and not others. Keep the whole range usable and the geometry stops
+   mattering. */
+.tide {
+  background: linear-gradient(186deg, #0d5c8a 0%, #08405f 30%, #052c46 62%, #03192a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* Its own shadow, since the parent's is painted over the clipped fill. */
+  text-shadow: 0 18px 44px rgba(4, 36, 62, 0.28);
+}
+
+/* The same words again, painted only where the swell is crossing them. */
+.title-glint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  text-shadow: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* Restrained, and wide. Two things kill this effect: too much alpha, which
+     just greys the headline out for two seconds of every nine, and edges too
+     hard for the size of the letters, which reads as a misaligned duplicate
+     rather than as light moving over type. Long shoulders, low peak. */
+  background: linear-gradient(
+    99deg,
+    transparent 43%,
+    rgba(255, 255, 255, 0.06) 46%,
+    rgba(214, 245, 255, 0.22) 48.5%,
+    rgba(240, 253, 255, 0.42) 50%,
+    rgba(214, 245, 255, 0.22) 51.5%,
+    rgba(255, 255, 255, 0.06) 54%,
+    transparent 57%
+  );
+  /* At 300% the stops above span roughly 40% of the headline, so the light
+     crosses it rather than sitting on all of it at once. */
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: glint 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+@keyframes glint {
+  from {
+    background-position: 168% 0;
+  }
+  to {
+    background-position: -68% 0;
+  }
 }
 
 .hero-sub {
-  margin: 26px 0 34px;
-  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
-  line-height: 1.65;
-  max-width: 52ch;
+  margin: clamp(18px, 2vw, 24px) auto clamp(22px, 2.4vw, 30px);
+  font-size: clamp(1.02rem, 1.55vw, 1.22rem);
+  line-height: 1.62;
+  max-width: 46ch;
   color: var(--ink-body);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
 }
 
-/* Real bubbles, only at the surface — the atmosphere's motes carry the rest of
-   the column. Larger and rounder than motes so the two read as different things. */
-.bubbles {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
+/* --- Readout ----------------------------------------------------------- */
 
-.bubble {
-  position: absolute;
-  bottom: -8%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 32% 28%,
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 0.1) 62%,
-    transparent
-  );
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  animation: rise linear infinite;
-}
-
-@keyframes rise {
-  from {
-    transform: translate3d(0, 0, 0) scale(0.7);
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.8;
-  }
-  to {
-    transform: translate3d(var(--drift, 14px), -125vh, 0) scale(1);
-    opacity: 0;
-  }
-}
-
-.wave-edge {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: clamp(48px, 6vw, 92px);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.wave-edge svg {
-  width: 200%;
-  height: 100%;
-  animation: drift 46s linear infinite;
-}
-
-@keyframes drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* Featured whale card. */
-.featured {
-  padding: 18px;
+/* The instrument rail: one horizontal plane that gives the centred composition
+   a base to stand on, the way the reference's subscribe bar does. */
+.hero-readout {
+  margin: clamp(26px, 3vw, 38px) auto 0;
+  max-width: 960px;
   display: grid;
-  gap: 16px;
-}
-
-.featured-art {
-  border-radius: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-radius: var(--radius);
   overflow: hidden;
-  background: var(--trench-1);
-  aspect-ratio: 3 / 2;
-  box-shadow: inset 0 1px 0 rgba(245, 251, 254, 0.14);
+  /* Opaque enough to stay readable with a shoal crossing behind it — glass
+     that you cannot read through is just a window. */
+  background: rgba(245, 251, 254, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(150%);
+  box-shadow: 0 26px 64px rgba(4, 24, 43, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  text-align: left;
 }
 
-.featured-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  image-rendering: pixelated;
-}
-
-.featured-art.placeholder {
+.readout-cell {
   display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, var(--trench-1), var(--trench-2));
+  gap: 5px;
+  align-content: center;
+  padding: 15px clamp(14px, 1.6vw, 22px);
+  border-left: 1px solid rgba(8, 31, 51, 0.12);
+  min-height: 74px;
 }
 
-.featured-art.placeholder span {
-  font-family: var(--display);
-  font-size: 3.6rem;
-  color: rgba(190, 231, 245, 0.3);
-  letter-spacing: 0.06em;
+.readout-cell:first-child {
+  border-left: none;
 }
 
-.featured-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.featured-name {
-  font-family: var(--display);
+.readout-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-size: 1.5rem;
+  color: var(--ink-faint);
+}
+
+.readout-value {
+  font-size: 0.88rem;
+  line-height: 1.3;
   color: var(--navy);
+  font-variant-numeric: tabular-nums;
 }
 
-.featured-earn {
-  font-family: var(--display);
-  font-size: clamp(2rem, 4vw, 2.9rem);
-  line-height: 1;
-  color: var(--accent);
+.readout-note {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
 }
 
-/* Yield in gold — darkened just enough to hold contrast on foam glass. */
-.featured-earn.treasure {
-  color: #a8790a;
-}
-
+/* Still the label voice for the dashboard's figures. */
 .featured-label {
   font-size: 10px;
   letter-spacing: 0.14em;
@@ -969,34 +1475,156 @@ p {
   color: var(--ink-faint);
 }
 
-.featured-rows {
-  display: grid;
-  gap: 8px;
-  font-size: 0.84rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 14px;
-}
-
-.featured-rows div {
-  display: flex;
-  justify-content: space-between;
+/* The top earner takes the first cell once there is a chain to read. */
+.readout-specimen {
+  grid-template-columns: 46px minmax(0, 1fr);
   gap: 12px;
+  align-items: center;
 }
 
-.featured-rows span:first-child {
-  color: var(--ink-faint);
+.specimen-art {
+  width: 46px;
+  height: 46px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--trench-1), var(--trench-2));
+  box-shadow: inset 0 1px 0 rgba(245, 251, 254, 0.16);
+}
+
+.specimen-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.specimen-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.specimen-body .readout-value {
+  font-family: var(--display);
+  font-size: 1.32rem;
+  line-height: 1;
+  color: #a8790a;
+}
+
+/* --- The wave under the hero ------------------------------------------- */
+
+.wave-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: clamp(58px, 7vw, 108px);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.wave-edge svg {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 200%;
+  height: 100%;
+  animation: slide linear infinite;
+}
+
+.wave-a path {
+  fill: #7fd0ee;
+  opacity: 0.62;
+}
+
+.wave-a {
+  animation-duration: 58s;
+}
+
+.wave-b path {
+  fill: #3fa9d9;
+  opacity: 0.8;
+}
+
+.wave-b {
+  animation-duration: 41s;
+  animation-direction: reverse;
+}
+
+.wave-c path {
+  fill: #2b8dc6;
+}
+
+.wave-c {
+  animation-duration: 31s;
+}
+
+/* --- Life below the hero ----------------------------------------------- */
+
+/* Same shoals, dropped into an ordinary section and clipped to it. */
+.section-life {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Nothing down here reflects daylight, so the lure is the only thing that
+   carries — and it has to actually glow, or it is just a dark fish. */
+.shoal-abyss .sprite {
+  filter: drop-shadow(0 0 7px rgba(127, 240, 216, 0.55));
+}
+
+/* Anything in a section with life behind it has to sit above it. */
+section > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* The accent word, inverted for dark water: the light is still above, there is
+   just far less of it. */
+.tide.on-dark {
+  background: linear-gradient(186deg, #ffffff 0%, #cdeefb 26%, #8fd4ee 60%, #4fb2e0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 18px 44px rgba(2, 12, 22, 0.5);
 }
 
 /* --- Stat strip ------------------------------------------------------- */
 
+/* The one hard-data moment on the page, and it used to be an opaque white slab
+   — which read as a different website spliced in below the hero. Glass instead:
+   the same instrument band, still bright enough to carry navy figures, but with
+   the water visibly running behind it so the column is never actually cut. */
 .strip {
   position: relative;
-  background: var(--foam);
+  overflow: hidden;
+  background: rgba(245, 251, 254, 0.74);
+  backdrop-filter: blur(14px) saturate(155%);
   border-block: 2px solid var(--navy);
   z-index: 1;
 }
 
+/* The same wave of light that crosses the hero, on the same nine seconds. */
+.strip::after {
+  content: "";
+  position: absolute;
+  inset: -40% -30%;
+  pointer-events: none;
+  background: linear-gradient(
+    99deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.3) 47%,
+    rgba(255, 255, 255, 0.52) 50%,
+    rgba(255, 255, 255, 0.3) 53%,
+    transparent 58%
+  );
+  animation: swell 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
 .strip-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
@@ -1027,11 +1655,13 @@ p {
   background: var(--accent);
 }
 
+/* Darker than the other faint labels on the page: this one sits on glass with
+   moving water behind it, and --ink-faint does not survive that. */
 .strip-label {
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-dim);
   margin: 0 0 12px;
 }
 
@@ -1082,6 +1712,8 @@ p {
 }
 
 .strip-foot {
+  position: relative;
+  z-index: 1;
   border-top: 2px solid var(--navy);
   padding: 12px var(--gutter);
   font-size: 11px;
@@ -1775,8 +2407,22 @@ input:focus {
 
 /* --- Responsive ------------------------------------------------------- */
 
+@media (max-width: 1080px) {
+  /* The specimen cell needs room to be readable, so the rail folds to two
+     columns before it folds to one. */
+  .hero-readout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 620px;
+  }
+  .readout-cell:nth-child(odd) {
+    border-left: none;
+  }
+  .readout-cell:nth-child(n + 3) {
+    border-top: 1px solid rgba(8, 31, 51, 0.1);
+  }
+}
+
 @media (max-width: 960px) {
-  .hero-grid,
   .dash-top,
   .abyss-grid {
     grid-template-columns: 1fr;
@@ -1785,6 +2431,14 @@ input:focus {
   .steps,
   .claims {
     grid-template-columns: repeat(2, 1fr);
+  }
+  /* Foreground framing costs the most and reads the least on a narrow screen. */
+  .kelp {
+    width: 46vw;
+    opacity: 0.36;
+  }
+  .plane-near .swimmer {
+    display: none;
   }
   .claims {
     border-radius: var(--radius);
@@ -1820,6 +2474,28 @@ input:focus {
   .nav-brand {
     display: none;
   }
+  /* Two columns rather than one: four stacked rows push the whole rail off the
+     first screen, which is the one place it has to be. */
+  .hero-readout {
+    max-width: 420px;
+  }
+  .readout-cell {
+    min-height: 0;
+    padding: 12px 14px;
+  }
+  .readout-value {
+    font-size: 0.8rem;
+  }
+  .readout-specimen {
+    grid-column: 1 / -1;
+  }
+  .hero-badge {
+    letter-spacing: 0.08em;
+    padding-inline: 10px 14px;
+  }
+  .kelp {
+    opacity: 0.26;
+  }
 }
 
 /* --- Reduced motion --------------------------------------------------- */
@@ -1831,10 +2507,16 @@ input:focus {
   .motes,
   .motes span,
   .bubble,
-  .rays span,
+  .hero-rays span,
   .caustics,
   .carousel-track,
   .wave-edge svg,
+  .ceiling svg,
+  .hero-swell,
+  .title-glint,
+  .kelp-blade,
+  .sprite-tail,
+  .sprite-body,
   .whale-near,
   .whale-far,
   .waterline path,
@@ -1848,6 +2530,23 @@ input:focus {
   .coin,
   .burst {
     display: none;
+  }
+  /* The scene keeps its water, light and framing; only the things that cross
+     the frame are withdrawn, since a parked shoal reads as a mistake. */
+  .swimmer {
+    display: none;
+  }
+  .hero-swell,
+  .title-glint {
+    opacity: 0;
+  }
+  .plane,
+  .plane-near,
+  .kelp,
+  .hero-water,
+  .ceiling,
+  .hero-bubbles {
+    transform: none !important;
   }
   .carousel-track {
     transform: none;

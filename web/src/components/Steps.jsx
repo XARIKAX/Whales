@@ -1,4 +1,5 @@
 import Reveal from "./Reveal.jsx";
+import { SectionLife } from "./Marine.jsx";
 
 const STEPS = [
   {
@@ -30,16 +31,22 @@ const CLAIMS = [
   ["0.5%", "tip to the hauler"],
 ];
 
+/** By the time the reader reaches this section the water is past the
+    thermocline, so it inverts with the water — navy on that blue is a heading
+    you have to hunt for. */
 export default function Steps() {
   return (
-    <section id="how">
+    <section className="deep" id="how">
+      {/* Still shallow enough for a school to pass through, but thinner and
+          slower than the hero's — the dive is meant to empty out as it goes. */}
+      <SectionLife plane="drift" shoal="school" seed={61} />
       <div className="wrap">
         <Reveal stagger>
-          <p className="eyebrow">How it works</p>
+          <p className="eyebrow on-dark">How it works</p>
           <h2 className="display">
             Four steps.
             <br />
-            Then the tide does the work.
+            Then <span className="tide on-dark">the tide</span> does the work.
           </h2>
         </Reveal>
 
