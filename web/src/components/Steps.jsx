@@ -1,3 +1,5 @@
+import Reveal from "./Reveal.jsx";
+
 const STEPS = [
   {
     n: "01",
@@ -32,31 +34,33 @@ export default function Steps() {
   return (
     <section id="how">
       <div className="wrap">
-        <p className="eyebrow">How it works</p>
-        <h2 className="display">
-          Four steps.
-          <br />
-          Then the tide does the work.
-        </h2>
+        <Reveal stagger>
+          <p className="eyebrow">How it works</p>
+          <h2 className="display">
+            Four steps.
+            <br />
+            Then the tide does the work.
+          </h2>
+        </Reveal>
 
-        <div className="steps">
+        <Reveal className="steps" stagger>
           {STEPS.map((step) => (
             <div className="step" key={step.n}>
-              <div className="step-num num">{step.n}</div>
+              <div className="step-num">{step.n}</div>
               <h3 className="display">{step.title}</h3>
               <p>{step.body}</p>
             </div>
           ))}
-        </div>
+        </Reveal>
 
-        <div className="claims">
+        <Reveal className="claims" stagger step={45}>
           {CLAIMS.map(([value, label]) => (
             <div className="claim" key={label}>
-              <b className="num">{value}</b>
+              <b>{value}</b>
               <span>{label}</span>
             </div>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

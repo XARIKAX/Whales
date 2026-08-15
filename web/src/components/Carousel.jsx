@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useWhaleArt } from "./WhaleArt.jsx";
+import Reveal from "./Reveal.jsx";
 import { multiplier } from "../format.js";
 
 const TIERS = [
@@ -13,9 +14,11 @@ const TIERS = [
 function Tile({ whale }) {
   const fed = whale.activatedAt !== 0n;
   const { ref, art, tier } = useWhaleArt(whale.tokenId, { eager: true });
+  // One in a thousand. Gold is reserved for yield, fed whales, and this.
+  const leviathan = tier === "Leviathan";
 
   return (
-    <div className={`whale-tile ${fed ? "fed" : "dormant"}`}>
+    <div className={`whale-tile ${fed ? "fed" : "dormant"}${leviathan ? " leviathan" : ""}`}>
       <div ref={ref} className="tile-art">
         {art && <img src={art.image} alt={`Whale #${whale.tokenId}`} loading="lazy" />}
       </div>
@@ -54,10 +57,10 @@ export default function Carousel({ whales }) {
   return (
     <section className="deep" id="pod">
       <div className="wrap">
-        <p className="eyebrow on-dark">The pod</p>
-        <h2 className="display">
-          Surface swimmers to the leviathan.
-        </h2>
+        <Reveal stagger>
+          <p className="eyebrow on-dark">The pod</p>
+          <h2 className="display">Surface swimmers to the leviathan.</h2>
+        </Reveal>
       </div>
 
       <div className="carousel" style={{ marginTop: 40 }}>
@@ -70,13 +73,13 @@ export default function Carousel({ whales }) {
       </div>
 
       <div className="wrap">
-        <div className="tier-legend">
+        <Reveal className="tier-legend" stagger step={40}>
           {TIERS.map(([name, note]) => (
             <span key={name}>
               <b>{name}</b> — {note}
             </span>
           ))}
-        </div>
+        </Reveal>
         <p className="lede on-dark" style={{ marginTop: 18 }}>
           Rarer whales don't earn more. They just flex harder — weight comes from loyalty alone.
           Activated whales glow gold; dormant ones sit grey-blue in the dark.

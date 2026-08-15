@@ -1,4 +1,5 @@
 import { ADDRESSES, CHAIN, LINKS, explorerUrl } from "../config.js";
+import Reveal from "./Reveal.jsx";
 
 const CONTRACTS = [
   ["$WHALE token", "whaleToken"],
@@ -11,7 +12,7 @@ export default function Footer() {
   return (
     <footer className="abyss" id="abyss">
       <div className="wrap">
-        <div className="abyss-grid">
+        <Reveal className="abyss-grid" stagger step={80}>
           <div>
             <h2 className="display">Feed the whale.
               <br />Haul the Trench.
@@ -30,11 +31,11 @@ export default function Footer() {
                 <div key={key} style={{ marginBottom: 14 }}>
                   <span style={{ marginBottom: 4, color: "var(--on-dark-faint)" }}>{label}</span>
                   {href ? (
-                    <a className="addr" href={href} target="_blank" rel="noreferrer">
+                    <a className="addr mono" href={href} target="_blank" rel="noreferrer">
                       {value}
                     </a>
                   ) : (
-                    <span className="addr">{value || "not configured"}</span>
+                    <span className="addr mono">{value || "not configured"}</span>
                   )}
                 </div>
               );
@@ -60,7 +61,7 @@ export default function Footer() {
               </span>
             )}
           </div>
-        </div>
+        </Reveal>
 
         <p className="trust">
           Only trust contract addresses listed on this site. We will never message you first.

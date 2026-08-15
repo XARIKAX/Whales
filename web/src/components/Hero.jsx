@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import WhaleArt from "./WhaleArt.jsx";
 import { eth, usd, multiplier, countdown } from "../format.js";
 import { DOCS_URL } from "../config.js";
+import Reveal from "./Reveal.jsx";
 
 /** Deterministic bubble field — same every render, so React never reshuffles it. */
 const BUBBLES = Array.from({ length: 18 }, (_, i) => {
@@ -15,9 +16,9 @@ const BUBBLES = Array.from({ length: 18 }, (_, i) => {
   };
 });
 
-function Waveline() {
+function WaveEdge() {
   return (
-    <div className="waveline" aria-hidden="true">
+    <div className="wave-edge" aria-hidden="true">
       <svg viewBox="0 0 2400 120" preserveAspectRatio="none">
         <path
           d="M0,64 C150,110 300,10 600,52 C900,94 1050,14 1200,52 C1350,90 1500,10 1800,52 C2100,94 2250,20 2400,64 L2400,120 L0,120 Z"
@@ -91,7 +92,7 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
       </div>
 
       <div className="wrap hero-grid">
-        <div>
+        <Reveal stagger step={70}>
           <p className="eyebrow">$WHALE · Robinhood Chain</p>
           <h1 className="display">
             1000 Whales.
@@ -112,7 +113,7 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
               Read the docs
             </a>
           </div>
-        </div>
+        </Reveal>
 
         {!live || !featured ? (
           <CollectionCard />
@@ -131,7 +132,7 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
               <p className="featured-label" style={{ marginBottom: 6 }}>
                 Lifetime earnings
               </p>
-              <div className={`featured-earn num${fed ? " gold" : ""}`}>
+              <div className={`featured-earn num${fed ? " treasure" : ""}`}>
                 {usd(featured.lifetimeEarned, price) || `${eth(featured.lifetimeEarned)} ETH`}
               </div>
             </div>
@@ -153,7 +154,7 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
         )}
       </div>
 
-      <Waveline />
+      <WaveEdge />
     </section>
   );
 }

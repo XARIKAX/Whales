@@ -10,6 +10,8 @@ import Carousel from "./components/Carousel.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Footer from "./components/Footer.jsx";
 import Celebration from "./components/Celebration.jsx";
+import Atmosphere, { AtmosphereDefs } from "./components/Atmosphere.jsx";
+import { Waterline, DepthMarkers } from "./components/Depth.jsx";
 
 export default function App() {
   const { data: ocean, error, refresh } = useOcean();
@@ -19,9 +21,12 @@ export default function App() {
   const wallet = useWallet();
   const haulSignal = useHaulSignal(ocean?.haulCount);
 
-  // Sun shafts fade out by the time the reader reaches open water.
+  // One scroll value drives the whole water column: the light dies early, the
+  // dark closes in late.
   useEffect(() => {
-    document.documentElement.style.setProperty("--sun", String(Math.max(0, 1 - depth * 3.4)));
+    const root = document.documentElement.style;
+    root.setProperty("--sun", String(Math.max(0, 1 - depth * 3.2)));
+    root.setProperty("--depth", String(Math.min(1, Math.max(0, (depth - 0.26) / 0.5))));
   }, [depth]);
 
   const refreshAll = () => {
@@ -47,7 +52,9 @@ export default function App() {
   return (
     <div className="page">
       <div className="dive" />
-      <div className="rays" />
+      <AtmosphereDefs />
+      <Atmosphere />
+      <DepthMarkers />
 
       {/* The pill inverts once the water is dark enough that a light pill
           stops reading — a little before the section boundary, not after. */}
@@ -56,6 +63,7 @@ export default function App() {
 
       <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} live={live} />
 
+      <Waterline />
       <StatsStrip ocean={live ? ocean : null} price={price} />
 
       {!CONFIGURED && (

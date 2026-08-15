@@ -1,22 +1,6 @@
 import { eth, percent } from "../format.js";
-
-/** The drifting shape behind the deep section. */
-function Silhouette() {
-  return (
-    <svg className="silhouette" viewBox="0 0 240 120" aria-hidden="true">
-      <path
-        fill="#F5FBFE"
-        d="M18 62c14-26 44-42 78-42 26 0 48 9 63 24l10-16c3-5 10-3 10 3v66c0 6-7 8-10 3l-10-16c-15 15-37 24-63 24-34 0-64-16-78-42-3-1-3-3 0-4z"
-      />
-      <path
-        fill="#F5FBFE"
-        d="M96 78c22 6 46 4 66-6-16 18-44 24-66 6z"
-        opacity="0.6"
-      />
-      <circle cx="52" cy="54" r="4" fill="#04182B" opacity="0.5" />
-    </svg>
-  );
-}
+import Whale from "./Whale.jsx";
+import Reveal from "./Reveal.jsx";
 
 const FACTS = [
   {
@@ -51,16 +35,19 @@ export default function Trench({ ocean, live }) {
 
   return (
     <section className="deep" id="trench">
-      <Silhouette />
+      <Whale className="whale-near" />
+      <Whale className="whale-far" />
       <div className="wrap">
-        <p className="eyebrow on-dark">The Trench</p>
-        <h2 className="display">Every fee lands in one contract.</h2>
-        <p className="lede on-dark" style={{ marginTop: 20 }}>
-          The Flap launch tax arrives here as ETH. So do mint proceeds. So does anything anyone
-          throws in. That is the entire integration.
-        </p>
+        <Reveal stagger>
+          <p className="eyebrow on-dark">The Trench</p>
+          <h2 className="display">Every fee lands in one contract.</h2>
+          <p className="lede on-dark" style={{ marginTop: 20 }}>
+            The Flap launch tax arrives here as ETH. So do mint proceeds. So does anything anyone
+            throws in. That is the entire integration.
+          </p>
+        </Reveal>
 
-        <div className="facts">
+        <Reveal className="facts" stagger>
           {live && ocean ? (
             <div className="glass on-dark fact filling">
               <div className="fact-water" style={{ height: `${fill}%` }} aria-hidden="true" />
@@ -90,7 +77,7 @@ export default function Trench({ ocean, live }) {
               <p>{fact.body}</p>
             </div>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

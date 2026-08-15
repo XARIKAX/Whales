@@ -102,8 +102,14 @@ export default function Actions({ ocean, wallet, onDone }) {
             ? `Connected ${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`
             : "Connect wallet"}
         </button>
-        <button className="btn btn-gold" onClick={haul} disabled={Boolean(busy) || !ocean?.readyToHaul}>
-          {ocean?.readyToHaul ? `Haul the Trench — keep ${eth(tip)} ETH` : "Net not full yet"}
+        <button className="btn btn-primary" onClick={haul} disabled={Boolean(busy) || !ocean?.readyToHaul}>
+          {ocean?.readyToHaul ? (
+            <>
+              Haul the Trench — keep <span className="tip num">{eth(tip)} ETH</span>
+            </>
+          ) : (
+            "Net not full yet"
+          )}
         </button>
       </div>
 

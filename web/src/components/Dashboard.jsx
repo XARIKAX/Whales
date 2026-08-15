@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Actions from "./Actions.jsx";
+import Reveal from "./Reveal.jsx";
 import { eth, usd, multiplier, percent, ago, address, countdown } from "../format.js";
 
 const PAGE = 12;
@@ -20,10 +21,12 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
   return (
     <section className="deep" id="dashboard">
       <div className="wrap">
-        <p className="eyebrow on-dark">Dashboard</p>
-        <h2 className="display">Watch the net fill.</h2>
+        <Reveal stagger>
+          <p className="eyebrow on-dark">Dashboard</p>
+          <h2 className="display">Watch the net fill.</h2>
+        </Reveal>
 
-        <div className="glass on-dark dash" style={{ marginTop: 40 }}>
+        <Reveal className="glass on-dark dash" style={{ marginTop: 40 }} delay={120}>
           <div className="dash-top">
             <div className="gauge">
               <div className="gauge-water" style={{ height: `${fill}%` }} />
@@ -83,7 +86,7 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
               {["fed", "owed", "earners", "all"].map((option) => (
                 <button
                   key={option}
-                  className={`btn btn-sm ${filter === option ? "btn-gold" : "btn-ghost on-dark"}`}
+                  className={`btn btn-sm btn-ghost on-dark${filter === option ? " active" : ""}`}
                   onClick={() => {
                     setFilter(option);
                     setShown(PAGE);
@@ -153,7 +156,7 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
           </div>
 
           <Actions ocean={ocean} wallet={wallet} onDone={onDone} />
-        </div>
+        </Reveal>
       </div>
     </section>
   );
