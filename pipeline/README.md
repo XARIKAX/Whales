@@ -1,40 +1,63 @@
 # Whales — art pipeline
 
-Extends the approved `gen9.py` renderer into a full collection generator.
+Generates the 1000-piece collection. Deterministic: same seed, same 1000
+whales, every time.
 
-**The renderer and its finish parameters are untouched.** `sprite.py` carries
-`render()` across verbatim — per-cell jitter, ambient occlusion, blur 1.3,
-unsharp 3/42/2 — because that is the approved look. Everything new sits on top
-as overlay cell-maps in sprite coordinates, exactly like the five samples.
+```bash
+pip install pillow numpy
+python3 generate.py --cid bafy…      # the pinned image CID; omit for a placeholder
+python3 generate.py --limit 20       # a quick sample while iterating
+```
+
+Writes into `output/`:
+
+| | |
+| --- | --- |
+| `images/0001.png … 1000.png` | the art |
+| `metadata/0001.json … 1000.json` | ERC-721 metadata, `image` pointing at `--cid` |
+| `rarity.csv` | every token's traits and rarity score, one row each |
+| `sheets/0001-0100.png …` | ten contact sheets, 100 whales each |
+| `provenance.json` | written by `contracts/scripts/provenance.js`, not by this |
+
+`--cid` is baked into every `image` field, so **regenerate after pinning the
+images** and pin the metadata second. See step 2 of `../HANDOVER.md`.
 
 ## Files
 
 | File | What it is |
 | --- | --- |
-| `gen9.py` | The original, as supplied. Left alone for reference. |
-| `sprite.py` | Master grid, classification, palette, and the approved `render()`. |
-| `traits.py` | The trait catalog — every accessory, drawn cell by cell. |
-| `body.py` | Body colourways as an HSV remap that preserves luminance. |
-| `preview.py` | Renders proof sheets of every trait for sign-off. |
-| `preview/` | The output of `preview.py` — **look here**. |
+| `sprite.py` | Master grid, classification, palette, and the approved `render()` |
+| `traits.py` | The trait catalog — every accessory, drawn cell by cell |
+| `body.py` | Body colourways, as an HSV remap that preserves luminance |
+| `generate.py` | Allocation, rules, dedupe, the 1000 renders, metadata, sheets |
+| `preview.py` | Proof sheets of every trait, for sign-off → `preview/` |
+| `gen9.py` | The original renderer, as supplied. Left alone for reference. |
 
-## Looking at the art
+**The renderer and its finish parameters are untouched.** `sprite.py` carries
+`render()` across from `gen9.py` verbatim — per-cell jitter, ambient occlusion,
+blur 1.3, unsharp 3/42/2. Everything new sits on top as overlay cell-maps in
+sprite coordinates.
 
-```bash
-pip install pillow numpy
-python3 preview.py
-```
+## How the 1000 are dealt
 
-Contact sheets, each also available as full-size individual PNGs:
+**Ten legendaries first**, pinned to ids 1, 100, 200 … 900, exempt from the
+weights. Their trait tuples are reserved so no regular whale can accidentally
+become a near-twin of a one-of-one.
 
-- `preview/sheet-bodies.png` — all seven colourways, no accessories
-- `preview/sheet-eyes.png` — all six eyes
-- `preview/sheet-mouths.png` — all six mouths
-- `preview/sheet-headwear.png` — all seven headwear
-- `preview/sheet-neck.png` — all five chains
-- `preview/sheet-bling.png` — all five bling
-- `preview/sheet-legendaries.png` — the ten one-of-ones
-- `preview/sheet-combos.png` — stacked combinations, to check traits coexist
+**The other 990 by quota, not by dice.** The brief asks the advertised weights
+to hold within ±1.5pp. Rolling each token independently can't promise that —
+for a 22% trait over 990 tokens one standard deviation is already 1.3pp, so a
+straight sample misses the tolerance about a quarter of the time. Instead each
+slot gets its exact integer count (largest remainder, so counts sum to 990),
+the lists are shuffled with the seeded RNG, and tokens take one from each. The
+distribution is exact by construction; the seed still decides who gets what.
+
+**Cross-slot rules as swaps.** Rules like "gilded bodies never wear a plain
+cap" are applied afterwards by swapping traits *between* tokens, which enforces
+them without disturbing a single column total.
+
+`generate.py` refuses to finish if the anchors, the distribution or the dedupe
+check fail. It is safe to trust its exit code.
 
 ## Anatomy the accessories anchor to
 
@@ -51,16 +74,13 @@ left fin        rows 38-47 cols 5-15
 
 ## Two things changed from the brief, and why
 
-**The spout now rises up and back** rather than straight up. As specified it
+**The spout rises up and back** rather than straight up. As specified it
 collided with anything worn on the dome — The Firstborn is halo *and* diamond
 spout, and the two were drawn on top of each other. Angling it back off the
 blowhole clears every hat and keeps the trait combinable.
 
-**The halo is drawn as a ring with an open middle**, not a band. Drawn solid it
-read as a gold bar floating over the head.
+**The halo is a ring with an open middle**, not a band. Drawn solid it read as
+a gold bar floating over the head.
 
-## Still to come
-
-The generator itself — weighted selection, exclusions, dedupe, the 1000
-renders, metadata, `rarity.csv` and contact sheets per 100. The art wants
-signing off first.
+One approved trait was also corrected: the cigar had a cell at column 48 on a
+0–47 grid. It was moved one column left rather than weakening the anchor check.

@@ -25,7 +25,7 @@ export async function getWalletClient() {
 
 /** Header numbers: pot, threshold, all-time totals. One call. */
 export async function readOcean() {
-  const [block, ocean, minted, activated, burned, maxSupply, mintPrice, revealed, supply] =
+  const [block, ocean, minted, activated, burned, maxSupply, mintPrice, supply] =
     await Promise.all([
       // Ages are measured against the chain's clock, not the browser's — the
       // two drift, and on a test chain that has been time-travelled they drift
@@ -37,7 +37,6 @@ export async function readOcean() {
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "totalBurnedForActivation" }),
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "MAX_SUPPLY" }),
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "mintPrice" }),
-      publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "revealed" }),
       publicClient.readContract({ address: ADDRESSES.whaleToken, abi: erc20Abi, functionName: "totalSupply" }),
     ]);
 
@@ -48,7 +47,6 @@ export async function readOcean() {
     burned,
     maxSupply,
     mintPrice,
-    revealed,
     supply,
     now: Number(block.timestamp),
   };

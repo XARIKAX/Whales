@@ -2,134 +2,131 @@
 
 **1000 pixel whales. Every fee in the ocean flows to them.**
 
-Whales don't chase liquidity. They are liquidity.
-
-$WHALE launches on Flap with a 2% buy / 3% sell tax. Every cent flows to activated whale NFTs — paid in ETH on Robinhood Chain, tracked live in dollars. No claim forms, no admin, no trust.
-
-Hold a whale. Feed it. Own the tide.
-
----
-
-## The loop
+$WHALE launches on Flap with a 2% buy / 3% sell tax. The tax lands in one
+contract that nobody can withdraw from, and anyone can press the button that
+splits it across activated whale NFTs — paid in ETH on Robinhood Chain.
 
 ```
 trades taxed  →  tax lands in the Trench  →  anyone hauls
-                                                  ↓
-     ETH (or stock) arrives  ←  split by weight across fed whales
-     in the whale's own wallet
+                                                 ↓
+     ETH (or stock) arrives   ←   split by loyalty weight
+     in the whale's own wallet     across every fed whale
 ```
-
-## What is in this repository
 
 | Path | What it is |
 | --- | --- |
-| `contracts/` | The five contracts, their tests, and the deploy scripts |
-| `keeper/` | The bot that presses the buttons anyone can press |
+| `contracts/` | Five contracts, 60 tests, deploy scripts |
+| `pipeline/` | The Python generator that produced the 1000 PNGs and their metadata |
+| `keeper/` | A bot that presses the buttons anyone can press |
 | `web/` | The dashboard: live pot, haul countdown, per-whale earnings |
+
+Status: **complete and tested locally, never deployed, never audited.**
+See [`HANDOVER.md`](HANDOVER.md) for what a developer must do before mainnet.
 
 ---
 
 ## The contracts
 
-Five contracts. No owner, no upgrade path, no pause, no admin key.
+No owner, no upgrade path, no pause, no admin key.
 
 ### `WhaleToken` — $WHALE
 
-1,000,000,000 minted once, at deployment, to the launch address. There is no mint function and no owner. The supply only ever goes down.
+1,000,000,000 minted once at deployment to the launch address. No mint
+function, no owner. Supply only ever goes down.
 
-The 2%/3% tax lives in the Flap launch contract, **not** in the token. Flap collects it in ETH and forwards it to the Trench. Keeping the tax out of the token means transfers are plain ERC20 transfers — no hooks, no blocklist, and no way for anyone to change the rules later.
+The tax lives in the Flap launch contract, **not** in the token, so transfers
+are plain ERC20 transfers — no hooks, no blocklist, no rule anyone can change
+later.
 
 ### `Whales` — the NFTs
 
-1000 pixel whales, fixed supply, never more. Rarity tiers run surface swimmer → reef cruiser → twilight diver → abyss dweller → the leviathan. **Rarer whales don't earn more — they just flex harder.** Weight comes from loyalty alone.
-
-Rarity is drawn from a block hash committed only *after* the collection mints out, so no minter can pick the leviathan out of the lineup — at buy time nobody knows which token it is. A live commitment cannot be replaced either, so nobody can peek at the hash, dislike it, and reroll. (The proposer of the committed block retains the usual one-shot blockhash influence: they could drop their block to force a redraw. Rarity is cosmetic — rarer whales earn exactly the same — so the stakes on that are low, but it is inherent to on-chain randomness and worth knowing.)
+1000 whales, fixed supply. Traits are cosmetic: **rarer whales earn exactly
+the same.** Weight comes from loyalty alone.
 
 **Burn to activate.** A whale doesn't earn until it's fed:
 
-- Activating burns **1,000,000 $WHALE** (0.1% of the 1B supply) and starts the whale at 1.00x.
-- No burn, no yield. Dormant whales carry zero weight — automatically, not by anyone's decision.
-- Sell your whale and the ERC-721 transfer hook takes it off the payroll **in the same transaction**. The new owner activates again. Every hand change burns another million.
-
-Two markets emerge: dormant whales (cheap, silent) and fed whales (earning, premium).
+- Activating burns **1,000,000 $WHALE** (0.1% of supply) and starts it at 1.00x.
+- Dormant whales carry zero weight — automatically, not by anyone's decision.
+- Selling a whale deactivates it in the same transaction, via the ERC-721
+  transfer hook. The new owner activates again, burning another million.
 
 ### `Trench` — where every fee lands
 
-All fees flow to one contract. It accepts ETH from anyone, any time, no permission needed.
-
-**Nobody can withdraw. Not holders. Not us. The contract has no withdraw function.** What enters the Trench leaves one way: the Haul.
+Accepts ETH from anyone, any time. **Nobody can withdraw — there is no
+withdraw function.** Money leaves one way, the haul:
 
 ```solidity
-// The complete list of functions that move ETH out of the Trench:
 function haul()    external returns (uint256 distributed, uint256 tip);
 function deliver(uint256 tokenId)         external returns (uint256);
 function deliverMany(uint256[] calldata)  external returns (uint256);
 ```
 
-All three are callable by anybody. There is no `withdraw`, no `rescue`, no `owner`, no `upgradeTo` — and a test asserts the ABI does not contain them.
+All three are callable by anybody. There is no `withdraw`, `rescue`, `owner`
+or `upgradeTo`, and a test asserts the ABI does not contain them.
 
 ### `WhaleAccount` + `WhaleAccountRegistry` — a wallet per whale
 
-Every whale owns its own on-chain wallet, ERC-6551 style. Earnings land in the whale, not just your address. The account's identity is baked into its bytecode, so it can never be reassigned, and ownership follows the NFT automatically — sell the whale and the wallet goes with it, contents and all.
+Every whale owns an on-chain wallet, ERC-6551 style. Its identity is baked
+into its bytecode, so it can never be reassigned, and ownership follows the
+NFT — sell the whale and the wallet goes with it, contents and all.
 
-The address is a pure function of the token id, so it is known before the account is even deployed. ETH sent there early is not lost; it is waiting when the account is created.
-
-### `WhaleRenderer` — the art
-
-Every pixel is generated on chain from the reveal seed. No server, no IPFS pin, no metadata anyone can swap out later. The whale is a 24×16 grid packed into two words per layer; the palette comes from the rarity tier and the accents from the token's own hash.
-
-Whale #787, a leviathan, as the chain actually serves it — one character per
-pixel, `#` accent, `%` body, `*` fin and barnacles, `+` belly:
-
-```
-      ## #
-     #  # #                ← spout
-      ## #
-      %%%%%%%%
-    %%*%%%%%%%*%%     %%
-  %%%%%%%%%%%%%%%%%   %*
- %*%%%%%%%%%%%%%%%%%  %%   ← barnacles, scattered by the token's own hash
-%%#%%%%%%%%%%%%%%%%*% %%   ← eye
-%%%%%%%%%%%%%%%%%%%%%%%%   ← the peduncle, the one row joining the flukes
-%++++++++++++++++++++ ++
- +++++++****++++++++  ++   ← fin
-  ++++++****+++++++   ++
-    +++++***+++++     ++
-      ++++++++
-```
+The address is a pure function of the token id, so ETH sent before the account
+exists is not lost; it is waiting when the account is created.
 
 ---
 
 ## How the haul works
 
-When the pot hits the threshold, anyone can haul it. The whole pot splits across every activated whale **in one transaction**, and whoever pressed the button keeps 0.5%.
+When the pot hits the threshold, anyone can haul it. The whole pot splits
+across every activated whale **in one transaction**, and whoever pressed the
+button keeps 0.5%.
 
-That is possible at 1000 whales because the split is an accumulator, not a loop: `haul` adds to a cumulative ETH-per-unit-of-weight figure, which credits every fed whale at once in O(1). `deliver` is the separate, batchable step that physically moves each whale's share into its wallet. A whale's share is safe in the contract until then.
+That works at 1000 whales because the split is an accumulator, not a loop:
+`haul` adds to a cumulative ETH-per-unit-of-weight figure, crediting every fed
+whale at once in O(1). `deliver` is the separate, batchable step that moves a
+whale's share into its wallet. Until then the share is safe in the contract.
 
-**Split by weight.** Every activated whale starts at 1x and climbs toward a 3.33x cap by staying active. Loyalty compounds:
+**Loyalty weighting.** Every activated whale starts at 1x and climbs to a
+3.33x cap by staying active:
 
-| Fed for | Weight |
-| --- | --- |
-| 0–7 days | 1.00x |
-| 7 days | 1.25x |
-| 14 days | 1.50x |
-| 30 days | 1.80x |
-| 60 days | 2.15x |
-| 90 days | 2.50x |
-| 180 days | 2.90x |
-| 365 days | **3.33x** |
+| Fed for | 0–7d | 7d | 14d | 30d | 60d | 90d | 180d | 365d |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Weight | 1.00x | 1.25x | 1.50x | 1.80x | 2.15x | 2.50x | 2.90x | **3.33x** |
 
-Diamond-fin whales out-earn tourists 3.33 to 1.
+Promotion is permissionless — anyone can promote any whale to the tier it has
+already earned, and the call can only ever *raise* a weight. A whale nobody
+syncs simply keeps earning at its old rate.
 
-Tier promotion is permissionless — anyone can promote any whale to the tier it has already earned, and the call can only ever *raise* a weight. A whale nobody bothers to sync simply keeps earning at its old rate. There is no way to use it to pay a whale more than it is owed.
+**Stock election.** A whale's share can be auto-swapped into a stock token the
+holder names. There is no allowlist. If the swap fails for any reason the whale
+is paid in ETH rather than stranded, and the swap runs under a hard gas ceiling
+so a hostile token can't take a keeper's whole delivery batch down with it.
 
-**Dormant whales get nothing.** The contract checks activation against the NFT itself — no lists, no admin.
+**A keeper bot presses the buttons, but has no special powers** — whoever
+hauls earns the tip. If the bot dies, any wallet does its job.
 
-**Stock election.** Each whale's share is delivered into its own wallet as ETH, or auto-swapped into the stock the holder elected. The holder names the token themselves; there is no allowlist and nobody curates it. If the swap fails for any reason — thin book, bad token, dead router — the whale is paid in ETH rather than stranded.
+---
 
-Because the elected token is unvetted by design, the swap is called with a hard gas ceiling. Otherwise a hostile token could burn the whole transaction's gas and take a keeper's entire delivery batch down with it. Capped, a bad election costs only its own whale a swap, and that whale still gets its ETH.
+## The art
 
-**A keeper bot presses the buttons. But it has no special powers** — whoever hauls earns the 0.5% tip. If the bot dies, any wallet does its job.
+The 1000 whales are PNGs generated by `pipeline/`, pinned to IPFS. `tokenURI`
+returns `<baseURI><id padded to 4>.json`, e.g. `ipfs://bafy…/0042.json`.
+
+Two things stop the art being swapped after launch:
+
+- **Provenance.** The contract stores an immutable keccak hash of every
+  metadata file in token order, fixed at deployment. The collection is
+  reproducible from the `WHALES-2026` seed, so anyone can regenerate it,
+  re-run `scripts/provenance.js`, and check the hash matches.
+- **The freeze.** `setBaseURI` is callable only by the curator, and
+  `freezeMetadata()` is one-way: it locks the URI and destroys the curator
+  role. After that no address in the system can change what a whale looks like.
+
+Current provenance for the committed collection:
+
+```
+0x7f1908587224fd9d204fc67ef385aeccdb808c959fe19876fa167c949f36d709
+```
 
 ---
 
@@ -146,9 +143,13 @@ function setTrench(ITrench trench_) external {
 }
 ```
 
-It exists because `Whales` and `Trench` reference each other and one has to be deployed first. It can be called once, and it burns the deployer role in the same transaction. `deploy.js` refuses to report success unless `deployer` is actually zero afterwards.
+It exists only because `Whales` and `Trench` reference each other and one has
+to be deployed first. `deploy.js` refuses to report success unless `deployer`
+is zero afterwards. After that, no address in the system has any power a random
+wallet doesn't also have.
 
-After that there is no address anywhere in the system with any power that a random wallet does not also have.
+(The curator role on `Whales` is separate and also self-destructing — see
+`freezeMetadata()` above. It cannot touch money.)
 
 ---
 
@@ -159,81 +160,105 @@ After that there is no address anywhere in the system with any power that a rand
 ```bash
 cd contracts
 npm install
-npx hardhat test        # 62 tests
-npx hardhat compile
+npx hardhat test        # 60 tests
 ```
 
-Builds compile with the `solc` package pinned in `devDependencies` rather than a binary fetched at build time, so bytecode is a function of the lockfile alone and CI runners without egress to `binaries.soliditylang.org` still work.
+`solc` is pinned in `devDependencies` rather than fetched at build time, so
+bytecode is a function of the lockfile alone and CI runners without egress to
+`binaries.soliditylang.org` still work. `evmVersion` is pinned to `cancun` —
+see HANDOVER blocker 2.
 
-Preview the art without a chain:
+### The art pipeline
 
 ```bash
-npx hardhat run scripts/render.js   # writes contracts/art-preview/index.html
+cd pipeline
+pip install pillow numpy
+python3 generate.py --cid bafy…     # 1000 PNGs + metadata into output/
 ```
+
+Deterministic from the `WHALES-2026` seed — same input, same 1000 whales.
+Details in [`pipeline/README.md`](pipeline/README.md).
 
 ### Deploying
 
 ```bash
-LAUNCH_RECIPIENT=0x...   \
-MINT_PRICE=0.02          \
-HAUL_THRESHOLD=0.1       \
+cd contracts
+node scripts/provenance.js ../pipeline/output/metadata   # prints PROVENANCE=0x…
+
+ROBINHOOD_RPC_URL=https://…  \
+PRIVATE_KEY=0x…              \
+LAUNCH_RECIPIENT=0x…         \
+PROVENANCE=0x…               \
+BASE_URI=ipfs://bafy…/       \
 npx hardhat run scripts/deploy.js --network robinhood
 ```
 
-Set `ROBINHOOD_RPC_URL` and `PRIVATE_KEY` in the environment first. `SWAP_ROUTER` and `WETH` are optional — set both to enable stock election, leave them unset and every whale is paid in ETH.
+`MINT_PRICE` (0.02) and `HAUL_THRESHOLD` (0.1) have defaults. `SWAP_ROUTER` and
+`WETH` are optional — set both to enable stock election, leave them unset and
+every whale is paid in ETH.
 
-Addresses are written to `contracts/deployments/<network>.json`, which the keeper and the dashboard both read.
+Addresses are written to `contracts/deployments/<network>.json`, which the
+keeper and dashboard both read. Check a token renders, then call
+`freezeMetadata()`.
 
-**Then point the Flap launch tax recipient at the Trench address.** That is the entire integration.
+**Then point the Flap launch tax recipient at the Trench address.** That is the
+entire integration.
 
 ### Locally, end to end
 
 ```bash
 cd contracts
 npx hardhat node                                            # terminal 1
+
+PROVENANCE=0x7f1908587224fd9d204fc67ef385aeccdb808c959fe19876fa167c949f36d709 \
 npx hardhat run scripts/deploy.js     --network localhost   # terminal 2
-npx hardhat run scripts/seed-local.js --network localhost   # see below
+npx hardhat run scripts/seed-local.js --network localhost
 
 cd ../keeper && npm install
 RPC_URL=http://127.0.0.1:8545 \
 DEPLOYMENT=../contracts/deployments/localhost.json \
-PRIVATE_KEY=0x... node keeper.js --once
+PRIVATE_KEY=0x… node keeper.js --once
 
 cd ../web && npm install
 cp .env.example .env                                        # addresses from the deploy
 npm run dev
 ```
 
-`seed-local.js` mints the collection out, reveals rarity, then feeds forty whales in waves and rewinds the clock between them so the whole loyalty curve — 1.00x through 3.33x — is visible on the site rather than a wall of identical multipliers.
+`seed-local.js` mints out, points the base URI at a stand-in CID, then feeds
+forty whales in waves and rewinds the chain clock between them, so the whole
+loyalty curve is visible on the site rather than a wall of 1.00x.
 
 ### The keeper
 
 ```bash
 cd keeper
-RPC_URL=... PRIVATE_KEY=... npm start        # loop
-npm run once                                 # single pass, for cron
-npm run dry-run                              # report only, sends nothing
+RPC_URL=… PRIVATE_KEY=… npm start   # loop
+npm run once                        # single pass, for cron
+npm run dry-run                     # report only, sends nothing
 ```
 
-Each pass syncs stale tiers, hauls if the net is full, then delivers. A failed pass is not fatal — the next one retries, and in the meantime anyone else can do the same work for the same tip.
+Each pass syncs stale tiers, hauls if the pot is full, then delivers. A failed
+pass isn't fatal — the next one retries, and anyone else can do the same work
+for the same tip.
 
 ### The website
 
 ```bash
 cd web
 cp .env.example .env    # fill in from contracts/deployments/<network>.json
-npm run dev
+npm run dev             # npm run build for dist/
 ```
 
-**The page is a dive.** Bright sky-cyan at the surface, darkening with every scroll — lagoon, open ocean, trench — until the footer sits in the abyss. The gradient lives on one full-document layer rather than a stack of differently-coloured sections, so the descent is continuous. Sun shafts fade out by open water, and the sticky pill nav inverts as the water darkens so it stays legible the whole way down.
+Env vars are baked in at build time. Changing them requires a rebuild/redeploy.
 
-Sections, in order: a surface hero with rising bubbles, an animated waveline and a glass card showing a real whale's live USD earnings; a hard-bordered live stats strip; the four-step grid with oversized accent numbers; the Trench, deep, with a card that fills like rising water as the real pot grows and a whale silhouette drifting behind; a full-width carousel where fed whales glow gold and dormant ones sit grey-blue; a frosted dashboard panel with a filling gauge and a per-whale table; and the abyss footer with contract addresses and the trust line.
+Fonts are self-hosted, so the site pulls nothing from a third party at runtime.
+Whale art comes from `tokenURI`, loaded lazily and capped at six concurrent
+reads so a wall of whales doesn't stampede the RPC. Dollar figures come from
+whatever price feed `.env` names; with none configured the site shows ETH only
+rather than inventing a number.
 
-When a haul lands — from anyone, not just this browser — the page answers with a bubble burst and gold settling to the seafloor. It is driven off the chain's haul counter, so everyone watching sees it.
-
-Fonts are self-hosted through `@fontsource`, so the site pulls nothing from a third party at runtime. Every whale's art comes from `tokenURI`, loaded lazily as tiles come into view and capped at six concurrent reads so a wall of whales doesn't stampede the RPC.
-
-Dollar figures come from whatever price feed you configure in `.env`. With none configured, or when it is unreachable, the site shows ETH only rather than inventing a number. The same goes for the footer's social links: anything unset is simply not rendered, never a dead link.
+Deploy config for both hosts is in the repo: `vercel.json` for Vercel,
+`web/public/.htaccess` for Apache/LiteSpeed shared hosting. Keep them in step.
 
 ---
 
@@ -242,7 +267,7 @@ Dollar figures come from whatever price feed you configure in `.env`. With none 
 ```
 contracts/test/
   token.test.js       supply is minted once and only ever falls
-  whales.test.js      minting, the commit-reveal, tier spread, on-chain art
+  whales.test.js      minting, tokenURI, provenance, the metadata freeze
   activation.test.js  the burn, and selling dropping a whale off the payroll
   loyalty.test.js     the weight curve, and permissionless syncing
   trench.test.js      haul maths, the tip, delivery, conservation
@@ -250,22 +275,7 @@ contracts/test/
   stock.test.js       stock election, its ETH fallback, and a hostile token
 ```
 
-The one worth reading is the conservation invariant in `trench.test.js`: across five hauls with three whales at drifting weights and interleaved deliveries, `paid into whale wallets + keeper tips + what is left in the Trench` equals exactly what went in. Nothing appears and nothing vanishes.
-
----
-
-## Why it wins
-
-- **Real yield, day one.** Fees flow from the first trade.
-- **Burn-gated.** You must buy and destroy $WHALE to earn. Demand and deflation in one motion.
-- **Loyalty-weighted.** Diamond-fin whales out-earn tourists 3.33 to 1.
-- **Trustless by construction.** No withdraw function, permissionless haul, NFT-bound payroll.
-- **Stock election.** Your whale can pay you in equities. On Robinhood Chain, that's the flex.
-
-**Feed the whale. Haul the Trench. Own the tide.**
-
----
-
-## Before mainnet
-
-This is complete, tested, working code — but it has not been audited, and it holds other people's money. Get an audit before it is pointed at a live Flap launch. Two areas deserve an auditor's attention in particular: the accumulator arithmetic in `Trench` (rounding, and the `reserved` bound that keeps credited balances at or under the contract's actual balance), and the transfer-hook deactivation path in `Whales`, which must never be able to revert or an activated whale becomes untransferable.
+The one worth reading is the conservation invariant in `trench.test.js`: across
+five hauls with three whales at drifting weights and interleaved deliveries,
+`paid into whale wallets + keeper tips + what is left in the Trench` equals
+exactly what went in. Nothing appears and nothing vanishes.
