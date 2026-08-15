@@ -46,7 +46,7 @@ const FACTS = [
   },
 ];
 
-export default function Trench({ ocean }) {
+export default function Trench({ ocean, live }) {
   const fill = ocean ? percent(ocean.pot, ocean.haulThreshold) : 0;
 
   return (
@@ -61,20 +61,27 @@ export default function Trench({ ocean }) {
         </p>
 
         <div className="facts">
-          <div className="glass on-dark fact filling">
-            <div className="fact-water" style={{ height: `${fill}%` }} aria-hidden="true" />
-            <span className="fact-tag">Filling now</span>
-            <h3 className="display">
-              {ocean ? `${eth(ocean.pot, 3)} ETH in the net` : "Reading the chain…"}
-            </h3>
-            <p>
-              {ocean?.readyToHaul
-                ? "The net is full. Anyone can haul it right now and keep 0.5%."
-                : ocean
-                  ? `${eth(ocean.haulThreshold - ocean.pot, 4)} ETH to go before the pot can be hauled.`
-                  : "Waiting on the pot."}
-            </p>
-          </div>
+          {live && ocean ? (
+            <div className="glass on-dark fact filling">
+              <div className="fact-water" style={{ height: `${fill}%` }} aria-hidden="true" />
+              <span className="fact-tag">Filling now</span>
+              <h3 className="display">{eth(ocean.pot, 3)} ETH in the net</h3>
+              <p>
+                {ocean.readyToHaul
+                  ? "The net is full. Anyone can haul it right now and keep 0.5%."
+                  : `${eth(ocean.haulThreshold - ocean.pot, 4)} ETH to go before the pot can be hauled.`}
+              </p>
+            </div>
+          ) : (
+            <div className="glass on-dark fact">
+              <span className="fact-tag">The threshold</span>
+              <h3 className="display">One transaction, however many whales</h3>
+              <p>
+                The pot is split by a running per-weight total rather than a loop, so a single haul
+                pays every fed whale at once — whether that is three of them or all thousand.
+              </p>
+            </div>
+          )}
 
           {FACTS.map((fact) => (
             <div className="glass on-dark fact" key={fact.tag}>

@@ -34,7 +34,40 @@ function Waveline() {
   );
 }
 
-export default function Hero({ ocean, featured, price, wallet }) {
+/** Shown before the contracts are live: the collection, with no chain to read. */
+function CollectionCard() {
+  return (
+    <div className="glass featured">
+      <div className="featured-art placeholder">
+        <span>1000</span>
+      </div>
+      <div className="featured-head">
+        <span className="featured-name">The collection</span>
+        <span className="featured-label">Fixed supply</span>
+      </div>
+      <div className="featured-rows num">
+        <div>
+          <span>Whales</span>
+          <span>1000, never more</span>
+        </div>
+        <div>
+          <span>To activate</span>
+          <span>burn 1,000,000 $WHALE</span>
+        </div>
+        <div>
+          <span>Loyalty weight</span>
+          <span>1.00x → 3.33x</span>
+        </div>
+        <div>
+          <span>Tax to whales</span>
+          <span>100%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Hero({ ocean, featured, price, wallet, live }) {
   const bubbles = useMemo(() => BUBBLES, []);
   const fed = featured && featured.activatedAt !== 0n;
 
@@ -81,48 +114,43 @@ export default function Hero({ ocean, featured, price, wallet }) {
           </div>
         </div>
 
-        <div className="glass featured">
-          {featured ? (
-            <>
-              <WhaleArt
-                tokenId={featured.tokenId}
-                className="featured-art"
-                alt={`Whale #${featured.tokenId}, the top earner`}
-              />
-              <div className="featured-head">
-                <span className="featured-name">Whale #{String(featured.tokenId)}</span>
-                <span className="featured-label">{fed ? "Fed" : "Dormant"}</span>
+        {!live || !featured ? (
+          <CollectionCard />
+        ) : (
+          <div className="glass featured">
+            <WhaleArt
+              tokenId={featured.tokenId}
+              className="featured-art"
+              alt={`Whale #${featured.tokenId}, the top earner`}
+            />
+            <div className="featured-head">
+              <span className="featured-name">Whale #{String(featured.tokenId)}</span>
+              <span className="featured-label">{fed ? "Fed" : "Dormant"}</span>
+            </div>
+            <div>
+              <p className="featured-label" style={{ marginBottom: 6 }}>
+                Lifetime earnings
+              </p>
+              <div className={`featured-earn num${fed ? " gold" : ""}`}>
+                {usd(featured.lifetimeEarned, price) || `${eth(featured.lifetimeEarned)} ETH`}
+              </div>
+            </div>
+            <div className="featured-rows num">
+              <div>
+                <span>Weight</span>
+                <span>{fed ? multiplier(featured.weight) : "—"}</span>
               </div>
               <div>
-                <p className="featured-label" style={{ marginBottom: 6 }}>
-                  Lifetime earnings
-                </p>
-                <div className={`featured-earn num${fed ? " gold" : ""}`}>
-                  {usd(featured.lifetimeEarned, price) || `${eth(featured.lifetimeEarned)} ETH`}
-                </div>
+                <span>Fed for</span>
+                <span>{fed ? countdown(ocean.now - Number(featured.activatedAt)) : "—"}</span>
               </div>
-              <div className="featured-rows num">
-                <div>
-                  <span>Weight</span>
-                  <span>{fed ? multiplier(featured.weight) : "—"}</span>
-                </div>
-                <div>
-                  <span>Fed for</span>
-                  <span>{fed ? countdown(ocean.now - Number(featured.activatedAt)) : "—"}</span>
-                </div>
-                <div>
-                  <span>Owed now</span>
-                  <span>{eth(featured.claimable)} ETH</span>
-                </div>
+              <div>
+                <span>Owed now</span>
+                <span>{eth(featured.claimable)} ETH</span>
               </div>
-            </>
-          ) : (
-            <>
-              <div className="featured-art" />
-              <p className="featured-label">Waiting for the first whale to be fed…</p>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Waveline />

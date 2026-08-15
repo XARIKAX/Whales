@@ -1053,6 +1053,30 @@ input:focus {
   border-color: rgba(244, 197, 66, 0.4);
 }
 
+/* Pre-launch banner: this sits on light water, not inside a dark panel. */
+.notice.pending {
+  color: var(--navy);
+  background: rgba(245, 251, 254, 0.72);
+  border-color: rgba(8, 31, 51, 0.2);
+  backdrop-filter: blur(10px);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The hero card before there is a chain to read a whale from. */
+.featured-art.placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, var(--trench-1), var(--trench-2));
+}
+
+.featured-art.placeholder span {
+  font-family: var(--display);
+  font-size: 3.6rem;
+  color: rgba(190, 231, 245, 0.32);
+  letter-spacing: 0.06em;
+}
+
 /* --- Footer ----------------------------------------------------------- */
 
 .abyss {

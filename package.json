@@ -1,0 +1,13 @@
+{
+  "name": "whales",
+  "version": "1.0.0",
+  "private": true,
+  "description": "1000 pixel whales. Every fee in the ocean flows to them.",
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "preview": "npm --prefix web run preview",
+    "test": "npm --prefix contracts test",
+    "keeper": "npm --prefix keeper start"
+  }
+}

@@ -38,6 +38,12 @@ export default function App() {
     return fed.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), fed[0]);
   }, [whales]);
 
+  // The story stands on its own; the numbers layer in. Before the contracts
+  // are live — or if the RPC is unreachable — the page is still the whole
+  // pitch rather than an error card between a header and a footer.
+  const unreachable = Boolean(error) && error !== "not-configured";
+  const live = CONFIGURED && !unreachable;
+
   return (
     <div className="page">
       <div className="dive" />
@@ -45,41 +51,40 @@ export default function App() {
 
       {/* The pill inverts once the water is dark enough that a light pill
           stops reading — a little before the section boundary, not after. */}
-      <Nav deep={depth > 0.2} />
+      <Nav deep={depth > 0.2} live={live} />
       <Celebration trigger={haulSignal} />
 
-      <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} />
+      <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} live={live} />
 
-      {!CONFIGURED ? (
-        <section>
+      <StatsStrip ocean={live ? ocean : null} price={price} />
+
+      {!CONFIGURED && (
+        <section style={{ paddingBlock: 0, marginTop: 48 }}>
           <div className="wrap">
-            <div className="glass" style={{ padding: 28 }}>
-              <h3 className="display">No deployment configured</h3>
-              <p className="lede" style={{ marginTop: 12 }}>
-                Copy <code>.env.example</code> to <code>.env</code>, fill in the addresses from{" "}
-                <code>contracts/deployments/&lt;network&gt;.json</code>, and restart the dev server.
-              </p>
-            </div>
+            <p className="notice pending">
+              Not launched yet. The contracts are written, tested and ready — this page goes live the
+              moment they are deployed and the addresses are set.
+            </p>
           </div>
         </section>
-      ) : (
+      )}
+
+      {CONFIGURED && unreachable && (
+        <section style={{ paddingBlock: 0, marginTop: 48 }}>
+          <div className="wrap">
+            <p className="notice error">
+              Can't reach {CHAIN.name} right now, so the live figures are hidden rather than shown
+              stale. Everything below is unaffected. ({error})
+            </p>
+          </div>
+        </section>
+      )}
+
+      <Steps />
+      <Trench ocean={live ? ocean : null} live={live} />
+
+      {live && (
         <>
-          <StatsStrip ocean={ocean} price={price} />
-
-          {error && error !== "not-configured" && (
-            <section style={{ paddingBlock: 32 }}>
-              <div className="wrap">
-                <div className="glass" style={{ padding: 20 }}>
-                  <p className="lede" style={{ margin: 0 }}>
-                    Could not reach {CHAIN.name}: {error}
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          <Steps />
-          <Trench ocean={ocean} />
           <Carousel whales={whales} />
           <Dashboard
             ocean={ocean}
