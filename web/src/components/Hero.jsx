@@ -12,12 +12,12 @@ import Reveal from "./Reveal.jsx";
 /** Deterministic, so React never reshuffles the field. Two tiers: a far one
     that stays small and crisp, and a near one that is big, out of focus and
     rises faster — the same depth contract the fish are under. */
-const BUBBLES = Array.from({ length: 44 }, (_, i) => {
+const BUBBLES = Array.from({ length: 64 }, (_, i) => {
   const seed = (i * 2654435761) % 1013;
-  const near = i % 4 === 0;
+  const near = i % 3 === 0;
   return {
     left: `${(seed % 97) + 1}%`,
-    size: near ? 16 + (seed % 20) : 4 + (seed % 12),
+    size: near ? 20 + (seed % 26) : 5 + (seed % 13),
     duration: (near ? 11 : 17) + (seed % 14),
     delay: -((seed % 19) + i * 0.42),
     drift: `${((seed % 80) - 40) | 0}px`,
@@ -25,55 +25,38 @@ const BUBBLES = Array.from({ length: 44 }, (_, i) => {
   };
 });
 
-/* --- Parallax ----------------------------------------------------------- */
-
-const clamp = (n) => Math.max(-1, Math.min(1, n));
+/* --- Drift -------------------------------------------------------------- */
 
 /**
- * Pointer and scroll, written straight to CSS variables inside one rAF. The
- * planes read those variables and move by different amounts, which is the
- * cheapest convincing parallax there is — and it never triggers a React render.
+ * How far the hero has scrolled past, written to one CSS variable inside a rAF.
+ * The planes read it and move by different amounts, which is the cheapest
+ * convincing parallax there is — and it never triggers a React render.
+ *
+ * There is deliberately no pointer term. Tying the scene to the cursor made
+ * every plane twitch under the smallest mouse movement, and a whale that flinches
+ * when you reach for a button is not a whale, it is a bug.
  */
-function useParallax(ref) {
+function useDrift(ref) {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let frame = 0;
-    let mx = 0;
-    let my = 0;
-    let sy = 0;
-
     const write = () => {
       frame = 0;
-      node.style.setProperty("--mx", mx.toFixed(4));
-      node.style.setProperty("--my", my.toFixed(4));
+      const box = node.getBoundingClientRect();
+      const sy = Math.max(0, Math.min(1, -box.top / Math.max(1, box.height)));
       node.style.setProperty("--sy", sy.toFixed(4));
     };
-    const schedule = () => {
+    const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(write);
     };
 
-    const onMove = (event) => {
-      const box = node.getBoundingClientRect();
-      mx = clamp((event.clientX - box.width / 2) / (box.width / 2));
-      my = clamp((event.clientY - box.top - box.height / 2) / (box.height / 2));
-      schedule();
-    };
-
-    const onScroll = () => {
-      const box = node.getBoundingClientRect();
-      sy = Math.max(0, Math.min(1, -box.top / Math.max(1, box.height)));
-      schedule();
-    };
-
     onScroll();
-    window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
-      window.removeEventListener("pointermove", onMove);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       if (frame) cancelAnimationFrame(frame);
@@ -243,7 +226,7 @@ export default function Hero({ featured, price, wallet, live }) {
   /* Scrolled past the hero, the whole scene parks. Nothing below it is worth
      paying twenty-six fish and six light shafts a frame for. */
   const near = useOnScreen(stage, "200px");
-  useParallax(stage);
+  useDrift(stage);
 
   return (
     <section className={`hero${near ? "" : " parked"}`} id="top" ref={stage}>
@@ -262,15 +245,21 @@ export default function Hero({ featured, price, wallet, live }) {
             through them and nearer ones are silhouetted against them. */}
         <Rays />
 
+        {/* The pod, mid-water. These are the characters; the fish threaded
+            through them are there to give the whales something to be big
+            against. */}
+        <div className="plane plane-pod">
+          <Marine plane="pod" seed={11} />
+        </div>
         <div className="plane plane-mid">
-          <Marine plane="mid" seed={11} />
+          <Marine plane="mid" seed={23} />
         </div>
 
         <Kelp side="left" />
         <Kelp side="right" />
 
-        <div className="hero-bubbles">
-          {bubbles.map((b, i) => (
+        <div className="hero-bubbles hero-bubbles-back">
+          {bubbles.slice(0, 22).map((b, i) => (
             <span
               key={i}
               className={`bubble${b.near ? " bubble-near" : ""}`}
@@ -363,7 +352,27 @@ export default function Hero({ featured, price, wallet, live }) {
           between the reader and the headline — the single move that stops the
           scene being a backdrop. */}
       <div className="plane plane-near" aria-hidden="true">
-        <Marine plane="near" shoal="vivid" seed={47} />
+        <Marine plane="near" seed={47} />
+      </div>
+
+      {/* The near bubbles rise in FRONT of the message. Water is between the
+          reader and the page, not just behind it — this is the layer that says
+          so, and it is why the field is split in two rather than doubled. */}
+      <div className="hero-bubbles hero-bubbles-front" aria-hidden="true">
+        {bubbles.slice(22).map((b, i) => (
+          <span
+            key={i}
+            className={`bubble${b.near ? " bubble-near" : ""}`}
+            style={{
+              left: b.left,
+              width: b.size,
+              height: b.size,
+              animationDuration: `${b.duration}s`,
+              animationDelay: `${b.delay}s`,
+              "--drift": b.drift,
+            }}
+          />
+        ))}
       </div>
 
       <WaveEdge />

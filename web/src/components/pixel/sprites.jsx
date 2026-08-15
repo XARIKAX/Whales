@@ -1,3 +1,5 @@
+import { WHALES, POD } from "./whales.js";
+
 /**
  * Pixel life.
  *
@@ -259,7 +261,7 @@ function Cells({ grid, palette, offsetX = 0 }) {
   ));
 }
 
-/** Tail first, body over the top: the body hides the overlap column. */
+/** Kept for the fish only — see ./sprite.jsx for the shared renderer. */
 function Sprite({ tail, body, palette, join, beat, phase = 0, className = "", style }) {
   const height = body.length;
   const width = join + body[0].length;
@@ -334,3 +336,26 @@ export function PixelWhale({ beat = 7, deep = false, ...rest }) {
     />
   );
 }
+
+/* --- The pod ------------------------------------------------------------ */
+
+/**
+ * A little whale. These are the characters on this page; the fish above are
+ * scenery. Six species, told apart entirely by silhouette and palette — see
+ * ./whales.js for how each one is built.
+ */
+export function PixelWhaleling({ species = "humpback", beat = 1.5, ...rest }) {
+  const sprite = WHALES[species] || WHALES.humpback;
+  return (
+    <Sprite
+      tail={sprite.fluke}
+      body={sprite.body}
+      join={sprite.join}
+      palette={POD[species] || POD.humpback}
+      beat={beat}
+      {...rest}
+    />
+  );
+}
+
+export const POD_SPECIES = Object.keys(WHALES);

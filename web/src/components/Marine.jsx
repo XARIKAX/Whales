@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PixelFish, PixelWhale } from "./pixel/sprites.jsx";
+import { PixelFish, PixelWhale, PixelWhaleling } from "./pixel/sprites.jsx";
 
 /**
  * The life in the water.
  *
- * The whole illusion is depth, and depth is four things moving at once: things
- * that are near are big, fast, out of focus and pass IN FRONT of the reader;
- * things that are far are small, slow, hazy and pass behind everything. Get
- * those four to agree and a flat gradient becomes a place you are standing in.
+ * Whales are the characters. There are six species and they carry every plane —
+ * a pod, not a mascot. Fish are scenery: they sit further out and closer in than
+ * the whales do, and they exist to give the pod something to have depth against.
+ *
+ * The illusion is depth, and depth is four things agreeing at once: near things
+ * are big, fast, out of focus and pass IN FRONT of the reader; far things are
+ * small, slow, hazy and pass behind everything. Get those four to agree and a
+ * flat gradient becomes a place you are standing in.
  *
  * Every plane is pure CSS transform on a wrapper — nothing here runs per-frame
  * in JavaScript, and nothing takes a pointer event.
@@ -16,11 +20,11 @@ import { PixelFish, PixelWhale } from "./pixel/sprites.jsx";
 /**
  * True while the element is anywhere near the viewport.
  *
- * Everything on this page is CSS-animated, which means it keeps animating —
- * and keeps costing a compositor pass — while the reader is three screens
- * further down looking at something else. Parking the animations the moment a
- * scene leaves the viewport is the single largest saving available here, and
- * costs nothing visually because nobody is looking.
+ * Everything here is CSS-animated, which means it keeps animating — and keeps
+ * costing a compositor pass — while the reader is three screens further down
+ * looking at something else. Parking the animations the moment a scene leaves
+ * the viewport is the largest saving available, and costs nothing visually
+ * because nobody is looking.
  */
 export function useOnScreen(ref, margin = "300px") {
   const [near, setNear] = useState(true);
@@ -54,79 +58,80 @@ const pick = (r, [lo, hi]) => lo + r() * (hi - lo);
 /**
  * Plane definitions. `size` is sprite height in px, `cross` is seconds to
  * traverse the viewport, `blur` is the depth-of-field cost of being off the
- * focal plane, and `beat` is seconds per tail stroke — small fish beat fast.
+ * focal plane, and `beat` is seconds per tail stroke.
+ *
+ * Note the opacity climbing from far to near, not falling. Atmospheric
+ * perspective washes out what is FAR away; a creature an arm's length from the
+ * lens is the most saturated thing in the frame.
  */
 const PLANES = {
-  /* No blur on this plane. Twelve sprites whose tails beat every frame, each
-     one its own blurred layer, is twelve re-rasterisations a frame for haze
-     that size and opacity already sell on their own. */
-  far: { n: 12, slim: true, size: [10, 16], cross: [58, 84], y: [10, 84], blur: 0, opacity: 0.34, beat: [0.62, 0.92] },
-  mid: { n: 8, slim: false, size: [24, 40], cross: [32, 50], y: [12, 86], blur: 0.35, opacity: 0.95, beat: [0.42, 0.66] },
-  /* The near plane is the whole trick, so it is the one worth tuning hardest.
-     Its band is deliberately central — a foreground fish only earns its cost
-     when it crosses the headline, and one drifting along the floor is just an
-     expensive smudge. Blur stays low: enough to sit off the focal plane, not
-     enough to turn the sprite to mush, which reads as a fault rather than as
-     depth of field. */
-  /* Note the opacity climbing across these three, not falling. Atmospheric
-     perspective washes out what is FAR away; a fish an arm's length from the
-     lens is the most saturated thing in the frame. Depth on this plane is
-     carried by blur and speed alone. */
-  near: { n: 4, slim: false, size: [56, 92], cross: [21, 33], y: [11, 68], blur: 1.6, opacity: 0.88, beat: [0.3, 0.44] },
-  /* For the sections below the hero. Life thins and slows as the page
-     descends — by the trench there should be almost nothing left, and what is
-     left should be the wrong colour for daylight. */
-  drift: { n: 5, slim: false, size: [18, 30], cross: [46, 72], y: [8, 88], blur: 0.9, opacity: 0.5, beat: [0.5, 0.82] },
-  sparse: { n: 3, slim: false, size: [20, 34], cross: [64, 96], y: [12, 84], blur: 1.1, opacity: 0.62, beat: [0.7, 1.1] },
+  /* Small fish, hazy and slow, a long way out. */
+  far: { n: 10, kind: "fish", slim: true, size: [9, 14], cross: [64, 92], y: [8, 86], blur: 0, opacity: 0.3, beat: [0.62, 0.92] },
+  /* The pod. Mid-water, unhurried, and the reason anyone is looking. */
+  pod: { n: 6, kind: "whale", size: [26, 46], cross: [46, 78], y: [12, 84], blur: 0.3, opacity: 0.92, beat: [1.4, 2.4] },
+  /* A few reef fish threaded through the pod so it is not all one species. */
+  mid: { n: 5, kind: "fish", size: [20, 30], cross: [36, 56], y: [10, 88], blur: 0.3, opacity: 0.8, beat: [0.42, 0.66] },
+  /* The near plane is the whole trick. Its band is central on purpose — a
+     foreground creature only earns its cost when it crosses the headline. Blur
+     stays low: enough to sit off the focal plane, not enough to turn a sprite
+     to mush, which reads as a fault rather than as depth of field. */
+  /* Sized off the headline, not off the viewport. A whale is three times as
+     long as it is deep, so 70px of height is already 220px of animal — twice
+     that and it stops being a creature passing through the frame and becomes a
+     wall moving across the words. */
+  near: { n: 3, kind: "whale", size: [50, 74], cross: [30, 46], y: [8, 64], blur: 1.5, opacity: 0.85, beat: [1, 1.5] },
+  /* Below the hero: life thins and slows as the page descends. */
+  drift: { n: 4, kind: "whale", size: [22, 38], cross: [58, 88], y: [8, 86], blur: 0.7, opacity: 0.55, beat: [1.6, 2.6] },
+  sparse: { n: 3, kind: "fish", size: [20, 34], cross: [70, 100], y: [12, 84], blur: 1, opacity: 0.6, beat: [0.7, 1.1] },
 };
 
-/** Hot colours belong in the lit shallows; the deep only keeps its lure. */
+const POD_SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
+
 const SHOALS = {
   shallow: ["tang", "lemon", "reef", "coral", "mint", "tang", "lemon"],
-  /* The near plane skips `reef` and `silver`. Both go muddy once they are
-     blurred, and a foreground fish that reads as a beige smear is worse than
-     no foreground fish at all. */
-  vivid: ["tang", "coral", "lemon", "mint", "tang", "coral"],
-  school: ["silver", "silver", "silver", "tang", "silver", "silver", "lemon", "silver", "silver", "mint"],
+  school: ["silver", "silver", "silver", "tang", "silver", "silver", "lemon", "silver", "mint"],
   abyss: ["abyssal"],
 };
 
-function school(plane, seed, palette) {
+function school(plane, seed, shoal) {
   const spec = PLANES[plane];
   const r = rng(seed);
+  const palette = spec.kind === "whale" ? POD_SPECIES : SHOALS[shoal] || SHOALS.shallow;
 
   return Array.from({ length: spec.n }, (_, i) => {
     const cross = pick(r, spec.cross);
     const rightward = r() > 0.55;
-    /* Stratified rather than uniform: each fish gets its own horizontal band
-       and jitters inside it. Uniform placement clumps — four near fish drawn
-       independently will happily line up at the same height and blot out the
-       same word for ten seconds, which looks like a bug rather than a shoal. */
+    /* Stratified rather than uniform: each creature gets its own horizontal
+       band and jitters inside it. Uniform placement clumps — three near whales
+       drawn independently will happily line up at the same height and blot out
+       the same word for ten seconds, which looks like a bug, not a pod. */
     const [y0, y1] = spec.y;
     return {
       key: `${plane}-${i}`,
       species: palette[Math.floor(r() * palette.length)],
+      whale: spec.kind === "whale",
       slim: spec.slim,
       size: pick(r, spec.size),
       y: y0 + ((i + r()) / spec.n) * (y1 - y0),
       cross,
       rightward,
       beat: pick(r, spec.beat),
-      /* A negative delay means the water is already full of fish on the very
-         first frame, instead of filling up over the next minute. */
+      /* A negative delay means the water is already full on the very first
+         frame, instead of filling up over the next minute. */
       delay: -r() * cross,
-      bob: 2.4 + r() * 3.4,
-      bobDelay: -r() * 6,
+      bob: 3.4 + r() * 4.2,
+      bobDelay: -r() * 8,
       phase: r() * 2,
     };
   });
 }
 
 function Swimmer({ fish, blur, opacity }) {
-  const { size, y, cross, rightward, delay, bob, bobDelay, phase, species, slim } = fish;
-  /* Sprites are drawn facing right, so a leftward fish is the same grid mirrored. */
-  const lead = rightward ? "-18rem" : "calc(100vw + 18rem)";
-  const trail = rightward ? "calc(100vw + 18rem)" : "-18rem";
+  const { size, y, cross, rightward, delay, bob, bobDelay, phase, species, slim, whale } = fish;
+  /* Sprites are drawn facing right, so a leftward one is the same grid mirrored. */
+  const lead = rightward ? "-22rem" : "calc(100vw + 22rem)";
+  const trail = rightward ? "calc(100vw + 22rem)" : "-22rem";
+  const Creature = whale ? PixelWhaleling : PixelFish;
 
   return (
     <span
@@ -145,7 +150,7 @@ function Swimmer({ fish, blur, opacity }) {
         className="swimmer-bob"
         style={{ animationDuration: `${bob}s`, animationDelay: `${bobDelay}s` }}
       >
-        <PixelFish
+        <Creature
           species={species}
           slim={slim}
           beat={fish.beat}
@@ -173,14 +178,9 @@ function Leviathan() {
   );
 }
 
-/**
- * @param plane  which depth this layer sits at — `near` renders over the type,
- *               the rest render behind it.
- * @param shoal  which palette the water is cold enough for.
- */
-export default function Marine({ plane = "mid", shoal = "shallow", seed = 1, leviathan = false }) {
+export default function Marine({ plane = "pod", shoal = "shallow", seed = 1, leviathan = false }) {
   const spec = PLANES[plane];
-  const fish = useMemo(() => school(plane, seed, SHOALS[shoal]), [plane, seed, shoal]);
+  const fish = useMemo(() => school(plane, seed, shoal), [plane, seed, shoal]);
 
   return (
     <div className={`marine marine-${plane} shoal-${shoal}`} aria-hidden="true">
@@ -194,8 +194,8 @@ export default function Marine({ plane = "mid", shoal = "shallow", seed = 1, lev
 
 /**
  * Life for the sections below the hero, clipped to whatever section it is
- * dropped into. Same shoals, thinner and slower — the dive is supposed to feel
- * emptier the further down it goes.
+ * dropped into. Same pod, thinner and slower — the dive should feel emptier the
+ * further down it goes.
  */
 export function SectionLife({ plane = "drift", shoal = "school", seed = 1 }) {
   const ref = useRef(null);

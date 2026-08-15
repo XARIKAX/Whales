@@ -1456,9 +1456,8 @@ p {
   min-height: clamp(660px, 96svh, 950px);
   padding-block: clamp(104px, 13vh, 158px) clamp(92px, 11vh, 140px);
 
-  /* Written by JS every frame the pointer or the scroll moves. */
-  --mx: 0;
-  --my: 0;
+  /* Written by JS on scroll. There is no pointer term: tying the scene to the
+     cursor made every plane twitch under the smallest mouse movement. */
   --sy: 0;
 }
 
@@ -1474,10 +1473,10 @@ p {
    column of water takes over below it. */
 .hero-water {
   position: absolute;
-  inset: -14% -8% -2%;
+  inset: 0 -8% -2%;
   background:
     radial-gradient(
-      ellipse 58% 44% at 50% -4%,
+      ellipse 58% 40% at 50% 2%,
       rgba(255, 255, 255, 0.72),
       rgba(214, 241, 251, 0.3) 36%,
       transparent 70%
@@ -1491,15 +1490,18 @@ p {
       #2b8dc6 78%,
       #1c6fa8 100%
     );
-  transform: translate3d(calc(var(--mx) * -10px), calc(var(--sy) * 46px), 0);
+  transform: translate3d(0, calc(var(--sy) * 46px), 0);
 }
 
 /* The surface, from underneath. */
+/* Pinned to the very top of the viewport. Floated below it, the band of flat
+   pale water above the wave read as sky, which is exactly the thing an
+   underwater hero must not have. */
 .ceiling {
   position: absolute;
   inset: 0 0 auto 0;
-  height: clamp(88px, 15vh, 196px);
-  transform: translate3d(calc(var(--mx) * -18px), calc(var(--sy) * -40px), 0);
+  height: clamp(60px, 10vh, 130px);
+  transform: translate3d(0, calc(var(--sy) * -40px), 0);
 }
 
 .ceiling svg {
@@ -1550,7 +1552,7 @@ p {
   position: absolute;
   inset: -8% 0 auto 0;
   height: 132%;
-  transform: translate3d(calc(var(--mx) * -24px), calc(var(--sy) * -22px), 0);
+  transform: translate3d(0, calc(var(--sy) * -22px), 0);
 }
 
 /* Soft edges come from a mask, not from `filter: blur()`. These are six
@@ -1606,11 +1608,15 @@ p {
 }
 
 .plane-deep {
-  transform: translate3d(calc(var(--mx) * -12px), calc(var(--my) * -7px + var(--sy) * 34px), 0);
+  transform: translate3d(0, calc(var(--sy) * 34px), 0);
+}
+
+.plane-pod {
+  transform: translate3d(0, calc(var(--sy) * 54px), 0);
 }
 
 .plane-mid {
-  transform: translate3d(calc(var(--mx) * -30px), calc(var(--my) * -17px + var(--sy) * 68px), 0);
+  transform: translate3d(0, calc(var(--sy) * 68px), 0);
 }
 
 /* The near plane sits over the message. */
@@ -1619,7 +1625,7 @@ p {
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  transform: translate3d(calc(var(--mx) * -76px), calc(var(--my) * -42px + var(--sy) * 132px), 0);
+  transform: translate3d(0, calc(var(--sy) * 132px), 0);
 }
 
 /* --- Kelp -------------------------------------------------------------- */
@@ -1633,7 +1639,7 @@ p {
   height: clamp(250px, 56%, 560px);
   opacity: 0.32;
   filter: blur(3.4px);
-  transform: translate3d(calc(var(--mx) * -46px), calc(var(--sy) * 96px), 0);
+  transform: translate3d(0, calc(var(--sy) * 96px), 0);
 }
 
 .kelp svg {
@@ -1680,11 +1686,18 @@ p {
 
 /* --- Bubbles ----------------------------------------------------------- */
 
+/* Two fields, and the split is the point. The back one rises behind the
+   message; the front one rises in front of it, so the reader is looking THROUGH
+   water rather than at a picture of it. */
 .hero-bubbles {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  transform: translate3d(calc(var(--mx) * -22px), 0, 0);
+  pointer-events: none;
+}
+
+.hero-bubbles-front {
+  z-index: 5;
 }
 
 /* A bubble is a lens, not a dot: bright rim, bright top-left specular, and
@@ -1833,7 +1846,7 @@ p {
 
 .hero-title {
   color: var(--navy);
-  line-height: 0.86;
+  line-height: 1.02;
   letter-spacing: -0.004em;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 26px 60px rgba(4, 36, 62, 0.22);
 }
@@ -1843,7 +1856,13 @@ p {
    `.hero-title` alone the <h1> loses to `h1.display` and the two layers come out
    at different sizes, which shows up as the headline being faintly doubled. */
 .title-stack .hero-title {
-  font-size: clamp(2.9rem, 9.4vw, 8rem);
+  font-size: clamp(2.6rem, 8.2vw, 6.8rem);
+}
+
+/* Air between the two lines. At 0.86 they touched, which on a headline this
+   heavy reads as one solid block rather than as two lines of type. */
+.hero-title .line + .line {
+  margin-top: 0.06em;
 }
 
 /* The accent word is filled with the water itself — the pod IS the ocean.
@@ -2574,22 +2593,21 @@ section > .wrap {
 /* The Trench cards do not fade in. They strike, flicker once, and settle. */
 
 .facts.reveal-stagger.in > * {
-  animation: instrument 520ms steps(1, end) backwards;
+  /* These used to strike and flicker like an instrument coming online. On a
+     page with this much ambient motion already, six cards blinking on and off
+     as you scroll past reads as a rendering fault, not as a flourish. */
+  animation: instrument 620ms var(--ease-out) backwards;
   animation-delay: calc(var(--reveal-step) * var(--i, 0));
 }
 
 @keyframes instrument {
-  0% {
+  from {
     opacity: 0;
+    transform: translateY(14px);
   }
-  40% {
-    opacity: 0.55;
-  }
-  55% {
-    opacity: 0;
-  }
-  70% {
+  to {
     opacity: 1;
+    transform: none;
   }
 }
 
