@@ -71,6 +71,25 @@ describe("Whales — rarity reveal", function () {
     await expect(whales.revealSeed()).to.be.revertedWithCustomError(whales, "SeedAlreadyDrawn");
   });
 
+  it("cannot be rerolled by committing again over a live commitment", async function () {
+    const { whales } = await loadFixture(mintedOut);
+
+    await whales.commitSeed();
+    const target = await whales.seedBlock();
+
+    // Someone who dislikes the hash they are about to get tries again.
+    await expect(whales.commitSeed())
+      .to.be.revertedWithCustomError(whales, "SeedStillPending")
+      .withArgs(target);
+
+    await mine(2);
+    await expect(whales.commitSeed()).to.be.revertedWithCustomError(whales, "SeedStillPending");
+
+    // The draw stands: the seed is the hash of the block committed to first.
+    await whales.revealSeed();
+    expect(await whales.seedBlock()).to.equal(target);
+  });
+
   it("expires and can be recommitted if nobody reveals within 256 blocks", async function () {
     const { whales } = await loadFixture(mintedOut);
 

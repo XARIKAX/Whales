@@ -43,7 +43,7 @@ The 2%/3% tax lives in the Flap launch contract, **not** in the token. Flap coll
 
 1000 pixel whales, fixed supply, never more. Rarity tiers run surface swimmer → reef cruiser → twilight diver → abyss dweller → the leviathan. **Rarer whales don't earn more — they just flex harder.** Weight comes from loyalty alone.
 
-Rarity is drawn from a block hash committed only *after* the collection mints out, so nobody — including the deployer — can snipe a leviathan.
+Rarity is drawn from a block hash committed only *after* the collection mints out, so no minter can pick the leviathan out of the lineup — at buy time nobody knows which token it is. A live commitment cannot be replaced either, so nobody can peek at the hash, dislike it, and reroll. (The proposer of the committed block retains the usual one-shot blockhash influence: they could drop their block to force a redraw. Rarity is cosmetic — rarer whales earn exactly the same — so the stakes on that are low, but it is inherent to on-chain randomness and worth knowing.)
 
 **Burn to activate.** A whale doesn't earn until it's fed:
 
@@ -127,6 +127,8 @@ Tier promotion is permissionless — anyone can promote any whale to the tier it
 
 **Stock election.** Each whale's share is delivered into its own wallet as ETH, or auto-swapped into the stock the holder elected. The holder names the token themselves; there is no allowlist and nobody curates it. If the swap fails for any reason — thin book, bad token, dead router — the whale is paid in ETH rather than stranded.
 
+Because the elected token is unvetted by design, the swap is called with a hard gas ceiling. Otherwise a hostile token could burn the whole transaction's gas and take a keeper's entire delivery batch down with it. Capped, a bad election costs only its own whale a swap, and that whale still gets its ETH.
+
 **A keeper bot presses the buttons. But it has no special powers** — whoever hauls earns the 0.5% tip. If the bot dies, any wallet does its job.
 
 ---
@@ -157,7 +159,7 @@ After that there is no address anywhere in the system with any power that a rand
 ```bash
 cd contracts
 npm install
-npx hardhat test        # 60 tests
+npx hardhat test        # 62 tests
 npx hardhat compile
 ```
 
@@ -237,7 +239,7 @@ contracts/test/
   loyalty.test.js     the weight curve, and permissionless syncing
   trench.test.js      haul maths, the tip, delivery, conservation
   account.test.js     token-bound wallets and who controls them
-  stock.test.js       stock election and its ETH fallback
+  stock.test.js       stock election, its ETH fallback, and a hostile token
 ```
 
 The one worth reading is the conservation invariant in `trench.test.js`: across five hauls with three whales at drifting weights and interleaved deliveries, `paid into whale wallets + keeper tips + what is left in the Trench` equals exactly what went in. Nothing appears and nothing vanishes.

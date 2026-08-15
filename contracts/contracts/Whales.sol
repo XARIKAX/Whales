@@ -73,6 +73,7 @@ contract Whales is ERC721, IWhales {
     error MintNotFinished();
     error SeedAlreadyDrawn();
     error SeedNotCommitted();
+    error SeedStillPending(uint256 seedBlock);
     error SeedNotReady();
     error SeedExpired();
     error NotRevealed();
@@ -139,6 +140,14 @@ contract Whales is ERC721, IWhales {
     function commitSeed() external {
         if (totalMinted < MAX_SUPPLY) revert MintNotFinished();
         if (seed != 0) revert SeedAlreadyDrawn();
+
+        // A live commitment cannot be replaced. Without this, anyone could
+        // look at the hash they were about to get, dislike it, and commit
+        // again -- rerolling the whole collection's rarity for free until it
+        // suited them. Recommitting is only allowed once the committed block
+        // has aged out of blockhash range and the draw is genuinely dead.
+        if (seedBlock != 0 && block.number <= seedBlock + 256) revert SeedStillPending(seedBlock);
+
         seedBlock = block.number + 1;
         emit SeedCommitted(seedBlock);
     }

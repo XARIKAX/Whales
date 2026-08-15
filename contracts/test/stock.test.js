@@ -9,6 +9,10 @@ async function oceanWithRouter() {
   return deployOcean({ withRouter: true });
 }
 
+async function oceanWithGasBurner() {
+  return deployOcean({ withRouter: true, routerContract: "GasBurner" });
+}
+
 describe("Stock election — get paid in equities", function () {
   it("swaps a whale's share into the elected stock, into the whale's wallet", async function () {
     const ctx = await loadFixture(oceanWithRouter);
@@ -55,6 +59,36 @@ describe("Stock election — get paid in equities", function () {
     expect(await ethers.provider.getBalance(account)).to.equal(owed);
     expect(await stock.balanceOf(account)).to.equal(0);
     expect(await trench.claimable(id)).to.equal(0);
+  });
+
+  it("survives a hostile election that tries to burn the batch's gas", async function () {
+    // Anyone can name any token as their whale's payout asset — no allowlist.
+    // A hostile one that burns every drop of gas must not be able to take a
+    // keeper's whole delivery batch down with it.
+    const ctx = await loadFixture(oceanWithGasBurner);
+    const { trench, registry, stock, alice, bob, keeper } = ctx;
+
+    const hostile = await activateNew(ctx, alice);
+    const innocent = await activateNew(ctx, bob);
+    await trench.connect(alice).electStock(hostile, await stock.getAddress());
+
+    await keeper.sendTransaction({ to: await trench.getAddress(), value: ONE_ETH });
+    await trench.connect(keeper).haul();
+
+    const owedHostile = await trench.claimable(hostile);
+    const owedInnocent = await trench.claimable(innocent);
+
+    // The batch goes through, and the gas burned is bounded by SWAP_GAS_LIMIT.
+    const tx = await trench.connect(keeper).deliverMany([hostile, innocent]);
+    const receipt = await tx.wait();
+    expect(receipt.status).to.equal(1);
+    expect(receipt.gasUsed).to.be.lessThan(1_000_000n);
+
+    // Both whales are paid, the hostile one falling back to ETH.
+    expect(await ethers.provider.getBalance(await registry.accountOf(hostile))).to.equal(owedHostile);
+    expect(await ethers.provider.getBalance(await registry.accountOf(innocent))).to.equal(owedInnocent);
+    expect(await trench.claimable(hostile)).to.equal(0);
+    expect(await trench.claimable(innocent)).to.equal(0);
   });
 
   it("only the holder can set the election, and it can be cleared back to ETH", async function () {

@@ -30,6 +30,10 @@ contract Trench is ITrench, ReentrancyGuard {
     uint256 public constant TIP_BPS = 50; // 0.5% to whoever presses the button
     uint256 public constant BPS = 10_000;
 
+    /// @dev Ceiling on gas forwarded to a stock-election swap. Generous for a
+    ///      real AMM hop, bounded against a hostile token.
+    uint256 public constant SWAP_GAS_LIMIT = 400_000;
+
     // --- Immutable wiring -------------------------------------------------
 
     IWhales public immutable whales;
@@ -237,9 +241,15 @@ contract Trench is ITrench, ReentrancyGuard {
             path[0] = weth;
             path[1] = stock;
 
-            try router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: amount}(
-                0, path, account, block.timestamp
-            ) {
+            // Gas-capped on purpose. The elected token is named by the holder
+            // with no allowlist, so a hostile one could otherwise burn the
+            // whole transaction's gas and take a keeper's entire delivery
+            // batch down with it. Capped, a bad election costs only its own
+            // whale a swap, and that whale still gets paid in ETH below.
+            try router.swapExactETHForTokensSupportingFeeOnTransferTokens{
+                value: amount,
+                gas: SWAP_GAS_LIMIT
+            }(0, path, account, block.timestamp) {
                 emit Delivered(tokenId, account, amount, stock);
                 return amount;
             } catch {
