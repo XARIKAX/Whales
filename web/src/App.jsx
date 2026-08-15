@@ -19,7 +19,7 @@ export default function App() {
   const { data: ocean, error, refresh } = useOcean();
   const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
   const price = useEthPrice();
-  const deep = useDive();
+  const { deep, lit } = useDive();
   const wallet = useWallet();
   const haulSignal = useHaulSignal(ocean?.haulCount);
   const overture = useOverture();
@@ -49,7 +49,7 @@ export default function App() {
     <div className="page">
       <div className="dive" />
       <AtmosphereDefs />
-      <Atmosphere />
+      <Atmosphere lit={lit} />
       <DiveGauge />
 
       {/* The pill inverts once the water is dark enough that a light pill

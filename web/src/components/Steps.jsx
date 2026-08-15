@@ -1,5 +1,5 @@
 import Reveal from "./Reveal.jsx";
-import { SectionLife } from "./Marine.jsx";
+import { Lane } from "./Marine.jsx";
 
 const STEPS = [
   {
@@ -37,9 +37,6 @@ const CLAIMS = [
 export default function Steps() {
   return (
     <section className="deep" id="how">
-      {/* Still shallow enough for a school to pass through, but thinner and
-          slower than the hero's — the dive is meant to empty out as it goes. */}
-      <SectionLife plane="drift" shoal="school" seed={61} />
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">How it works</p>
@@ -50,6 +47,10 @@ export default function Steps() {
           </h2>
         </Reveal>
 
+        {/* Still shallow enough for a whale to pass through, but thinner and
+            slower than the hero's: the dive is meant to empty out as it goes. */}
+        <Lane plane="drift" shoal="school" seed={61} tall />
+
         <Reveal className="steps" stagger>
           {STEPS.map((step) => (
             <div className="step" key={step.n}>
@@ -59,6 +60,8 @@ export default function Steps() {
             </div>
           ))}
         </Reveal>
+
+        <Lane plane="sparse" shoal="school" seed={17} />
 
         <Reveal className="claims" stagger step={45}>
           {CLAIMS.map(([value, label]) => (

@@ -1,5 +1,6 @@
 import { ADDRESSES, CHAIN, LINKS, explorerUrl } from "../config.js";
 import Reveal from "./Reveal.jsx";
+import Seabed from "./Seabed.jsx";
 
 const CONTRACTS = [
   ["$WHALE token", "whaleToken"],
@@ -102,6 +103,9 @@ export default function Footer() {
           to lose entirely.
         </p>
       </div>
+
+      {/* The floor. The dive has to land somewhere. */}
+      <Seabed />
     </footer>
   );
 }

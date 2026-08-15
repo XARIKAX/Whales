@@ -93,10 +93,15 @@
   --depth: 0;
   --pressure: 0;
 
-  /* Derived from pressure — the column narrows by 4% as you sink. */
-  --squeeze: calc(1 - var(--pressure) * 0.04);
-  --shadow-spread: calc(60px + var(--pressure) * 34px);
-  --shadow-alpha: calc(0.2 + var(--pressure) * 0.3);
+  /* The column used to narrow by 4% as you sank, off --pressure, through
+     `max-width` on every `.wrap` on the page. A length that changes on a
+     scroll frame is a full relayout of the document on that frame, and this
+     one was doing it sixty times a second so nobody could notice a forty-pixel
+     difference between the top of the page and the bottom.
+     The shadows are fixed for the same reason: a blurred box-shadow whose blur
+     radius changes is a repaint of every card that has one. */
+  --shadow-spread: 78px;
+  --shadow-alpha: 0.36;
 }
 
 * {
@@ -186,20 +191,20 @@ a:hover {
   position: absolute;
   inset: 0;
   z-index: -3;
-  background:
+  /* The grain and the closing-in at the edges are painted here rather than in
+     two more layers above. The edge darkening is horizontal so that it is the
+     same at every scroll position, which is what lets it live on a layer that
+     scrolls. Two decorative diagonal washes at four percent alpha went with
+     them: invisible, and a third and fourth pass over a gradient this tall. */
+  background-image:
     linear-gradient(
-      117deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      transparent 34%,
-      rgba(4, 24, 43, 0.06) 68%,
-      transparent 100%
+      90deg,
+      rgba(2, 12, 22, calc(var(--depth) * 0.42)),
+      transparent 26%,
+      transparent 74%,
+      rgba(2, 12, 22, calc(var(--depth) * 0.42))
     ),
-    linear-gradient(
-      63deg,
-      transparent 0%,
-      rgba(190, 231, 245, 0.045) 42%,
-      transparent 76%
-    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E"),
     linear-gradient(
       180deg,
       var(--surface-1) 0%,
@@ -216,16 +221,26 @@ a:hover {
       #030f1d 92%,
       #020a14 100%
     );
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-size: 100% 100%, 140px 140px, 100% 100%;
 }
 
 /* --- Atmosphere ------------------------------------------------------- */
 
-.atmosphere {
-  position: fixed;
-  inset: 0;
+/* There is no atmosphere element any more. It was a full-document box with
+   `overflow: hidden` sitting at a negative z-index between the water gradient
+   and the content, and it cost eight frames a second while painting nothing:
+   its clip had to be applied over the whole document on every frame. Its two
+   surviving children are direct children of the page instead. */
+
+/* Sunlight only reaches the top of the page, so that is as far as it is drawn. */
+.shallows {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 190vh;
   z-index: -2;
-  pointer-events: none;
   overflow: hidden;
+  pointer-events: none;
 }
 
 /* The sun, seen from underneath. */
@@ -282,11 +297,20 @@ a:hover {
   }
 }
 
-/* Suspended matter. Three planes, thickening and blurring with depth. */
+/* Suspended matter. One plane, not three.
+   Three planes meant three viewport-and-a-half surfaces blended every frame,
+   and at the speeds they were given two of them had drifted clean off the top
+   of the screen by the third section and were being composited anyway. Distance
+   is carried per mote by size and opacity, and the whole plane drifts on the
+   quantised pressure, so it moves two dozen times in the document rather than
+   sixty times a second. */
 .motes {
   position: absolute;
-  inset: -20vh -10vw;
-  will-change: transform;
+  inset: 0 -2vw;
+  z-index: -2;
+  pointer-events: none;
+  transform: translate3d(0, calc(var(--pressure) * -150px), 0);
+  transition: transform 700ms linear;
 }
 
 .motes span {
@@ -294,32 +318,6 @@ a:hover {
   border-radius: 50%;
   background: var(--foam);
   animation: mote-drift linear infinite alternate;
-}
-
-.motes-1 {
-  transform: translateY(var(--p1, 0));
-}
-
-.motes-1 span {
-  opacity: calc(0.34 + var(--depth) * 0.16);
-}
-
-.motes-2 {
-  transform: translateY(var(--p2, 0));
-}
-
-.motes-2 span {
-  opacity: calc(0.24 + var(--depth) * 0.2);
-  filter: blur(0.7px);
-}
-
-.motes-3 {
-  transform: translateY(var(--p3, 0));
-}
-
-.motes-3 span {
-  opacity: calc(0.14 + var(--depth) * 0.22);
-  filter: blur(1.8px);
 }
 
 @keyframes mote-drift {
@@ -331,29 +329,14 @@ a:hover {
   }
 }
 
-/* Water closing in — only once it is dark enough to feel it. */
-.vignette {
-  position: absolute;
-  inset: 0;
-  opacity: var(--depth);
-  background: radial-gradient(
-    ellipse 74% 62% at 50% 50%,
-    transparent 42%,
-    rgba(2, 12, 22, 0.5) 100%
-  );
-  transition: opacity 500ms linear;
-}
+/* --- Layers that are not there ----------------------------------------- */
 
-/* Grain. Still the cheapest cure for a flat digital surface, but baked into a
-   tile and composited normally — a live SVG filter under an `overlay` blend,
-   full-viewport, is neither of those things. */
-.grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-}
+/* Zero opacity is not free. An invisible layer is still composited on every
+   frame, its animations still run, and its pixels are still blended over the
+   whole viewport. The sunlight and the caustics are at zero over the bottom
+   eighty-five percent of this page and the vignette is at zero over the top
+   quarter, which between them was most of the weight in the lower sections.
+   `useDive` puts `lit` and `sunk` on the root, and off they go. */
 
 
 /* --- Figures: one rule for every number on the page -------------------- */
@@ -387,20 +370,12 @@ a:hover {
     0 0 calc(var(--depth) * 46px) calc(var(--depth) * -12px) rgba(127, 212, 255, 0.28);
 }
 
-.fact,
-.whale-tile.fed {
-  animation: breathe var(--tempo) ease-in-out infinite;
-}
-
-@keyframes breathe {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(calc(1 + var(--depth) * 0.045));
-  }
-}
+/* The cards used to breathe: a brightness filter pulsing on a six second loop.
+   It cost a filter surface per card for a four percent change nobody reported
+   seeing, and it was why the text inside them shimmered — a filter forces its
+   subtree into its own surface, and the type was re-rasterised on every frame
+   with slightly different antialiasing. The glow along their top edge already
+   says the cards are lit; it does not need to flicker. */
 
 /* --- Section transitions ---------------------------------------------- */
 
@@ -725,10 +700,9 @@ a:hover {
 
 .wrap {
   width: 100%;
-  max-width: calc(var(--max) * var(--squeeze));
+  max-width: var(--max);
   margin: 0 auto;
   padding-inline: var(--gutter);
-  transition: max-width 600ms linear;
 }
 
 /* Tightened from 128px. Two sections' worth of that padding meeting in the
@@ -1213,7 +1187,6 @@ p {
 
 .glass.on-dark {
   background: rgba(245, 251, 254, 0.055);
-  backdrop-filter: blur(12px) saturate(130%);
   box-shadow: 0 24px 60px rgba(4, 24, 43, 0.45), inset 0 1px 0 rgba(245, 251, 254, 0.1);
   color: var(--on-dark);
 }
@@ -2260,12 +2233,27 @@ p {
 /* --- Life below the hero ----------------------------------------------- */
 
 /* Same shoals, dropped into an ordinary section and clipped to it. */
-.section-life {
+/* A lane: a strip of open page between one block of content and the next, with
+   one creature passing through it. It is a real element in the flow, so the
+   water it offers is empty by construction. The old version was a layer over
+   the whole section and its whales crossed the cards, which reads as a z-index
+   bug rather than as depth. */
+.lane {
+  position: relative;
+  height: clamp(46px, 5.4vw, 76px);
+  margin-block: clamp(10px, 1.6vw, 22px);
+  container-type: size;
+  pointer-events: none;
+  --bob: 3px;
+}
+
+.lane-tall {
+  height: clamp(62px, 7vw, 104px);
+}
+
+.lane .marine {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Nothing down here reflects daylight, so the lure is the only thing that
@@ -2530,7 +2518,6 @@ section > .wrap {
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(190, 231, 245, 0.11), rgba(8, 49, 82, 0.28));
   border: 1px solid rgba(190, 231, 245, 0.14);
-  backdrop-filter: blur(14px) saturate(130%);
   box-shadow:
     inset 0 1px 0 rgba(190, 231, 245, 0.3),
     0 24px 50px rgba(2, 16, 30, 0.36);
@@ -2603,7 +2590,6 @@ section > .wrap {
   background: rgba(8, 42, 70, 0.5);
   padding: 18px 20px;
   text-align: center;
-  backdrop-filter: blur(12px);
 }
 
 .claim b {
@@ -2649,7 +2635,9 @@ section > .wrap {
   top: 10%;
   right: -7%;
   width: min(70vw, 880px);
-  opacity: 0.11;
+  /* Background, not subject. At 0.11 it was the first thing you looked at in a
+     section whose job is six cards of copy. */
+  opacity: 0.055;
   animation: cruise calc(var(--tempo-12) * 2) ease-in-out infinite alternate;
 }
 
@@ -2658,7 +2646,7 @@ section > .wrap {
   top: 56%;
   left: -3%;
   width: min(26vw, 300px);
-  opacity: 0.055;
+  opacity: 0.03;
   animation: cruise-far calc(var(--tempo-12) * 2.5) ease-in-out infinite alternate;
 }
 
@@ -2688,11 +2676,77 @@ section > .wrap {
 }
 
 .fact {
-  padding: 28px;
+  padding: 30px 28px;
   display: grid;
   gap: 12px;
   align-content: start;
   transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+/* --- Deck plates -------------------------------------------------------- */
+
+/* Not a rounded box. These are inspection plates off the hull of something:
+   four rivets, an inner bezel a few millimetres in from the edge, and one
+   corner cut square where the plate is bolted down. The rivets are four stops
+   of one background image and the bezel is a single pseudo-element, so the
+   whole treatment is rasterised once and costs nothing to scroll past. */
+/* Rivets. Four stops of one background image, rasterised with the card and free
+   thereafter. Anything that already had a gradient fill keeps it as the bottom
+   layer: `background-image` replaces the whole stack, and dropping a card's own
+   fill for four dots is not a trade. */
+.fact {
+  background-image:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.4) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.4) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px);
+  background-repeat: no-repeat;
+}
+
+.step {
+  background-image:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.46) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.46) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    linear-gradient(180deg, rgba(190, 231, 245, 0.11), rgba(8, 49, 82, 0.28));
+  background-repeat: no-repeat;
+}
+
+.fact,
+.step {
+  border-radius: 18px 5px 18px 18px;
+}
+
+.fact::after,
+.step::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(190, 231, 245, 0.075);
+  border-radius: 11px 2px 11px 11px;
+  pointer-events: none;
+}
+
+/* The claims rail is one long plate, so it gets rivets at its own ends rather
+   than one set per cell. */
+.claims {
+  background-image:
+    radial-gradient(circle at 16px 14px, rgba(190, 231, 245, 0.36) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 16px) 14px, rgba(190, 231, 245, 0.36) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 16px calc(100% - 14px), rgba(190, 231, 245, 0.24) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 14px), rgba(190, 231, 245, 0.24) 0 1.5px, transparent 2.4px);
+  background-repeat: no-repeat;
+}
+
+/* The readout keeps square inner corners; only the rail's outer ones round. */
+.hero-readout {
+  background-image:
+    radial-gradient(circle at 14px 13px, rgba(8, 31, 51, 0.2) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 14px) 13px, rgba(8, 31, 51, 0.2) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at 14px calc(100% - 13px), rgba(8, 31, 51, 0.14) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 13px), rgba(8, 31, 51, 0.14) 0 1.4px, transparent 2.2px);
+  background-repeat: no-repeat;
 }
 
 /* Cold light rising off the seafloor behind each card. */
@@ -2832,7 +2886,6 @@ section > .wrap {
   border-radius: 12px;
   background: rgba(3, 16, 29, 0.9);
   border: 1px solid rgba(245, 251, 254, 0.14);
-  backdrop-filter: blur(10px);
   font-size: var(--t-1);
   color: var(--on-dark-body);
   opacity: 0;
@@ -2925,7 +2978,6 @@ section > .wrap {
   border-radius: 14px;
   overflow: hidden;
   background: rgba(245, 251, 254, 0.05);
-  backdrop-filter: blur(10px);
   box-shadow: 0 18px 44px rgba(4, 24, 43, 0.45), inset 0 1px 0 rgba(245, 251, 254, 0.1);
   isolation: isolate;
   transition: transform 240ms ease, box-shadow 240ms ease;
@@ -3277,7 +3329,6 @@ input:focus {
   color: rgba(190, 231, 245, 0.72);
   background: rgba(8, 42, 70, 0.42);
   border-color: rgba(190, 231, 245, 0.16);
-  backdrop-filter: blur(12px);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -3404,7 +3455,6 @@ input:focus {
   border-left: 3px solid var(--gold);
   border-radius: 4px;
   background: rgba(245, 251, 254, 0.04);
-  backdrop-filter: blur(10px);
   color: var(--on-dark);
   font-family: var(--mono);
   font-size: 12px;
@@ -3595,5 +3645,103 @@ input:focus {
   }
   * {
     transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* --- The seabed --------------------------------------------------------- */
+
+/* The bottom of the page is the bottom of the ocean, and until now it just
+   faded out. Rock, boulders and a bed of cold weed, sitting under the footer.
+   The only thing that moves is a shear on the weed, on the page's slowest
+   tempo. No filters, no blend modes, one path per shape. */
+
+.seabed {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: clamp(150px, 18vw, 270px);
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.seabed svg {
+  position: absolute;
+  inset: auto 0 -1px 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Lighter than the water, not darker. At the bottom of this page the water is
+   very close to black, so a black silhouette is no silhouette at all: the floor
+   only reads if it catches the last of the light rather than swallowing it.
+   The near ridge takes a gradient of its own, pale along the crest and going to
+   silt at the bottom of the frame. */
+.ridge-far {
+  fill: #0e2c40;
+  opacity: 0.9;
+}
+
+/* A rim along the crest, where what light is left lands. */
+.ridge-rim {
+  fill: none;
+  stroke: rgba(143, 212, 238, 0.34);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.boulder {
+  fill: #163449;
+  opacity: 0.8;
+}
+
+/* The weed is rooted at the floor and leans from there, so the base never
+   lifts off the rock. Two beds on two clocks: one bed alone reads as a
+   decoration, two out of step read as a current. */
+.weed-back,
+.weed-front {
+  transform-origin: 50% 100%;
+}
+
+.weed-back {
+  fill: #2d7ea3;
+  opacity: 0.4;
+  animation: weed-lean var(--tempo-8) ease-in-out infinite alternate;
+}
+
+.weed-front {
+  fill: #17506f;
+  opacity: 0.72;
+  animation: weed-lean-b calc(var(--tempo-8) * 0.72) ease-in-out infinite alternate;
+}
+
+@keyframes weed-lean {
+  from {
+    transform: skewX(-2.4deg);
+  }
+  to {
+    transform: skewX(2.8deg);
+  }
+}
+
+@keyframes weed-lean-b {
+  from {
+    transform: skewX(2.2deg);
+  }
+  to {
+    transform: skewX(-2.6deg);
+  }
+}
+
+/* The footer's own content has to clear the rock. */
+.abyss {
+  padding-bottom: clamp(150px, 17vw, 250px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weed-back,
+  .weed-front {
+    animation: none !important;
   }
 }

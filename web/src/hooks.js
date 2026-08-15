@@ -121,17 +121,59 @@ export function useEthPrice() {
  * The one thing that does come back as state is a coarse boolean for the nav,
  * and it only changes twice in the whole document.
  */
+/* Quantised to twenty-four steps across the whole document.
+   These three variables feed gradients, blurred shadows and layer opacities,
+   and every distinct value of them is a repaint of something full-screen. Fed
+   a new float sixty times a second they were forcing thousands of those
+   repaints for a change no eye can follow. Twenty-four steps is the same
+   picture at roughly two orders of magnitude less work, and the half-second
+   transitions already on those properties smooth the steps out. */
+const STEPS = 24;
+const quantise = (v) => Math.round(v * STEPS) / STEPS;
+
 export function useDive() {
   const [deep, setDeep] = useState(false);
+  const [lit, setLit] = useState(true);
 
   useEffect(() => {
-    const root = document.documentElement.style;
+    const root = document.documentElement;
+    const style = root.style;
     let wasDeep = false;
+    let wasLit = true;
+    let lastSun = -1;
+    let lastDepth = -1;
+    let lastPressure = -1;
 
     return onDive((progress) => {
-      root.setProperty("--sun", String(Math.max(0, 1 - progress / 0.15)));
-      root.setProperty("--depth", String(Math.min(1, Math.max(0, (progress - 0.26) / 0.5))));
-      root.setProperty("--pressure", String(progress));
+      const sun = quantise(Math.max(0, 1 - progress / 0.15));
+      const depth = quantise(Math.min(1, Math.max(0, (progress - 0.26) / 0.5)));
+      const pressure = quantise(progress);
+
+      if (sun !== lastSun) {
+        lastSun = sun;
+        style.setProperty("--sun", String(sun));
+        /* Hiding the sunlit layers in CSS was not enough. `display: none` stops
+           them painting but leaves their infinite transform animation declared,
+           and that alone was costing frames in every section below the light.
+           They come out of the document instead. This flips twice in the whole
+           page, so the re-render is free. */
+        const nowLit = sun > 0;
+        if (nowLit !== wasLit) {
+          wasLit = nowLit;
+          setLit(nowLit);
+        }
+      }
+
+      if (depth !== lastDepth) {
+        lastDepth = depth;
+        style.setProperty("--depth", String(depth));
+        root.classList.toggle("sunk", depth > 0);
+      }
+
+      if (pressure !== lastPressure) {
+        lastPressure = pressure;
+        style.setProperty("--pressure", String(pressure));
+      }
 
       const nowDeep = progress > 0.2;
       if (nowDeep !== wasDeep) {
@@ -141,7 +183,7 @@ export function useDive() {
     });
   }, []);
 
-  return deep;
+  return { deep, lit };
 }
 
 /** Wallet connection, kept deliberately thin: one account, one chain. */
