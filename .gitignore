@@ -16,3 +16,7 @@ contracts/deployments/*.json
 
 # Vite
 web/.vite/
+
+# Python
+__pycache__/
+*.pyc
