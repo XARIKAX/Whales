@@ -26,20 +26,42 @@
  * @param blunt    how much head is left at the snout — 0 is a point, 1 a wall
  * @param taper    0–1, the fraction of the body spent thinning to the tail
  * @param tailThin what is left of the depth at the peduncle
+ * @param nose     the fraction of the length spent rounding off the snout
  */
-function body({ len, depth, widest, blunt, taper, tailThin }) {
-  const half = (depth - 1) / 2;
-  const cy = half;
-  const cols = [];
+/**
+ * Half-depth of the body at `t`, where 0 is the peduncle and 1 the snout.
+ *
+ * This is the single source of truth for whale anatomy on this page. The pixel
+ * sprites round it to a grid; the distant silhouettes sample it smoothly. Both
+ * are therefore the same animal, which is the only reason a hand-drawn far
+ * whale and a rasterised near one can share a frame without arguing.
+ */
+function radius({ widest, blunt, taper, tailThin, nose = 0.2 }, t) {
+  /* An ellipse whose far focus sits past the snout, so the head keeps its mass
+     instead of tapering away the way the tail does. */
+  const ell = Math.sqrt(Math.max(0, 1 - ((t - widest) / (1 - widest + blunt)) ** 2));
+  const rear = tailThin + (1 - tailThin) * Math.min(1, t / taper);
+  let r = ell * rear;
 
+  /* And then the snout is rounded off on a circular arc over the last stretch
+     of the body. Without this the profile simply stops at full height and the
+     head renders as a wall — the single thing that most stops these reading as
+     animals. The arc is cut short of zero so the nose stays blunt: a whale's
+     head is round, not pointed. */
+  if (t > 1 - nose) {
+    const u = (t - (1 - nose)) / nose;
+    r *= Math.sqrt(Math.max(0, 1 - (u * 0.82) ** 2));
+  }
+  return r;
+}
+
+function body(shape) {
+  const { len, depth } = shape;
+  const half = (depth - 1) / 2;
+  const cols = [];
   for (let x = 0; x < len; x += 1) {
-    const t = x / (len - 1);
-    /* An ellipse whose far focus sits past the snout, so the head stays blunt
-       instead of closing to a point the way the tail does. */
-    const ell = Math.sqrt(Math.max(0, 1 - ((t - widest) / (1 - widest + blunt)) ** 2));
-    const rear = tailThin + (1 - tailThin) * Math.min(1, t / taper);
-    const r = ell * rear * half;
-    cols.push([Math.round(cy - r), Math.round(cy + r)]);
+    const r = radius(shape, x / (len - 1)) * half;
+    cols.push([Math.round(half - r), Math.round(half + r)]);
   }
   return cols;
 }
@@ -67,6 +89,22 @@ function fill(cols, depth) {
   });
 
   return grid;
+}
+
+/**
+ * Traces an outline down whichever cell is furthest forward in each row. The
+ * fill only caps columns top and bottom, which leaves the snout an open face of
+ * flat body colour — fine on a wall, wrong on a rounded head.
+ */
+function capFront(grid) {
+  grid.forEach((row) => {
+    for (let x = row.length - 1; x >= 0; x -= 1) {
+      if (row[x] !== ".") {
+        if (row[x] !== "w" && row[x] !== "p") row[x] = "k";
+        break;
+      }
+    }
+  });
 }
 
 const put = (grid, x, y, ch) => {
@@ -123,7 +161,7 @@ function fluke(depth, span, lobe, cy) {
 const SPECIES = {
   /* The classic. Blunt head, long pale pectoral, small late dorsal. */
   humpback: {
-    shape: { len: 26, depth: 13, widest: 0.56, blunt: 0.16, taper: 0.3, tailThin: 0.16 },
+    shape: { nose: 0.24, len: 26, depth: 13, widest: 0.56, blunt: 0.16, taper: 0.3, tailThin: 0.16 },
     fluke: [7, 5],
     ridge: [12, 5],
     pectoral: [16, 4],
@@ -132,7 +170,7 @@ const SPECIES = {
   },
   /* Sleek, and the only one with a fin tall enough to read at this size. */
   orca: {
-    shape: { len: 25, depth: 12, widest: 0.5, blunt: 0.14, taper: 0.28, tailThin: 0.15 },
+    shape: { nose: 0.26, len: 25, depth: 12, widest: 0.5, blunt: 0.14, taper: 0.28, tailThin: 0.15 },
     fluke: [7, 5],
     dorsal: [12, 5],
     pectoral: [15, 3],
@@ -142,7 +180,7 @@ const SPECIES = {
   },
   /* Round-headed and finless — the silhouette is the whole character. */
   beluga: {
-    shape: { len: 23, depth: 12, widest: 0.58, blunt: 0.3, taper: 0.32, tailThin: 0.17 },
+    shape: { nose: 0.3, len: 23, depth: 12, widest: 0.58, blunt: 0.3, taper: 0.32, tailThin: 0.17 },
     fluke: [6, 5],
     ridge: [11, 6],
     pectoral: [14, 3],
@@ -151,7 +189,7 @@ const SPECIES = {
   },
   /* Slender, with the tusk doing all the work. */
   narwhal: {
-    shape: { len: 24, depth: 10, widest: 0.54, blunt: 0.12, taper: 0.3, tailThin: 0.15 },
+    shape: { nose: 0.24, len: 24, depth: 10, widest: 0.54, blunt: 0.12, taper: 0.3, tailThin: 0.15 },
     fluke: [6, 4],
     ridge: [11, 5],
     pectoral: [14, 2],
@@ -160,7 +198,7 @@ const SPECIES = {
   },
   /* The longest and the least fussy: mass forward, tiny fin far back. */
   blue: {
-    shape: { len: 30, depth: 11, widest: 0.48, blunt: 0.1, taper: 0.26, tailThin: 0.13 },
+    shape: { nose: 0.22, len: 30, depth: 11, widest: 0.48, blunt: 0.1, taper: 0.26, tailThin: 0.13 },
     fluke: [7, 4],
     ridge: [7, 6],
     pectoral: [18, 4],
@@ -169,7 +207,7 @@ const SPECIES = {
   },
   /* Square head, no dorsal, a knuckled ridge instead. */
   sperm: {
-    shape: { len: 26, depth: 12, widest: 0.68, blunt: 0.5, taper: 0.3, tailThin: 0.15 },
+    shape: { nose: 0.1, len: 26, depth: 12, widest: 0.68, blunt: 0.5, taper: 0.3, tailThin: 0.15 },
     fluke: [7, 5],
     ridge: [8, 6],
     pectoral: [17, 3],
@@ -187,6 +225,7 @@ function build(name) {
   const H = depth + padTop + padBot;
   const cols = body(spec.shape).map(([t, b]) => [t + padTop, b + padTop]);
   const grid = fill(cols, H);
+  capFront(grid);
   /* Body and fluke must agree on where the spine is, or the tail joins at an angle. */
   const cy = padTop + Math.floor((depth - 1) / 2);
 
@@ -281,6 +320,90 @@ function build(name) {
 
 export const WHALES = Object.fromEntries(Object.keys(SPECIES).map((n) => [n, build(n)]));
 
+/* --- The distant silhouette --------------------------------------------- */
+
+/**
+ * The same humpback, sampled smoothly instead of rasterised.
+ *
+ * Distance is smooth. Everything else on this page is drawn on a whole-number
+ * grid, but a grid blown up to six hundred pixels wide has cells the size of a
+ * fingernail, and upscaled pixels at six percent opacity do not read as
+ * distance — they read as a broken image. Because both renderers sample the
+ * same profile, the whale in the haze is anatomically the whale in the pod.
+ */
+/**
+ * The same humpback, sampled smoothly instead of rasterised.
+ *
+ * It gets its own proportions rather than borrowing the sprite's. A curve can
+ * close a snout gracefully where a pixel grid cannot, so the nose shuts almost
+ * all the way here and only most of the way there — leave the raster's value in
+ * and the silhouette ends in a flat vertical wall a third of the body deep. And
+ * distance flatters length: this is the whale you half-see across open water,
+ * so it runs 3.4:1 where the sprite in your face runs 2:1.
+ */
+const FAR = { len: 34, depth: 10, widest: 0.52, blunt: 0.1, taper: 0.32, tailThin: 0.1, nose: 0.34 };
+
+export function outline(samples = 128) {
+  const { len, depth } = FAR;
+  const half = depth / 2;
+
+  /* 0.985 rather than the raster's 0.82: the nose closes to a fourteenth of the
+     body instead of to well over half of it. */
+  const r = (t) => {
+    const ell = Math.sqrt(Math.max(0, 1 - ((t - FAR.widest) / (1 - FAR.widest + FAR.blunt)) ** 2));
+    const rear = FAR.tailThin + (1 - FAR.tailThin) * Math.min(1, t / FAR.taper);
+    let v = ell * rear;
+    if (t > 1 - FAR.nose) {
+      const u = (t - (1 - FAR.nose)) / FAR.nose;
+      v *= Math.sqrt(Math.max(0, 1 - (u * 0.985) ** 2));
+    }
+    return v * half;
+  };
+
+  const top = [];
+  const bottom = [];
+  for (let i = 0; i <= samples; i += 1) {
+    const t = i / samples;
+    top.push([t * len, half - r(t)]);
+    bottom.push([t * len, half + r(t)]);
+  }
+
+  const line = (pts) => pts.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(" L");
+  const bodyPath = `M${line(top)} L${line(bottom.reverse())} Z`;
+
+  /* Broad triangular lobes on a short peduncle. Thin ones read as a propeller;
+     a humpback's flukes are wide, swept and close to the body. */
+  const fl = half * 1.25;
+  const flukePath =
+    `M0.6 ${half - 0.9} L${-fl * 1.1} ${half - fl * 1.05} ` +
+    `Q${-fl * 0.5} ${half - fl * 0.22} ${-fl * 0.06} ${half} ` +
+    `Q${-fl * 0.5} ${half + fl * 0.22} ${-fl * 1.1} ${half + fl * 1.05} ` +
+    `L0.6 ${half + 0.9} Z`;
+
+  /* The pectoral: a third of the body long and actually broad — it is the one
+     feature that says humpback rather than "large grey animal". */
+  const px = len * 0.56;
+  const py = half + r(0.56);
+  const pectoralPath =
+    `M${px + len * 0.06} ${py - 0.6} ` +
+    `C${px - len * 0.02} ${py + depth * 0.42}, ${px - len * 0.14} ${py + depth * 0.74}, ` +
+    `${px - len * 0.26} ${py + depth * 0.86} ` +
+    `C${px - len * 0.2} ${py + depth * 0.5}, ${px - len * 0.12} ${py + depth * 0.2}, ${px - len * 0.05} ${py - 0.6} Z`;
+
+  /* A small late dorsal, sitting on the back rather than standing off it. */
+  const dx = len * 0.44;
+  const dy = half - r(0.44);
+  const dorsalPath =
+    `M${dx - len * 0.05} ${dy + 0.6} ` +
+    `Q${dx + len * 0.01} ${dy - depth * 0.15} ${dx + len * 0.07} ${dy - depth * 0.02} ` +
+    `L${dx + len * 0.1} ${dy + 0.8} Z`;
+
+  return {
+    viewBox: `${-fl * 1.25} ${-depth * 0.32} ${len + fl * 1.3} ${depth * 1.75}`,
+    paths: [bodyPath, flukePath, pectoralPath, dorsalPath],
+  };
+}
+
 /* --- Palettes ----------------------------------------------------------- */
 
 /**
@@ -295,6 +418,13 @@ export const POD = {
   narwhal: { k: "#1b2436", b: "#4a5a75", a: "#6b7d97", c: "#cdd7e4", f: "#f6f2e4", w: "#fdfdfd", p: "#1b2436" },
   blue: { k: "#0a1e33", b: "#2f6ea8", a: "#3f86c4", c: "#a9d4ec", f: "#dff0fa", w: "#fdfdfd", p: "#0a1e33" },
   sperm: { k: "#1a1410", b: "#3d3a37", a: "#4f4b46", c: "#8f8a82", f: "#cfc9be", w: "#fdfdfd", p: "#1a1410" },
+  /**
+   * The leviathan, seen through a hundred metres of water. Every tone collapses
+   * into a narrow dark band — but they do NOT collapse into one flat colour,
+   * which is the mistake that turns a distant whale into a rectangle. Keeping
+   * three steps of value still models a back, a flank and a belly.
+   */
+  leviathan: { k: "#062036", b: "#0a3153", a: "#0e3c63", c: "#134a75", f: "#1d5f8f", w: "#1d5f8f", p: "#062036" },
   /* Down in the trench nothing keeps its colour — only what glows. */
   abyssal: { k: "#020a14", b: "#0a2438", a: "#123047", c: "#1b4055", f: "#7ff0d8", w: "#7ff0d8", p: "#020a14" },
 };

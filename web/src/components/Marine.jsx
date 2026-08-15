@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PixelFish, PixelWhale, PixelWhaleling } from "./pixel/sprites.jsx";
+import Creature from "./pixel/creature.jsx";
+import Whale from "./Whale.jsx";
 
 /**
  * The life in the water.
@@ -57,20 +58,19 @@ const pick = (r, [lo, hi]) => lo + r() * (hi - lo);
 
 /**
  * Plane definitions. `size` is sprite height in px, `cross` is seconds to
- * traverse the viewport, `blur` is the depth-of-field cost of being off the
- * focal plane, and `beat` is seconds per tail stroke.
+ * traverse the viewport, and `beat` is seconds per tail stroke.
  *
- * Note the opacity climbing from far to near, not falling. Atmospheric
- * perspective washes out what is FAR away; a creature an arm's length from the
- * lens is the most saturated thing in the frame.
+ * There is no blur on any of these. Depth is carried by size, speed and opacity
+ * alone — a CSS blur on a moving element is re-rasterised every single frame,
+ * and twenty of them was half the reason this page could not hold a frame rate.
  */
 const PLANES = {
   /* Small fish, hazy and slow, a long way out. */
-  far: { n: 10, kind: "fish", slim: true, size: [9, 14], cross: [64, 92], y: [8, 86], blur: 0, opacity: 0.3, beat: [0.62, 0.92] },
+  far: { n: 9, kind: "fish", species: "silver", size: [9, 14], cross: [64, 92], y: [8, 86], opacity: 0.3, beat: [0.62, 0.92] },
   /* The pod. Mid-water, unhurried, and the reason anyone is looking. */
-  pod: { n: 6, kind: "whale", size: [26, 46], cross: [46, 78], y: [12, 84], blur: 0.3, opacity: 0.92, beat: [1.4, 2.4] },
+  pod: { n: 6, kind: "whale", size: [26, 46], cross: [46, 78], y: [12, 84], opacity: 0.92, beat: [1.4, 2.4] },
   /* A few reef fish threaded through the pod so it is not all one species. */
-  mid: { n: 5, kind: "fish", size: [20, 30], cross: [36, 56], y: [10, 88], blur: 0.3, opacity: 0.8, beat: [0.42, 0.66] },
+  mid: { n: 5, kind: "fish", size: [20, 30], cross: [36, 56], y: [10, 88], opacity: 0.8, beat: [0.42, 0.66] },
   /* The near plane is the whole trick. Its band is central on purpose — a
      foreground creature only earns its cost when it crosses the headline. Blur
      stays low: enough to sit off the focal plane, not enough to turn a sprite
@@ -79,10 +79,10 @@ const PLANES = {
      long as it is deep, so 70px of height is already 220px of animal — twice
      that and it stops being a creature passing through the frame and becomes a
      wall moving across the words. */
-  near: { n: 3, kind: "whale", size: [50, 74], cross: [30, 46], y: [8, 64], blur: 1.5, opacity: 0.85, beat: [1, 1.5] },
+  near: { n: 3, kind: "whale", size: [50, 74], cross: [30, 46], y: [8, 64], opacity: 0.72, beat: [1, 1.5] },
   /* Below the hero: life thins and slows as the page descends. */
-  drift: { n: 4, kind: "whale", size: [22, 38], cross: [58, 88], y: [8, 86], blur: 0.7, opacity: 0.55, beat: [1.6, 2.6] },
-  sparse: { n: 3, kind: "fish", size: [20, 34], cross: [70, 100], y: [12, 84], blur: 1, opacity: 0.6, beat: [0.7, 1.1] },
+  drift: { n: 4, kind: "whale", size: [22, 38], cross: [58, 88], y: [8, 86], opacity: 0.55, beat: [1.6, 2.6] },
+  sparse: { n: 3, kind: "fish", size: [20, 34], cross: [70, 100], y: [12, 84], opacity: 0.6, beat: [0.7, 1.1] },
 };
 
 const POD_SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
@@ -109,8 +109,7 @@ function school(plane, seed, shoal) {
     return {
       key: `${plane}-${i}`,
       species: palette[Math.floor(r() * palette.length)],
-      whale: spec.kind === "whale",
-      slim: spec.slim,
+      kind: spec.kind,
       size: pick(r, spec.size),
       y: y0 + ((i + r()) / spec.n) * (y1 - y0),
       cross,
@@ -126,13 +125,11 @@ function school(plane, seed, shoal) {
   });
 }
 
-function Swimmer({ fish, blur, opacity }) {
-  const { size, y, cross, rightward, delay, bob, bobDelay, phase, species, slim, whale } = fish;
+function Swimmer({ fish, opacity }) {
+  const { size, y, cross, rightward, delay, bob, bobDelay, phase, species, kind } = fish;
   /* Sprites are drawn facing right, so a leftward one is the same grid mirrored. */
   const lead = rightward ? "-22rem" : "calc(100vw + 22rem)";
   const trail = rightward ? "calc(100vw + 22rem)" : "-22rem";
-  const Creature = whale ? PixelWhaleling : PixelFish;
-
   return (
     <span
       className="swimmer"
@@ -143,7 +140,6 @@ function Swimmer({ fish, blur, opacity }) {
         animationDuration: `${cross}s`,
         animationDelay: `${delay}s`,
         opacity,
-        filter: blur ? `blur(${blur}px)` : undefined,
       }}
     >
       <span
@@ -151,12 +147,12 @@ function Swimmer({ fish, blur, opacity }) {
         style={{ animationDuration: `${bob}s`, animationDelay: `${bobDelay}s` }}
       >
         <Creature
+          kind={kind}
           species={species}
-          slim={slim}
           beat={fish.beat}
           phase={phase}
-          className={rightward ? "" : "mirror"}
-          style={{ height: `${size}px` }}
+          height={size}
+          mirrored={!rightward}
         />
       </span>
     </span>
@@ -167,12 +163,17 @@ function Swimmer({ fish, blur, opacity }) {
  * The leviathan. One of them, crossing the deep background on a slow arc — big
  * enough to be unmistakable, faint enough that you are never quite sure you saw
  * it. It is the whole promise of the project, moving in the dark.
+ *
+ * A silhouette rather than a sprite, and the only creature on the page that is
+ * not pixel art. At six hundred pixels wide a pixel grid has cells the size of
+ * a fingernail; upscaled at six percent opacity that does not read as distance,
+ * it reads as a broken image.
  */
 function Leviathan() {
   return (
-    <span className="swimmer leviathan" style={{ "--from": "calc(100vw + 30rem)", "--to": "-34rem" }}>
+    <span className="swimmer leviathan" style={{ "--from": "calc(100vw + 34rem)", "--to": "-38rem" }}>
       <span className="swimmer-bob leviathan-bob">
-        <PixelWhale deep className="mirror" style={{ width: "min(46vw, 660px)" }} />
+        <Whale className="leviathan-art" />
       </span>
     </span>
   );
@@ -186,7 +187,7 @@ export default function Marine({ plane = "pod", shoal = "shallow", seed = 1, lev
     <div className={`marine marine-${plane} shoal-${shoal}`} aria-hidden="true">
       {leviathan && <Leviathan />}
       {fish.map((f) => (
-        <Swimmer key={f.key} fish={f} blur={spec.blur} opacity={spec.opacity} />
+        <Swimmer key={f.key} fish={f} opacity={spec.opacity} />
       ))}
     </div>
   );

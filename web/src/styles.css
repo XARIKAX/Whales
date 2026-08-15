@@ -256,10 +256,13 @@ a:hover {
   position: absolute;
   /* One tile of slack on each side is all the drift needs; a soft-light layer
      this size is billed by the pixel, so the extra area is not free. */
-  inset: -10vh -600px auto;
-  height: 104vh;
-  opacity: calc(var(--sun) * 0.26);
-  mix-blend-mode: soft-light;
+  inset: -6vh -600px auto;
+  height: 88vh;
+  /* No blend mode. `soft-light` over a surface this size was the single most
+     expensive thing left on the page — ten frames a second between two
+     full-viewport layers. The mesh is tinted to the water instead and composited
+     normally, which costs nothing and, at this opacity, looks the same. */
+  opacity: calc(var(--sun) * 0.16);
   transition: opacity 500ms linear;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011 0.024' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.74 0 0 0 0 0.91 0 0 0 0 1 1.45 0 0 0 -0.78'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23c)'/%3E%3C/svg%3E");
   background-size: 600px 600px;
@@ -341,13 +344,15 @@ a:hover {
   transition: opacity 500ms linear;
 }
 
-/* Grain. The cheapest possible cure for a flat digital surface. */
+/* Grain. Still the cheapest cure for a flat digital surface, but baked into a
+   tile and composited normally — a live SVG filter under an `overlay` blend,
+   full-viewport, is neither of those things. */
 .grain {
   position: absolute;
   inset: 0;
-  opacity: 0.028;
-  filter: url(#grain-filter);
-  mix-blend-mode: overlay;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 
@@ -750,9 +755,13 @@ p {
 
 /* --- Nav -------------------------------------------------------------- */
 
+/* Fixed, not sticky. Sticky positioning still occupies its space in normal
+   flow, and those 47px sat above the hero — which is why the surface of the
+   ocean began part of the way down the page instead of at the very top of it.
+   The hero now starts at y=0 and the nav floats over it. */
 .nav {
-  position: sticky;
-  top: 14px;
+  position: fixed;
+  inset: 14px 0 auto 0;
   z-index: 50;
   display: flex;
   justify-content: center;
@@ -1308,10 +1317,42 @@ p {
 
 /* --- Pixel life ------------------------------------------------------- */
 
-/* Sprites are drawn on a whole-number grid, so they must never be resampled.
-   Both axes have to be released to `auto`: an <svg> with width/height
-   attributes will happily honour a CSS height and keep its attribute width,
-   which stretches every fish into a ribbon. */
+/* One element, one baked sprite sheet, four discrete frames.
+   Nothing here animates a transform, a filter or an SVG child — the browser
+   repaints a creature about three times a second and the compositor moves it
+   the rest of the time. `pixelated` is not decoration: the whole point of pixel
+   art is that it is never resampled. */
+.creature {
+  display: block;
+  background-repeat: no-repeat;
+  background-size: calc(100% * 4) 100%;
+  image-rendering: pixelated;
+  animation-name: stroke;
+  animation-timing-function: step-end;
+  animation-iteration-count: infinite;
+}
+
+/* Four explicit stops rather than steps(): with a background four times the
+   width of its box, the positions that land exactly on a frame boundary are
+   0%, 33.3%, 66.7% and 100%, and no stepping function produces that set. */
+@keyframes stroke {
+  0% {
+    background-position-x: 0%;
+  }
+  25% {
+    background-position-x: 33.3333%;
+  }
+  50% {
+    background-position-x: 66.6667%;
+  }
+  75% {
+    background-position-x: 100%;
+  }
+  100% {
+    background-position-x: 0%;
+  }
+}
+
 .sprite {
   display: block;
   width: auto;
@@ -1320,7 +1361,8 @@ p {
   overflow: visible;
 }
 
-.sprite.mirror {
+.sprite.mirror,
+.creature.mirror {
   transform: scaleX(-1);
 }
 
@@ -1417,19 +1459,20 @@ p {
 /* The leviathan. Slow enough that you are never quite sure you saw it, and
    already half way across on the first frame so nobody has to wait for it. */
 .leviathan {
-  top: 50%;
-  opacity: 0.3;
+  top: 44%;
+  opacity: 0.2;
   animation-duration: 96s;
   animation-delay: -30s;
 }
 
-/* The blur is doing real work here: one grid cell is nearly twenty real pixels
-   at this scale, and unblurred the whale reads as a stack of boxes rather than
-   a body in the haze. Too much of it and it reads as a smudge — 3px is the
-   window where the silhouette survives and the steps do not. */
-.leviathan {
-  filter: blur(3px);
+.leviathan-art {
+  width: min(52vw, 700px);
+  height: auto;
+  color: #0c3a5f;
+  display: block;
 }
+
+
 
 .leviathan-bob {
   animation-duration: 23s;
@@ -1456,7 +1499,7 @@ p {
   display: grid;
   align-items: center;
   min-height: clamp(660px, 96svh, 950px);
-  padding-block: clamp(104px, 13vh, 158px) clamp(92px, 11vh, 140px);
+  padding-block: clamp(118px, 15vh, 176px) clamp(92px, 11vh, 140px);
 
   /* Written by JS on scroll. There is no pointer term: tying the scene to the
      cursor made every plane twitch under the smallest mouse movement. */
@@ -1502,7 +1545,7 @@ p {
 .ceiling {
   position: absolute;
   inset: 0 0 auto 0;
-  height: clamp(60px, 10vh, 130px);
+  height: clamp(54px, 8vh, 108px);
   transform: translate3d(0, calc(var(--sy) * -40px), 0);
 }
 
@@ -1660,29 +1703,43 @@ p {
   right: -3%;
 }
 
-.kelp-right svg {
-  transform: scaleX(-1);
-}
-
 .kelp-blade,
 .kelp-ledge {
   fill: #0a3a5e;
 }
 
-.kelp-blade {
-  transform-box: view-box;
-  animation-name: kelp-sway;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
+/* The blades no longer move independently. Each one was a path transform inside
+   a large blurred layer, which forces the blur to be recomputed every frame —
+   and at this blur radius and opacity you cannot tell the difference between
+   six blades swaying and the whole bed drifting as one. */
+.kelp svg {
+  transform-origin: 50% 100%;
+  animation: kelp-sway 19s ease-in-out infinite alternate;
+}
+
+.kelp-right svg {
+  animation-duration: 23s;
 }
 
 @keyframes kelp-sway {
   from {
-    transform: rotate(calc(var(--sway) * -0.45));
+    transform: rotate(-1.1deg) translate3d(-1%, 0, 0);
   }
   to {
-    transform: rotate(var(--sway));
+    transform: rotate(1.4deg) translate3d(1.5%, 0, 0);
+  }
+}
+
+.kelp-right svg {
+  animation-name: kelp-sway-right;
+}
+
+@keyframes kelp-sway-right {
+  from {
+    transform: scaleX(-1) rotate(-1.3deg) translate3d(-1.4%, 0, 0);
+  }
+  to {
+    transform: scaleX(-1) rotate(1deg) translate3d(1.2%, 0, 0);
   }
 }
 
@@ -1770,7 +1827,7 @@ p {
    nine seconds as the headline's glint — so they read as a single wave. */
 .hero-swell {
   position: absolute;
-  inset: -25% -35%;
+  inset: -8% -18%;
   background: linear-gradient(
     99deg,
     transparent 41%,
@@ -1960,9 +2017,11 @@ p {
   overflow: hidden;
   /* Opaque enough to stay readable with a shoal crossing behind it — glass
      that you cannot read through is just a window. */
-  background: rgba(245, 251, 254, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px) saturate(150%);
+  /* No backdrop blur. This rail is wide, the water behind it never stops
+     moving, and a full-width re-blur every frame is the most expensive thing a
+     translucent panel can ask for. A little more opacity reads the same. */
+  background: rgba(238, 249, 254, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   box-shadow: 0 26px 64px rgba(4, 24, 43, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   text-align: left;
 }
@@ -2472,20 +2531,19 @@ section > .wrap {
 
 /* Cropped by the section edge, so it reads as bigger than the page. */
 .whale-near {
-  top: 8%;
-  right: -16%;
-  width: min(84vw, 1040px);
-  opacity: 0.07;
+  top: 10%;
+  right: -14%;
+  width: min(76vw, 960px);
+  opacity: 0.1;
   animation: cruise calc(var(--tempo-12) * 2) ease-in-out infinite alternate;
 }
 
 /* A second whale, further out: smaller, fainter, heavily blurred. */
 .whale-far {
-  top: 52%;
-  left: -4%;
-  width: min(28vw, 320px);
-  opacity: 0.03;
-  filter: blur(5px);
+  top: 56%;
+  left: -3%;
+  width: min(26vw, 300px);
+  opacity: 0.055;
   animation: cruise-far calc(var(--tempo-12) * 2.5) ease-in-out infinite alternate;
 }
 
