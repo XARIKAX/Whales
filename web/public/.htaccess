@@ -14,6 +14,18 @@
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # --- SPA routing --------------------------------------------------------
+  # src/router.jsx uses real paths (/activate, /portfolio) rather than hashes,
+  # because the nav already uses hashes to jump to sections and the two would
+  # fight. So a cold load of /activate has to reach index.html, or the host
+  # 404s a page that exists. Anything that is a real file or directory is
+  # served as itself, so assets and fonts are untouched.
+  #
+  # The equivalent rule for Vercel is the "rewrites" block in vercel.json.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
 </IfModule>
 
 # --- Compression -----------------------------------------------------------
@@ -62,7 +74,3 @@
   AddType image/svg+xml .svg
   AddType application/json .json
 </IfModule>
-
-# The site is a single page with in-page anchors, so there is deliberately no
-# SPA rewrite here: an unknown path should 404 rather than silently render the
-# homepage at a URL that does not exist.

@@ -251,6 +251,12 @@ npm run dev             # npm run build for dist/
 
 Env vars are baked in at build time. Changing them requires a rebuild/redeploy.
 
+Three pages — `/` (the dive), `/activate`, `/portfolio` — routed by
+`src/router.jsx`, which is `pushState` and a `popstate` listener rather than a
+routing library. They are real paths, not hashes, because the nav already uses
+hashes to jump to sections. **The host must serve `index.html` for unknown
+paths** or a cold load of `/activate` 404s.
+
 Fonts are self-hosted, so the site pulls nothing from a third party at runtime.
 Whale art comes from `tokenURI`, loaded lazily and capped at six concurrent
 reads so a wall of whales doesn't stampede the RPC. Dollar figures come from
