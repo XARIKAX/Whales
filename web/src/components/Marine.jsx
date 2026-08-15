@@ -105,9 +105,12 @@ const PLANES = {
      enough now to have colour: at the top of the scene they were nine grey
      pixels at a quarter opacity, which is not detail, it is dust. */
   reef: { n: 4, kind: "fish", size: [11, 18], cross: [58, 88], y: [0, 96], cap: 20, opacity: 0.44, beat: [0.6, 0.95] },
-  /* Below the hero: life thins and slows as the page descends. */
-  drift: { n: 3, kind: "whale", size: [22, 36], cross: [62, 92], y: [10, 84], opacity: 0.5, beat: [1.6, 2.6] },
-  sparse: { n: 2, kind: "fish", size: [20, 32], cross: [74, 104], y: [14, 80], opacity: 0.55, beat: [0.7, 1.1] },
+  /* Below the hero, life thins and slows as the page descends. These two run
+     in lanes: strips of empty page between one block of content and the next.
+     One creature to a lane, sized to the lane, so a whale is a detail passing
+     through a gap rather than something crossing the words. */
+  drift: { n: 1, kind: "whale", size: [26, 40], cross: [58, 88], y: [8, 92], cap: 74, opacity: 0.44, beat: [1.6, 2.6] },
+  sparse: { n: 2, kind: "fish", size: [14, 22], cross: [70, 100], y: [8, 92], cap: 36, opacity: 0.5, beat: [0.7, 1.1] },
 };
 
 const POD_SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
@@ -235,16 +238,29 @@ export default function Marine({ plane = "pod", shoal = "shallow", seed = 1, lev
 }
 
 /**
- * Life for the sections below the hero, clipped to whatever section it is
- * dropped into. Same pod, thinner and slower — the dive should feel emptier the
- * further down it goes.
+ * A lane: a strip of open water between two blocks of content.
+ *
+ * This used to be `SectionLife`, an absolutely positioned layer over the whole
+ * section, which meant its creatures crossed the cards and the copy. A whale
+ * sliding under a text box does not read as depth, it reads as a z-index
+ * mistake — and no band picked by eye survives a card grid that reflows from
+ * four columns to one.
+ *
+ * A lane is a real element in the flow instead. It occupies the gap between the
+ * heading and the grid, or between the grid and whatever is next, so the water
+ * it gives a creature is empty by construction rather than by measurement.
+ * Sprites are capped against the lane's own height, so one always fits.
  */
-export function SectionLife({ plane = "drift", shoal = "school", seed = 1 }) {
+export function Lane({ plane = "drift", shoal = "school", seed = 1, tall = false }) {
   const ref = useRef(null);
   const near = useOnScreen(ref);
 
   return (
-    <div className={`section-life${near ? "" : " parked"}`} ref={ref} aria-hidden="true">
+    <div
+      className={`lane${tall ? " lane-tall" : ""}${near ? "" : " parked"}`}
+      ref={ref}
+      aria-hidden="true"
+    >
       <Marine plane={plane} shoal={shoal} seed={seed} />
     </div>
   );

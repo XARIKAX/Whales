@@ -1,64 +1,29 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useOcean, useWhales, useEthPrice, useDive, useWallet, useHaulSignal } from "./hooks.js";
 import { CONFIGURED, CHAIN } from "./config.js";
-import Nav from "./components/Nav.jsx";
+import { useRoute } from "./router.jsx";
+import { fromChain } from "./placeholder.js";
+
+import Shell from "./components/Shell.jsx";
 import Hero from "./components/Hero.jsx";
 import StatsStrip from "./components/StatsStrip.jsx";
 import Steps from "./components/Steps.jsx";
 import Trench from "./components/Trench.jsx";
 import Carousel from "./components/Carousel.jsx";
 import Dashboard from "./components/Dashboard.jsx";
-import Footer from "./components/Footer.jsx";
 import Celebration from "./components/Celebration.jsx";
-import Atmosphere, { AtmosphereDefs } from "./components/Atmosphere.jsx";
-import { Waterline, DiveGauge } from "./components/Depth.jsx";
-import Cursor, { useCardTilt } from "./components/Cursor.jsx";
+import { Waterline } from "./components/Depth.jsx";
+import { useCardTilt } from "./components/Cursor.jsx";
 import Overture, { useOverture } from "./components/Overture.jsx";
 
-export default function App() {
-  const { data: ocean, error, refresh } = useOcean();
-  const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
-  const price = useEthPrice();
-  const deep = useDive();
-  const wallet = useWallet();
-  const haulSignal = useHaulSignal(ocean?.haulCount);
-  const overture = useOverture();
-  useCardTilt();
+import Activate from "./pages/Activate.jsx";
+import Portfolio from "./pages/Portfolio.jsx";
 
-  const refreshAll = () => {
-    refresh();
-    refreshWhales();
-  };
+/* --- The landing page ---------------------------------------------------- */
 
-  // The whale on the hero card: whoever has earned the most, falling back to
-  // the first fed whale, then to the first whale at all.
-  const featured = useMemo(() => {
-    if (whales.length === 0) return null;
-    const fed = whales.filter((w) => w.activatedAt !== 0n);
-    if (fed.length === 0) return whales[0];
-    return fed.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), fed[0]);
-  }, [whales]);
-
-  // The story stands on its own; the numbers layer in. Before the contracts
-  // are live — or if the RPC is unreachable — the page is still the whole
-  // pitch rather than an error card between a header and a footer.
-  const unreachable = Boolean(error) && error !== "not-configured";
-  const live = CONFIGURED && !unreachable;
-
+function Landing({ ocean, whales, featured, price, wallet, live, error, unreachable, onRefresh }) {
   return (
-    <div className="page">
-      <div className="dive" />
-      <AtmosphereDefs />
-      <Atmosphere />
-      <DiveGauge />
-
-      {/* The pill inverts once the water is dark enough that a light pill
-          stops reading — a little before the section boundary, not after. */}
-      <Nav deep={deep} live={live} />
-      <Celebration trigger={haulSignal} />
-      <Overture playing={overture} />
-      <Cursor />
-
+    <>
       <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} live={live} />
 
       <Waterline />
@@ -97,12 +62,78 @@ export default function App() {
             whales={whales}
             price={price}
             wallet={wallet}
-            onDone={refreshAll}
+            onDone={onRefresh}
           />
         </>
       )}
+    </>
+  );
+}
 
-      <Footer />
-    </div>
+/* --- App ----------------------------------------------------------------- */
+
+export default function App() {
+  const { data: ocean, error, refresh } = useOcean();
+  const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
+  const price = useEthPrice();
+  const { deep, lit } = useDive();
+  const wallet = useWallet();
+  const haulSignal = useHaulSignal(ocean?.haulCount);
+  const overture = useOverture();
+  const route = useRoute();
+  useCardTilt();
+
+  // The whale on the hero card: whoever has earned the most, falling back to
+  // the first fed whale, then to the first whale at all.
+  const featured = useMemo(() => {
+    if (whales.length === 0) return null;
+    const fed = whales.filter((w) => w.activatedAt !== 0n);
+    if (fed.length === 0) return whales[0];
+    return fed.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), fed[0]);
+  }, [whales]);
+
+  /* The wallet pages draw one shape whether the rows came from the chain or
+     from the sample, so the translation happens once, here. */
+  const held = useMemo(() => fromChain(whales), [whales]);
+
+  // The story stands on its own; the numbers layer in. Before the contracts
+  // are live — or if the RPC is unreachable — the page is still the whole
+  // pitch rather than an error card between a header and a footer.
+  const unreachable = Boolean(error) && error !== "not-configured";
+  const live = CONFIGURED && !unreachable;
+
+  return (
+    <Shell deep={deep} lit={lit} live={live} wallet={wallet} route={route}>
+      {/* Chrome that only the landing page needs. */}
+      {route === "/" && (
+        <>
+          <Celebration trigger={haulSignal} />
+          <Overture playing={overture} />
+        </>
+      )}
+
+      {route === "/activate" && <Activate wallet={wallet} whales={held} live={live} />}
+
+      {route === "/portfolio" && (
+        <Portfolio wallet={wallet} whales={held} price={price} live={live} />
+      )}
+
+      {route !== "/activate" && route !== "/portfolio" && (
+        <Landing
+          ocean={ocean}
+          whales={whales}
+          featured={featured}
+          price={price}
+          wallet={wallet}
+          live={live}
+          error={error}
+          unreachable={unreachable}
+          onRefresh={() => {
+            refresh();
+            refreshWhales();
+          }}
+        />
+      )}
+    </Shell>
   );
 }

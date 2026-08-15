@@ -1,7 +1,7 @@
 import { eth, percent } from "../format.js";
 import Whale from "./Whale.jsx";
 import Reveal from "./Reveal.jsx";
-import { SectionLife } from "./Marine.jsx";
+import { Lane } from "./Marine.jsx";
 import Pot from "./Pot.jsx";
 
 const FACTS = [
@@ -42,9 +42,6 @@ export default function Trench({ ocean, live, price }) {
           tail, which nobody was reading, and it moves the way it points. */}
       <Whale className="whale-near" mirrored />
       <Whale className="whale-far" />
-      {/* Three of them, barely moving, and the only colour left down here is
-          the lure. */}
-      <SectionLife plane="sparse" shoal="abyss" seed={83} />
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">The Trench</p>
@@ -56,6 +53,9 @@ export default function Trench({ ocean, live, price }) {
             throws in. That is the entire integration.
           </p>
         </Reveal>
+
+        {/* The only colour left down here is the lure. */}
+        <Lane plane="sparse" shoal="abyss" seed={83} tall />
 
         <Reveal className="facts" stagger>
           {live && ocean ? (
@@ -79,6 +79,8 @@ export default function Trench({ ocean, live, price }) {
             </div>
           ))}
         </Reveal>
+
+        <Lane plane="drift" shoal="abyss" seed={29} />
       </div>
     </section>
   );

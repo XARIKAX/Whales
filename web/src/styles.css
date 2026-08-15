@@ -93,10 +93,15 @@
   --depth: 0;
   --pressure: 0;
 
-  /* Derived from pressure — the column narrows by 4% as you sink. */
-  --squeeze: calc(1 - var(--pressure) * 0.04);
-  --shadow-spread: calc(60px + var(--pressure) * 34px);
-  --shadow-alpha: calc(0.2 + var(--pressure) * 0.3);
+  /* The column used to narrow by 4% as you sank, off --pressure, through
+     `max-width` on every `.wrap` on the page. A length that changes on a
+     scroll frame is a full relayout of the document on that frame, and this
+     one was doing it sixty times a second so nobody could notice a forty-pixel
+     difference between the top of the page and the bottom.
+     The shadows are fixed for the same reason: a blurred box-shadow whose blur
+     radius changes is a repaint of every card that has one. */
+  --shadow-spread: 78px;
+  --shadow-alpha: 0.36;
 }
 
 * {
@@ -186,20 +191,20 @@ a:hover {
   position: absolute;
   inset: 0;
   z-index: -3;
-  background:
+  /* The grain and the closing-in at the edges are painted here rather than in
+     two more layers above. The edge darkening is horizontal so that it is the
+     same at every scroll position, which is what lets it live on a layer that
+     scrolls. Two decorative diagonal washes at four percent alpha went with
+     them: invisible, and a third and fourth pass over a gradient this tall. */
+  background-image:
     linear-gradient(
-      117deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      transparent 34%,
-      rgba(4, 24, 43, 0.06) 68%,
-      transparent 100%
+      90deg,
+      rgba(2, 12, 22, calc(var(--depth) * 0.42)),
+      transparent 26%,
+      transparent 74%,
+      rgba(2, 12, 22, calc(var(--depth) * 0.42))
     ),
-    linear-gradient(
-      63deg,
-      transparent 0%,
-      rgba(190, 231, 245, 0.045) 42%,
-      transparent 76%
-    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E"),
     linear-gradient(
       180deg,
       var(--surface-1) 0%,
@@ -216,16 +221,26 @@ a:hover {
       #030f1d 92%,
       #020a14 100%
     );
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-size: 100% 100%, 140px 140px, 100% 100%;
 }
 
 /* --- Atmosphere ------------------------------------------------------- */
 
-.atmosphere {
-  position: fixed;
-  inset: 0;
+/* There is no atmosphere element any more. It was a full-document box with
+   `overflow: hidden` sitting at a negative z-index between the water gradient
+   and the content, and it cost eight frames a second while painting nothing:
+   its clip had to be applied over the whole document on every frame. Its two
+   surviving children are direct children of the page instead. */
+
+/* Sunlight only reaches the top of the page, so that is as far as it is drawn. */
+.shallows {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 190vh;
   z-index: -2;
-  pointer-events: none;
   overflow: hidden;
+  pointer-events: none;
 }
 
 /* The sun, seen from underneath. */
@@ -282,11 +297,20 @@ a:hover {
   }
 }
 
-/* Suspended matter. Three planes, thickening and blurring with depth. */
+/* Suspended matter. One plane, not three.
+   Three planes meant three viewport-and-a-half surfaces blended every frame,
+   and at the speeds they were given two of them had drifted clean off the top
+   of the screen by the third section and were being composited anyway. Distance
+   is carried per mote by size and opacity, and the whole plane drifts on the
+   quantised pressure, so it moves two dozen times in the document rather than
+   sixty times a second. */
 .motes {
   position: absolute;
-  inset: -20vh -10vw;
-  will-change: transform;
+  inset: 0 -2vw;
+  z-index: -2;
+  pointer-events: none;
+  transform: translate3d(0, calc(var(--pressure) * -150px), 0);
+  transition: transform 700ms linear;
 }
 
 .motes span {
@@ -294,32 +318,6 @@ a:hover {
   border-radius: 50%;
   background: var(--foam);
   animation: mote-drift linear infinite alternate;
-}
-
-.motes-1 {
-  transform: translateY(var(--p1, 0));
-}
-
-.motes-1 span {
-  opacity: calc(0.34 + var(--depth) * 0.16);
-}
-
-.motes-2 {
-  transform: translateY(var(--p2, 0));
-}
-
-.motes-2 span {
-  opacity: calc(0.24 + var(--depth) * 0.2);
-  filter: blur(0.7px);
-}
-
-.motes-3 {
-  transform: translateY(var(--p3, 0));
-}
-
-.motes-3 span {
-  opacity: calc(0.14 + var(--depth) * 0.22);
-  filter: blur(1.8px);
 }
 
 @keyframes mote-drift {
@@ -331,29 +329,14 @@ a:hover {
   }
 }
 
-/* Water closing in — only once it is dark enough to feel it. */
-.vignette {
-  position: absolute;
-  inset: 0;
-  opacity: var(--depth);
-  background: radial-gradient(
-    ellipse 74% 62% at 50% 50%,
-    transparent 42%,
-    rgba(2, 12, 22, 0.5) 100%
-  );
-  transition: opacity 500ms linear;
-}
+/* --- Layers that are not there ----------------------------------------- */
 
-/* Grain. Still the cheapest cure for a flat digital surface, but baked into a
-   tile and composited normally — a live SVG filter under an `overlay` blend,
-   full-viewport, is neither of those things. */
-.grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-}
+/* Zero opacity is not free. An invisible layer is still composited on every
+   frame, its animations still run, and its pixels are still blended over the
+   whole viewport. The sunlight and the caustics are at zero over the bottom
+   eighty-five percent of this page and the vignette is at zero over the top
+   quarter, which between them was most of the weight in the lower sections.
+   `useDive` puts `lit` and `sunk` on the root, and off they go. */
 
 
 /* --- Figures: one rule for every number on the page -------------------- */
@@ -387,20 +370,12 @@ a:hover {
     0 0 calc(var(--depth) * 46px) calc(var(--depth) * -12px) rgba(127, 212, 255, 0.28);
 }
 
-.fact,
-.whale-tile.fed {
-  animation: breathe var(--tempo) ease-in-out infinite;
-}
-
-@keyframes breathe {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(calc(1 + var(--depth) * 0.045));
-  }
-}
+/* The cards used to breathe: a brightness filter pulsing on a six second loop.
+   It cost a filter surface per card for a four percent change nobody reported
+   seeing, and it was why the text inside them shimmered — a filter forces its
+   subtree into its own surface, and the type was re-rasterised on every frame
+   with slightly different antialiasing. The glow along their top edge already
+   says the cards are lit; it does not need to flicker. */
 
 /* --- Section transitions ---------------------------------------------- */
 
@@ -725,10 +700,9 @@ a:hover {
 
 .wrap {
   width: 100%;
-  max-width: calc(var(--max) * var(--squeeze));
+  max-width: var(--max);
   margin: 0 auto;
   padding-inline: var(--gutter);
-  transition: max-width 600ms linear;
 }
 
 /* Tightened from 128px. Two sections' worth of that padding meeting in the
@@ -1213,7 +1187,6 @@ p {
 
 .glass.on-dark {
   background: rgba(245, 251, 254, 0.055);
-  backdrop-filter: blur(12px) saturate(130%);
   box-shadow: 0 24px 60px rgba(4, 24, 43, 0.45), inset 0 1px 0 rgba(245, 251, 254, 0.1);
   color: var(--on-dark);
 }
@@ -2260,12 +2233,28 @@ p {
 /* --- Life below the hero ----------------------------------------------- */
 
 /* Same shoals, dropped into an ordinary section and clipped to it. */
-.section-life {
+/* A lane: a strip of open page between one block of content and the next, with
+   one creature passing through it. It is a real element in the flow, so the
+   water it offers is empty by construction. The old version was a layer over
+   the whole section and its whales crossed the cards, which reads as a z-index
+   bug rather than as depth. */
+.lane {
+  position: relative;
+  height: clamp(46px, 5.4vw, 76px);
+  /* Clear of whatever it sits between, with room for the bob. */
+  margin-block: clamp(18px, 2.2vw, 32px);
+  container-type: size;
+  pointer-events: none;
+  --bob: 3px;
+}
+
+.lane-tall {
+  height: clamp(62px, 7vw, 104px);
+}
+
+.lane .marine {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Nothing down here reflects daylight, so the lure is the only thing that
@@ -2530,7 +2519,6 @@ section > .wrap {
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(190, 231, 245, 0.11), rgba(8, 49, 82, 0.28));
   border: 1px solid rgba(190, 231, 245, 0.14);
-  backdrop-filter: blur(14px) saturate(130%);
   box-shadow:
     inset 0 1px 0 rgba(190, 231, 245, 0.3),
     0 24px 50px rgba(2, 16, 30, 0.36);
@@ -2603,7 +2591,6 @@ section > .wrap {
   background: rgba(8, 42, 70, 0.5);
   padding: 18px 20px;
   text-align: center;
-  backdrop-filter: blur(12px);
 }
 
 .claim b {
@@ -2649,7 +2636,9 @@ section > .wrap {
   top: 10%;
   right: -7%;
   width: min(70vw, 880px);
-  opacity: 0.11;
+  /* Background, not subject. At 0.11 it was the first thing you looked at in a
+     section whose job is six cards of copy. */
+  opacity: 0.055;
   animation: cruise calc(var(--tempo-12) * 2) ease-in-out infinite alternate;
 }
 
@@ -2658,7 +2647,7 @@ section > .wrap {
   top: 56%;
   left: -3%;
   width: min(26vw, 300px);
-  opacity: 0.055;
+  opacity: 0.03;
   animation: cruise-far calc(var(--tempo-12) * 2.5) ease-in-out infinite alternate;
 }
 
@@ -2688,11 +2677,77 @@ section > .wrap {
 }
 
 .fact {
-  padding: 28px;
+  padding: 30px 28px;
   display: grid;
   gap: 12px;
   align-content: start;
   transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+/* --- Deck plates -------------------------------------------------------- */
+
+/* Not a rounded box. These are inspection plates off the hull of something:
+   four rivets, an inner bezel a few millimetres in from the edge, and one
+   corner cut square where the plate is bolted down. The rivets are four stops
+   of one background image and the bezel is a single pseudo-element, so the
+   whole treatment is rasterised once and costs nothing to scroll past. */
+/* Rivets. Four stops of one background image, rasterised with the card and free
+   thereafter. Anything that already had a gradient fill keeps it as the bottom
+   layer: `background-image` replaces the whole stack, and dropping a card's own
+   fill for four dots is not a trade. */
+.fact {
+  background-image:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.4) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.4) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px);
+  background-repeat: no-repeat;
+}
+
+.step {
+  background-image:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.46) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.46) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    linear-gradient(180deg, rgba(190, 231, 245, 0.11), rgba(8, 49, 82, 0.28));
+  background-repeat: no-repeat;
+}
+
+.fact,
+.step {
+  border-radius: 18px 5px 18px 18px;
+}
+
+.fact::after,
+.step::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(190, 231, 245, 0.075);
+  border-radius: 11px 2px 11px 11px;
+  pointer-events: none;
+}
+
+/* The claims rail is one long plate, so it gets rivets at its own ends rather
+   than one set per cell. */
+.claims {
+  background-image:
+    radial-gradient(circle at 16px 14px, rgba(190, 231, 245, 0.36) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 16px) 14px, rgba(190, 231, 245, 0.36) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 16px calc(100% - 14px), rgba(190, 231, 245, 0.24) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 14px), rgba(190, 231, 245, 0.24) 0 1.5px, transparent 2.4px);
+  background-repeat: no-repeat;
+}
+
+/* The readout keeps square inner corners; only the rail's outer ones round. */
+.hero-readout {
+  background-image:
+    radial-gradient(circle at 14px 13px, rgba(8, 31, 51, 0.2) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 14px) 13px, rgba(8, 31, 51, 0.2) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at 14px calc(100% - 13px), rgba(8, 31, 51, 0.14) 0 1.4px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 13px), rgba(8, 31, 51, 0.14) 0 1.4px, transparent 2.2px);
+  background-repeat: no-repeat;
 }
 
 /* Cold light rising off the seafloor behind each card. */
@@ -2832,7 +2887,6 @@ section > .wrap {
   border-radius: 12px;
   background: rgba(3, 16, 29, 0.9);
   border: 1px solid rgba(245, 251, 254, 0.14);
-  backdrop-filter: blur(10px);
   font-size: var(--t-1);
   color: var(--on-dark-body);
   opacity: 0;
@@ -2925,7 +2979,6 @@ section > .wrap {
   border-radius: 14px;
   overflow: hidden;
   background: rgba(245, 251, 254, 0.05);
-  backdrop-filter: blur(10px);
   box-shadow: 0 18px 44px rgba(4, 24, 43, 0.45), inset 0 1px 0 rgba(245, 251, 254, 0.1);
   isolation: isolate;
   transition: transform 240ms ease, box-shadow 240ms ease;
@@ -3277,7 +3330,6 @@ input:focus {
   color: rgba(190, 231, 245, 0.72);
   background: rgba(8, 42, 70, 0.42);
   border-color: rgba(190, 231, 245, 0.16);
-  backdrop-filter: blur(12px);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -3404,7 +3456,6 @@ input:focus {
   border-left: 3px solid var(--gold);
   border-radius: 4px;
   background: rgba(245, 251, 254, 0.04);
-  backdrop-filter: blur(10px);
   color: var(--on-dark);
   font-family: var(--mono);
   font-size: 12px;
@@ -3596,4 +3647,774 @@ input:focus {
   * {
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* --- The seabed --------------------------------------------------------- */
+
+/* The bottom of the page is the bottom of the ocean, and until now it just
+   faded out. Rock, boulders and a bed of cold weed, sitting under the footer.
+   The only thing that moves is a shear on the weed, on the page's slowest
+   tempo. No filters, no blend modes, one path per shape. */
+
+.seabed {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: clamp(150px, 18vw, 270px);
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.seabed svg {
+  position: absolute;
+  inset: auto 0 -1px 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Lighter than the water, not darker. At the bottom of this page the water is
+   very close to black, so a black silhouette is no silhouette at all: the floor
+   only reads if it catches the last of the light rather than swallowing it.
+   The near ridge takes a gradient of its own, pale along the crest and going to
+   silt at the bottom of the frame. */
+.ridge-far {
+  fill: #0e2c40;
+  opacity: 0.9;
+}
+
+/* A rim along the crest, where what light is left lands. */
+.ridge-rim {
+  fill: none;
+  stroke: rgba(143, 212, 238, 0.34);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.boulder {
+  fill: #163449;
+  opacity: 0.8;
+}
+
+/* The weed is rooted at the floor and leans from there, so the base never
+   lifts off the rock. Two beds on two clocks: one bed alone reads as a
+   decoration, two out of step read as a current. */
+.weed-back,
+.weed-front {
+  transform-origin: 50% 100%;
+}
+
+.weed-back {
+  fill: #2d7ea3;
+  opacity: 0.4;
+  animation: weed-lean var(--tempo-8) ease-in-out infinite alternate;
+}
+
+.weed-front {
+  fill: #17506f;
+  opacity: 0.72;
+  animation: weed-lean-b calc(var(--tempo-8) * 0.72) ease-in-out infinite alternate;
+}
+
+@keyframes weed-lean {
+  from {
+    transform: skewX(-2.4deg);
+  }
+  to {
+    transform: skewX(2.8deg);
+  }
+}
+
+@keyframes weed-lean-b {
+  from {
+    transform: skewX(2.2deg);
+  }
+  to {
+    transform: skewX(-2.6deg);
+  }
+}
+
+/* The footer's own content has to clear the rock. */
+.abyss {
+  padding-bottom: clamp(150px, 17vw, 250px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weed-back,
+  .weed-front {
+    animation: none !important;
+  }
+}
+
+/* --- The wallet pages --------------------------------------------------- */
+
+/* Two pages that are not the pitch: one to switch a whale on, one to read your
+   own position. They stand in the same water and use the same instruments as
+   the landing page, because a wallet page that dropped the environment would
+   read as a different site entirely. Nothing new is invented here that the
+   landing page had not already earned. */
+
+.sheet {
+  position: relative;
+  display: block;
+}
+
+/* The nav is fixed, so the first thing on a page has to clear it. */
+.sheet-head {
+  padding-top: clamp(104px, 12vh, 168px);
+}
+
+.sheet-title {
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.01em;
+  color: var(--foam);
+  margin: 0 0 22px;
+}
+
+.addr-pill {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--surface-2);
+  background: rgba(143, 212, 238, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.2);
+  text-transform: none;
+}
+
+/* --- Nav wallet ---------------------------------------------------------- */
+
+.nav-wallet {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--navy);
+  background: rgba(8, 31, 51, 0.08);
+  transition: background 240ms ease, color 240ms ease;
+}
+
+.nav-pill.deep .nav-wallet {
+  color: var(--foam);
+  background: rgba(190, 231, 245, 0.12);
+}
+
+.nav-wallet:hover {
+  background: rgba(14, 122, 184, 0.18);
+}
+
+.nav-link.on {
+  color: var(--accent);
+}
+
+.nav-pill.deep .nav-link.on {
+  color: var(--surface-2);
+}
+
+/* A lamp, not a badge: lit when a wallet is attached, dark when it is not.
+   The same dot does duty on every state in these two pages. */
+.nav-dot,
+.pick-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-block;
+  background: rgba(143, 212, 238, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.3);
+}
+
+.nav-dot.on,
+.pick-dot.on {
+  background: var(--surface-2);
+  box-shadow: 0 0 8px rgba(143, 212, 238, 0.9);
+}
+
+/* --- The activation console ---------------------------------------------- */
+
+.console {
+  display: grid;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+/* Three readings across the top: who you are, what you hold, what is asleep. */
+.console-rail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(190, 231, 245, 0.12);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  overflow: hidden;
+}
+
+.console-cell {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: clamp(18px, 2.2vw, 26px);
+  background: rgba(6, 34, 58, 0.72);
+}
+
+.console-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.56);
+}
+
+.console-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  color: var(--foam);
+}
+
+.console-value.mono {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  align-items: center;
+}
+
+.console-note {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(190, 231, 245, 0.46);
+}
+
+.console-note.up {
+  color: #7ff0d8;
+}
+
+.console-note.down {
+  color: #f4a26b;
+}
+
+/* --- The picker ---------------------------------------------------------- */
+
+.picker {
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(6, 34, 58, 0.56);
+  overflow: hidden;
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(16px, 2vw, 24px);
+  border-bottom: 1px solid rgba(190, 231, 245, 0.12);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.56);
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--surface-2);
+  background: rgba(143, 212, 238, 0.12);
+}
+
+/* One row per whale. It is a button because it is one: the whole row is the
+   target, not a checkbox hiding at the end of it. */
+.pick {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px clamp(16px, 2vw, 24px);
+  border: 0;
+  border-top: 1px solid rgba(190, 231, 245, 0.08);
+  background: transparent;
+  color: var(--on-dark);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 200ms ease;
+}
+
+.pick:first-of-type {
+  border-top: 0;
+}
+
+.pick:hover:not(:disabled) {
+  background: rgba(143, 212, 238, 0.07);
+}
+
+.pick.on {
+  background: rgba(143, 212, 238, 0.13);
+  box-shadow: inset 3px 0 0 var(--surface-2);
+}
+
+.pick:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pick-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+}
+
+.pick-id {
+  display: grid;
+  gap: 3px;
+}
+
+.pick-id b {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--foam);
+}
+
+.pick-tier {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.44);
+}
+
+.pick-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.74);
+}
+
+.pick-go {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.4);
+}
+
+.pick.on .pick-go {
+  color: var(--surface-2);
+}
+
+.picker-empty {
+  padding: 28px clamp(16px, 2vw, 24px);
+  color: var(--on-dark-dim);
+}
+
+/* --- The commit ---------------------------------------------------------- */
+
+/* The only irreversible thing on the site, so it is given its own plate, its
+   own rule down the side and nothing else competing with it. */
+.commit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: clamp(20px, 2.6vw, 30px);
+  border: 1px solid rgba(190, 231, 245, 0.2);
+  border-left: 3px solid var(--gold);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(9, 42, 68, 0.66);
+}
+
+.commit-body {
+  display: grid;
+  gap: 8px;
+  max-width: 56ch;
+}
+
+.commit-line {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  color: var(--foam);
+}
+
+.commit-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--on-dark-body);
+}
+
+.commit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* --- What changes -------------------------------------------------------- */
+
+.effects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.effect {
+  display: grid;
+  gap: 9px;
+  padding: 20px;
+  border: 1px solid rgba(190, 231, 245, 0.12);
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(6, 34, 58, 0.5);
+}
+
+.effect-swap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.effect-before {
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.4);
+  text-decoration: line-through;
+}
+
+/* Drawn rather than typed, because the character for it is an em dash's
+   cousin and this platform does not use those. */
+.effect-arrow {
+  flex: none;
+  width: 18px;
+  height: 1px;
+  position: relative;
+  background: rgba(190, 231, 245, 0.35);
+}
+
+.effect-arrow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -2.5px;
+  border: 3px solid transparent;
+  border-left-color: rgba(190, 231, 245, 0.5);
+}
+
+.effect-after {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--foam);
+}
+
+/* --- The portfolio ------------------------------------------------------- */
+
+.connect-call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 26px;
+  padding: 20px clamp(18px, 2.4vw, 28px);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 16px 4px 16px 16px;
+  background: rgba(6, 34, 58, 0.55);
+}
+
+.connect-call p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--on-dark-body);
+}
+
+.holdings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* One whale, one plate. Dormant ones sit back; awake ones are lit from the
+   top edge, the same rule the rest of the page uses for anything alive. */
+.holding {
+  position: relative;
+  display: grid;
+  gap: 11px;
+  align-content: start;
+  padding: 22px 20px;
+  border: 1px solid rgba(190, 231, 245, 0.13);
+  border-radius: 18px 5px 18px 18px;
+  background:
+    radial-gradient(circle at 15px 15px, rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.3) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.2) 0 1.5px, transparent 2.4px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.2) 0 1.5px, transparent 2.4px),
+    linear-gradient(180deg, rgba(190, 231, 245, 0.075), rgba(8, 49, 82, 0.3));
+  background-repeat: no-repeat;
+  transition: transform 240ms ease, border-color 240ms ease;
+}
+
+.holding.fed {
+  border-color: rgba(143, 212, 238, 0.3);
+  box-shadow: inset 0 1px 0 rgba(190, 231, 245, 0.26), 0 0 34px -14px rgba(127, 212, 255, 0.5);
+}
+
+.holding:hover {
+  transform: translateY(-2px);
+}
+
+.holding-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 62px;
+  margin-bottom: 2px;
+}
+
+.holding:not(.fed) .holding-art {
+  opacity: 0.4;
+  filter: saturate(0.2);
+}
+
+.holding-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.holding-head h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--foam);
+}
+
+.holding-tier {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--surface-2);
+  opacity: 0.8;
+}
+
+.holding-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 11px;
+  color: rgba(190, 231, 245, 0.72);
+}
+
+.holding-rows {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.holding-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+}
+
+.holding-rows dt {
+  color: rgba(190, 231, 245, 0.44);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holding-rows dd {
+  margin: 0;
+  color: var(--foam);
+}
+
+.holding-cta {
+  margin-top: 8px;
+  justify-self: start;
+}
+
+/* --- The ledger ---------------------------------------------------------- */
+
+.ledger {
+  margin-top: 12px;
+  border: 1px solid rgba(190, 231, 245, 0.14);
+  border-radius: 18px 5px 18px 18px;
+  background: rgba(6, 34, 58, 0.5);
+  overflow: hidden;
+}
+
+.ledger-head,
+.ledger-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 13px clamp(16px, 2vw, 24px);
+}
+
+.ledger-head {
+  border-bottom: 1px solid rgba(190, 231, 245, 0.12);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.5);
+}
+
+.ledger-row {
+  border-top: 1px solid rgba(190, 231, 245, 0.07);
+  font-size: 12px;
+  color: rgba(190, 231, 245, 0.78);
+}
+
+.ledger-row:first-of-type {
+  border-top: 0;
+}
+
+.ledger-when {
+  display: grid;
+  gap: 2px;
+}
+
+.ledger-when b {
+  font-weight: 500;
+  color: var(--foam);
+}
+
+.ledger-when em {
+  font-style: normal;
+  font-size: 10px;
+  color: rgba(190, 231, 245, 0.36);
+}
+
+/* Money in is the one figure on the page allowed to be green. */
+.ledger-share {
+  color: #7ff0d8;
+}
+
+/* --- The collection ------------------------------------------------------ */
+
+.market {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  margin-top: 30px;
+  background: rgba(190, 231, 245, 0.12);
+  border: 1px solid rgba(190, 231, 245, 0.16);
+  border-radius: 18px 5px 18px 18px;
+  overflow: hidden;
+}
+
+.market-cell {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 20px;
+  background: rgba(6, 34, 58, 0.72);
+}
+
+/* --- Buttons the wallet pages need --------------------------------------- */
+
+.btn-sm {
+  padding: 9px 16px;
+  font-size: 10px;
+}
+
+.btn-foam {
+  background: var(--surface-2);
+  color: var(--navy);
+  border: 1px solid rgba(190, 231, 245, 0.6);
+}
+
+.btn-foam:hover:not(:disabled) {
+  background: var(--surface-1);
+}
+
+.btn-foam:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost.on-dark {
+  color: var(--foam);
+  border-color: rgba(190, 231, 245, 0.34);
+}
+
+.btn-ghost.on-dark:hover {
+  background: rgba(190, 231, 245, 0.1);
+}
+
+@media (max-width: 900px) {
+  .console-rail {
+    grid-template-columns: 1fr;
+  }
+  .ledger-head {
+    display: none;
+  }
+  .ledger-row {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pick {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+  .pick-go {
+    display: none;
+  }
+  .commit,
+  .connect-call {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* The wallet pages open below the thermocline. There is no hero on them and no
+   surface to look up at, and starting them in bright water put foam type on
+   white light. The variables are redeclared on the page rather than on the
+   root, so the one scroll subscription still runs and simply loses the
+   argument inside this subtree. */
+.page-deep {
+  --sun: 0;
+  --depth: 1;
+  --pressure: 1;
+}
+
+.page-deep .dive {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(2, 12, 22, 0.42),
+      transparent 26%,
+      transparent 74%,
+      rgba(2, 12, 22, 0.42)
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(
+      180deg,
+      #0a3a5e 0%,
+      var(--trench-1) 14%,
+      #06283f 34%,
+      #051f33 54%,
+      var(--trench-2) 72%,
+      #030f1d 88%,
+      #020a14 100%
+    );
 }
