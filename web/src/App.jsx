@@ -12,6 +12,8 @@ import Footer from "./components/Footer.jsx";
 import Celebration from "./components/Celebration.jsx";
 import Atmosphere, { AtmosphereDefs } from "./components/Atmosphere.jsx";
 import { Waterline, DepthMarkers } from "./components/Depth.jsx";
+import Cursor, { useCardTilt } from "./components/Cursor.jsx";
+import Overture, { useOverture } from "./components/Overture.jsx";
 
 export default function App() {
   const { data: ocean, error, refresh } = useOcean();
@@ -20,13 +22,19 @@ export default function App() {
   const depth = useDepth();
   const wallet = useWallet();
   const haulSignal = useHaulSignal(ocean?.haulCount);
+  const overture = useOverture();
+  useCardTilt();
 
-  // One scroll value drives the whole water column: the light dies early, the
-  // dark closes in late.
+  // One scroll value drives the whole water column.
+  //   sun      — light exists only in the top slice of the dive.
+  //   depth    — darkness, arriving with the Trench.
+  //   pressure — the physical cues: the column narrows, shadows spread,
+  //              timings lengthen. Imperceptible one at a time.
   useEffect(() => {
     const root = document.documentElement.style;
-    root.setProperty("--sun", String(Math.max(0, 1 - depth * 3.2)));
+    root.setProperty("--sun", String(Math.max(0, 1 - depth / 0.15)));
     root.setProperty("--depth", String(Math.min(1, Math.max(0, (depth - 0.26) / 0.5))));
+    root.setProperty("--pressure", String(Math.min(1, Math.max(0, depth))));
   }, [depth]);
 
   const refreshAll = () => {
@@ -60,6 +68,8 @@ export default function App() {
           stops reading — a little before the section boundary, not after. */}
       <Nav deep={depth > 0.2} live={live} />
       <Celebration trigger={haulSignal} />
+      <Overture playing={overture} />
+      <Cursor />
 
       <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} live={live} />
 

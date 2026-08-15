@@ -12,6 +12,7 @@ const ACTIVATION_BURN = 1_000_000n * 10n ** 18n;
 export default function Actions({ ocean, wallet, onDone }) {
   const [busy, setBusy] = useState(null);
   const [message, setMessage] = useState(null);
+  const [connecting, setConnecting] = useState(false);
   const [tokenId, setTokenId] = useState("");
   const [stock, setStock] = useState("");
 
@@ -30,6 +31,17 @@ export default function Actions({ ocean, wallet, onDone }) {
       setMessage({ kind: "error", text: e.shortMessage || e.message });
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function connect() {
+    setConnecting(true);
+    try {
+      await wallet.connect();
+    } catch {
+      /* the hook surfaces the reason */
+    } finally {
+      setConnecting(false);
     }
   }
 
@@ -94,13 +106,20 @@ export default function Actions({ ocean, wallet, onDone }) {
     <div style={{ display: "grid", gap: 16, borderTop: "1px solid var(--rule-dark)", paddingTop: 26 }}>
       <div className="row">
         <button
-          className="btn btn-ghost on-dark"
-          onClick={() => wallet.connect()}
-          disabled={Boolean(wallet.account)}
+          className={`btn btn-ghost on-dark${connecting ? " connecting" : ""}`}
+          onClick={connect}
+          disabled={Boolean(wallet.account) || connecting}
         >
-          {wallet.account
-            ? `Connected ${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`
-            : "Connect wallet"}
+          {wallet.account ? (
+            <>
+              <span className="status-dot" />
+              {`${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`}
+            </>
+          ) : connecting ? (
+            "Connecting…"
+          ) : (
+            "Connect wallet"
+          )}
         </button>
         <button className="btn btn-primary" onClick={haul} disabled={Boolean(busy) || !ocean?.readyToHaul}>
           {ocean?.readyToHaul ? (

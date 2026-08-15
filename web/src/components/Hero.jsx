@@ -38,7 +38,7 @@ function WaveEdge() {
 /** Shown before the contracts are live: the collection, with no chain to read. */
 function CollectionCard() {
   return (
-    <div className="glass featured">
+    <div className="glass featured afloat">
       <div className="featured-art placeholder">
         <span>1000</span>
       </div>
@@ -95,9 +95,12 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
         <Reveal stagger step={70}>
           <p className="eyebrow">$WHALE · Robinhood Chain</p>
           <h1 className="display">
-            Every trade
-            <br />
-            feeds the pod.
+            <span className="line">
+              <span>Every trade</span>
+            </span>
+            <span className="line">
+              <span>feeds the pod.</span>
+            </span>
           </h1>
           <p className="hero-sub">
             2% buy / 3% sell on every trade — all of it flows to activated whales. In ETH, tracked in
@@ -118,7 +121,7 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
         {!live || !featured ? (
           <CollectionCard />
         ) : (
-          <div className="glass featured">
+          <div className="glass featured afloat">
             <WhaleArt
               tokenId={featured.tokenId}
               className="featured-art"
@@ -132,8 +135,15 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
               <p className="featured-label" style={{ marginBottom: 6 }}>
                 Lifetime earnings
               </p>
-              <div className={`featured-earn num${fed ? " treasure" : ""}`}>
-                {usd(featured.lifetimeEarned, price) || `${eth(featured.lifetimeEarned)} ETH`}
+              <div className={`featured-earn figure${fed ? " treasure" : ""}`}>
+                {usd(featured.lifetimeEarned, price) ? (
+                  usd(featured.lifetimeEarned, price)
+                ) : (
+                  <>
+                    {eth(featured.lifetimeEarned)}
+                    <span className="unit">ETH</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="featured-rows num">
