@@ -1,0 +1,27 @@
+{
+ "name": "WHALES #0887",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "ipfs://__REPLACE_WITH_CID__/0887.png",
+ "attributes": [
+  {
+   "trait_type": "Background",
+   "value": "Mauve"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Steel"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Classic"
+  },
+  {
+   "trait_type": "Mouth",
+   "value": "Bubble Pipe"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Sailor Cap"
+  }
+ ]
+}

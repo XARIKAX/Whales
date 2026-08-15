@@ -5,7 +5,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {IWhales} from "./interfaces/IWhales.sol";
 import {ITrench} from "./interfaces/ITrench.sol";
-import {IWhaleRenderer} from "./WhaleRenderer.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /// @title Whales
 /// @notice 1000 pixel whales. A whale does not earn until it is fed: activating
@@ -15,6 +15,7 @@ import {IWhaleRenderer} from "./WhaleRenderer.sol";
 /// @dev Activation state lives here, on the NFT itself, so the Trench never
 ///      needs a list of who is eligible -- it reads the whale.
 contract Whales is ERC721, IWhales {
+    using Strings for uint256;
     // --- Fixed parameters -------------------------------------------------
 
     uint256 public constant MAX_SUPPLY = 1000;
@@ -32,7 +33,6 @@ contract Whales is ERC721, IWhales {
     // --- Wiring -----------------------------------------------------------
 
     ERC20Burnable public immutable whaleToken;
-    IWhaleRenderer public immutable renderer;
     uint256 public immutable mintPrice;
 
     /// @notice The Trench. Set exactly once, right after deployment, because
@@ -54,10 +54,23 @@ contract Whales is ERC721, IWhales {
     /// @notice Number of times a whale has been fed, across all its owners.
     mapping(uint256 => uint32) public activationCount;
 
-    /// @notice Rarity seed, drawn from a future block once the collection has
-    ///         minted out. Zero until revealed.
-    uint256 public seed;
-    uint256 public seedBlock;
+    /// @notice Commitment to the finished collection, fixed at deployment.
+    ///
+    /// @dev The art is generated off chain and every token's traits are already
+    ///      decided before launch, so there is nothing to roll here. What this
+    ///      contract owes holders instead is proof that the images were not
+    ///      changed afterwards: `provenance` is the hash of the concatenated
+    ///      metadata files, computed before deploy and immutable after it.
+    ///      Anyone can regenerate the collection and check it matches.
+    bytes32 public immutable provenance;
+
+    /// @notice Where the metadata lives. Settable until frozen, then never again.
+    string private _baseTokenURI;
+    bool public metadataFrozen;
+
+    /// @notice May set the base URI until the metadata is frozen. Destroyed by
+    ///         `freezeMetadata`, after which no address can touch the art.
+    address public curator;
 
     // --- Errors and events ------------------------------------------------
 
@@ -70,30 +83,26 @@ contract Whales is ERC721, IWhales {
     error TrenchNotSet();
     error TrenchAlreadySet();
     error NotDeployer();
-    error MintNotFinished();
-    error SeedAlreadyDrawn();
-    error SeedNotCommitted();
-    error SeedStillPending(uint256 seedBlock);
-    error SeedNotReady();
-    error SeedExpired();
-    error NotRevealed();
+    error NotCurator();
+    error MetadataIsFrozen();
     error SweepFailed();
 
     event Activated(uint256 indexed tokenId, address indexed holder, uint256 burned);
     event Deactivated(uint256 indexed tokenId, address indexed formerHolder);
     event WeightSynced(uint256 indexed tokenId, uint256 weight);
     event TrenchSet(address trench);
-    event SeedCommitted(uint256 block_);
-    event SeedRevealed(uint256 seed);
+    event BaseURISet(string uri);
+    event MetadataFrozen(string uri);
     event SweptToTrench(uint256 amount);
 
-    constructor(ERC20Burnable whaleToken_, IWhaleRenderer renderer_, uint256 mintPrice_)
+    constructor(ERC20Burnable whaleToken_, bytes32 provenance_, uint256 mintPrice_)
         ERC721("Whales", "WHALE")
     {
         whaleToken = whaleToken_;
-        renderer = renderer_;
+        provenance = provenance_;
         mintPrice = mintPrice_;
         deployer = msg.sender;
+        curator = msg.sender;
     }
 
     /// @notice One-shot wiring, then the deployer role is destroyed.
@@ -133,51 +142,30 @@ contract Whales is ERC721, IWhales {
         emit SweptToTrench(amount);
     }
 
-    // --- Rarity reveal ----------------------------------------------------
+    // --- Metadata control -------------------------------------------------
 
-    /// @notice After mint-out, lock in a future block. Nobody -- including the
-    ///         caller -- knows its hash yet.
-    function commitSeed() external {
-        if (totalMinted < MAX_SUPPLY) revert MintNotFinished();
-        if (seed != 0) revert SeedAlreadyDrawn();
-
-        // A live commitment cannot be replaced. Without this, anyone could
-        // look at the hash they were about to get, dislike it, and commit
-        // again -- rerolling the whole collection's rarity for free until it
-        // suited them. Recommitting is only allowed once the committed block
-        // has aged out of blockhash range and the draw is genuinely dead.
-        if (seedBlock != 0 && block.number <= seedBlock + 256) revert SeedStillPending(seedBlock);
-
-        seedBlock = block.number + 1;
-        emit SeedCommitted(seedBlock);
+    /// @notice Point the collection at its metadata. Callable until frozen.
+    function setBaseURI(string calldata uri) external {
+        if (msg.sender != curator) revert NotCurator();
+        if (metadataFrozen) revert MetadataIsFrozen();
+        _baseTokenURI = uri;
+        emit BaseURISet(uri);
     }
 
-    /// @notice Draw the seed from the committed block's hash. If more than 256
-    ///         blocks pass the hash is gone; commit again.
-    function revealSeed() external {
-        if (seed != 0) revert SeedAlreadyDrawn();
-        uint256 target = seedBlock;
-        if (target == 0) revert SeedNotCommitted();
-        if (block.number <= target) revert SeedNotReady();
-
-        bytes32 hash = blockhash(target);
-        if (hash == bytes32(0)) revert SeedExpired();
-
-        seed = uint256(keccak256(abi.encode(hash, address(this))));
-        emit SeedRevealed(seed);
+    /// @notice Freeze the art permanently and destroy the curator role.
+    ///
+    /// @dev One way. After this there is no address anywhere in the system that
+    ///      can change what a whale looks like, which is the claim the site
+    ///      makes and this is what backs it.
+    function freezeMetadata() external {
+        if (msg.sender != curator) revert NotCurator();
+        metadataFrozen = true;
+        curator = address(0);
+        emit MetadataFrozen(_baseTokenURI);
     }
 
-    function revealed() public view returns (bool) {
-        return seed != 0;
-    }
-
-    /// @notice Rarity tier: 0 surface swimmer, 1 reef cruiser, 2 twilight
-    ///         diver, 3 abyss dweller, 4 leviathan.
-    /// @dev Rarer whales do not earn more. Weight comes from loyalty alone.
-    function tierOf(uint256 tokenId) public view returns (uint8) {
-        _requireOwned(tokenId);
-        if (seed == 0) revert NotRevealed();
-        return renderer.tierOf(tokenId, seed);
+    function baseURI() external view returns (string memory) {
+        return _baseTokenURI;
     }
 
     // --- Activation -------------------------------------------------------
@@ -293,15 +281,18 @@ contract Whales is ERC721, IWhales {
 
     // --- Metadata ---------------------------------------------------------
 
+    /// @dev Token ids are zero-padded to four digits to match the generated
+    ///      files: 0001.json, not 1.json.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireOwned(tokenId);
-        return renderer.render(
-            tokenId,
-            seed,
-            activatedAt[tokenId],
-            activatedAt[tokenId] == 0 ? 0 : weightOf(tokenId),
-            activationCount[tokenId]
-        );
+        return string.concat(_baseTokenURI, _padded(tokenId), ".json");
+    }
+
+    function _padded(uint256 tokenId) internal pure returns (string memory) {
+        if (tokenId < 10) return string.concat("000", tokenId.toString());
+        if (tokenId < 100) return string.concat("00", tokenId.toString());
+        if (tokenId < 1000) return string.concat("0", tokenId.toString());
+        return tokenId.toString();
     }
 
     receive() external payable {}

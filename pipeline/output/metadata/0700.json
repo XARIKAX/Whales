@@ -1,0 +1,31 @@
+{
+ "name": "WHALES #0700",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "ipfs://__REPLACE_WITH_CID__/0700.png",
+ "attributes": [
+  {
+   "trait_type": "Background",
+   "value": "Slate"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Classic Navy"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Gold Monocle"
+  },
+  {
+   "trait_type": "Mouth",
+   "value": "Bubble Pipe"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Captain's Hat"
+  },
+  {
+   "trait_type": "Legendary",
+   "value": "The Captain"
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "name": "WHALES #0656",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "ipfs://__REPLACE_WITH_CID__/0656.png",
+ "attributes": [
+  {
+   "trait_type": "Background",
+   "value": "Maroon"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Steel"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Classic"
+  },
+  {
+   "trait_type": "Bling",
+   "value": "Emerald Stud"
+  }
+ ]
+}

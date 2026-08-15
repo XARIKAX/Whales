@@ -1,0 +1,1001 @@
+id,legendary,background,body,eyes,mouth,headwear,neck,bling,rarity_score
+1,The Firstborn,Maroon,Classic Navy,Classic,None,Halo,None,Diamond Spout,39.82
+2,,Maroon,Classic Navy,Gold Monocle,None,None,Silver Chain,,27.88
+3,,Charcoal,Classic Navy,Classic,None,None,None,Emerald Stud,21.46
+4,,Sage,Ocean Blue,Abyss Glow,None,None,Cuban Chain,,28.06
+5,,Maroon,Classic Navy,Classic,Cigar,Crown,None,,38.41
+6,,Sand,Steel,Classic,Cigar,None,None,Pinky Ring,42.2
+7,,Gold Dust,Midnight Black,Abyss Glow,Cigar,Kelp Wrap,None,,83.12
+8,,Charcoal,Arctic,Sleepy,None,Beanie,None,Diamond Spout,52.98
+9,,Sage,Arctic,Abyss Glow,None,None,Cuban Chain,Gold Watch,45.56
+10,,Gold Dust,Arctic,Shades,None,Halo,None,,60.12
+11,,Slate,Ocean Blue,Classic,Cigar,Captain's Hat,None,,23.6
+12,,Maroon,Arctic,Gold Monocle,Cigar,None,Cuban Chain,,39.09
+13,,Maroon,Classic Navy,Classic,Gold Tooth,None,None,Emerald Stud,27.2
+14,,Slate,Arctic,Classic,Cigar,Sailor Cap,None,Gold Watch,40.55
+15,,Slate,Deep Sea,Classic,Punk Cigarette,None,None,,21.36
+16,,Sand,Deep Sea,Classic,Punk Cigarette,None,Cuban Chain,Pinky Ring,50.98
+17,,Sage,Classic Navy,Classic,Gold Tooth,None,Silver Chain,,26.54
+18,,Slate,Classic Navy,Classic,None,Sailor Cap,Pearl String,,27.12
+19,,Mauve,Ocean Blue,Sleepy,Punk Cigarette,Sailor Cap,Pearl String,,46.59
+20,,Sage,Deep Sea,Classic,Gold Tooth,Kelp Wrap,Diamond Chain,,61.54
+21,,Maroon,Steel,Classic,Gold Tooth,None,None,,21.36
+22,,Mauve,Classic Navy,Laser,Gold Tooth,Halo,Cuban Chain,,58.45
+23,,Sage,Classic Navy,Classic,Gold Tooth,None,Pearl String,,29.32
+24,,Maroon,Deep Sea,Classic,Cigar,None,None,,19.24
+25,,Slate,Deep Sea,Classic,Cigar,None,None,,19.24
+26,,Maroon,Classic Navy,Classic,Cigar,Sailor Cap,Diamond Chain,Emerald Stud|Gold Watch,65.55
+27,,Charcoal,Steel,Classic,Bubble Pipe,None,Cuban Chain,,33.13
+28,,Maroon,Classic Navy,Classic,None,Captain's Hat,Diamond Chain,Pinky Ring|Diamond Spout,74.89
+29,,Slate,Ocean Blue,Classic,Cigar,Sailor Cap,None,,23.05
+30,,Maroon,Classic Navy,Classic,None,Beanie,None,Pinky Ring,33.86
+31,,Maroon,Ocean Blue,Classic,Cigar,None,None,,15.91
+32,,Sage,Classic Navy,Classic,Punk Cigarette,None,Silver Chain,,24.87
+33,,Sand,Classic Navy,Classic,Cigar,Beanie,None,,29.7
+34,,Mauve,Steel,Classic,Bubble Pipe,Beanie,None,,37.65
+35,,Maroon,Deep Sea,Classic,Cigar,Captain's Hat,Silver Chain,,35.27
+36,,Sand,Classic Navy,Classic,None,Kelp Wrap,None,,29.32
+37,,Sand,Steel,Classic,Bubble Pipe,None,None,,33.48
+38,,Maroon,Deep Sea,Abyss Glow,None,Sailor Cap,Pearl String,,43.63
+39,,Maroon,Steel,Classic,None,Captain's Hat,Diamond Chain,,45.72
+40,,Gold Dust,Classic Navy,Classic,Cigar,None,Pearl String,Gold Watch,54.97
+41,,Slate,Classic Navy,Classic,Punk Cigarette,Beanie,None,Coin Spout,57.2
+42,,Slate,Deep Sea,Classic,None,None,None,,14.7
+43,,Charcoal,Classic Navy,Classic,Gold Tooth,None,None,Emerald Stud,29.79
+44,,Sand,Classic Navy,Shades,None,Kelp Wrap,Diamond Chain,,60.83
+45,,Maroon,Steel,Classic,None,None,Cuban Chain,,18.03
+46,,Charcoal,Deep Sea,Sleepy,None,Beanie,Pearl String,Gold Watch,53.25
+47,,Gold Dust,Classic Navy,Sleepy,None,Beanie,None,,44.17
+48,,Mauve,Midnight Black,Classic,None,Beanie,Cuban Chain,Diamond Spout,68.72
+49,,Mauve,Classic Navy,Classic,None,None,Silver Chain,Emerald Stud,30.98
+50,,Sage,Midnight Black,Sleepy,Bubble Pipe,Captain's Hat,Cuban Chain,,67.65
+51,,Mauve,Classic Navy,Classic,None,Halo,Silver Chain,,35.27
+52,,Sage,Classic Navy,Sleepy,None,None,Silver Chain,,24.72
+53,,Gold Dust,Classic Navy,Classic,Diamond Grill,Crown,None,Emerald Stud,97.65
+54,,Sage,Steel,Classic,None,None,None,,14.04
+55,,Mauve,Deep Sea,Shades,None,Captain's Hat,Cuban Chain,,37.69
+56,,Charcoal,Ocean Blue,Sleepy,None,None,None,,20.48
+57,,Maroon,Classic Navy,Classic,Cigar,None,Cuban Chain,Gold Watch|Pinky Ring,45.08
+58,,Sand,Deep Sea,Classic,None,None,None,Emerald Stud,32.65
+59,,Maroon,Classic Navy,Classic,Punk Cigarette,Sailor Cap,Diamond Chain,Emerald Stud,57.67
+60,,Maroon,Classic Navy,Laser,None,None,None,,27.05
+61,,Charcoal,Classic Navy,Classic,Cigar,None,Cuban Chain,Gold Watch,31.01
+62,,Gold Dust,Classic Navy,Classic,Bubble Pipe,Kelp Wrap,Silver Chain,,62.65
+63,,Maroon,Deep Sea,Classic,Punk Cigarette,Kelp Wrap,Cuban Chain,,38.86
+64,,Maroon,Classic Navy,Sleepy,Diamond Grill,None,None,Emerald Stud|Gold Watch,68.71
+65,,Slate,Ocean Blue,Classic,Gold Tooth,None,None,,19.7
+66,,Sand,Deep Sea,Gold Monocle,None,Sailor Cap,None,,40.48
+67,,Sage,Steel,Sleepy,None,None,None,Gold Watch,30.56
+68,,Charcoal,Ocean Blue,Classic,None,Beanie,None,,22.29
+69,,Gold Dust,Steel,Shades,None,Beanie,Silver Chain,Coin Spout,90.0
+70,,Sage,Ocean Blue,Classic,Cigar,Sailor Cap,None,Pinky Ring,40.73
+71,,Sage,Classic Navy,Classic,Bubble Pipe,Sailor Cap,None,,29.52
+72,,Maroon,Classic Navy,Gold Monocle,None,Captain's Hat,None,,27.24
+73,,Mauve,Steel,Classic,Diamond Grill,Beanie,None,,58.48
+74,,Sage,Arctic,Laser,None,Beanie,None,,46.39
+75,,Maroon,Steel,Classic,Punk Cigarette,Crown,Cuban Chain,,49.7
+76,,Sage,Steel,Classic,None,None,None,Coin Spout,47.37
+77,,Charcoal,Steel,Classic,Punk Cigarette,Sailor Cap,Cuban Chain,,34.44
+78,,Sage,Deep Sea,Abyss Glow,Punk Cigarette,None,None,Diamond Spout,49.72
+79,,Mauve,Classic Navy,Classic,None,None,None,,12.65
+80,,Mauve,Classic Navy,Classic,Punk Cigarette,Captain's Hat,None,,27.01
+81,,Slate,Classic Navy,Laser,Cigar,Captain's Hat,None,,39.28
+82,,Slate,Ocean Blue,Classic,Gold Tooth,None,Diamond Chain,,44.7
+83,,Sage,Classic Navy,Classic,None,Sailor Cap,Cuban Chain,,22.02
+84,,Slate,Deep Sea,Classic,Punk Cigarette,Sailor Cap,None,Diamond Spout,45.17
+85,,Maroon,Midnight Black,Shades,Cigar,Captain's Hat,None,,53.69
+86,,Charcoal,Classic Navy,Gold Monocle,None,Sailor Cap,None,Emerald Stud,39.29
+87,,Charcoal,Classic Navy,Gold Monocle,Gold Tooth,None,Silver Chain,,38.81
+88,,Slate,Ocean Blue,Gold Monocle,Punk Cigarette,Crown,Silver Chain,Emerald Stud,72.05
+89,,Mauve,Classic Navy,Abyss Glow,Cigar,Sailor Cap,Cuban Chain,,40.02
+90,,Charcoal,Classic Navy,Classic,Cigar,Beanie,Cuban Chain,Emerald Stud,39.34
+91,,Mauve,Arctic,Classic,None,Captain's Hat,None,,30.34
+92,,Maroon,Classic Navy,Classic,Cigar,Beanie,Cuban Chain,,26.74
+93,,Mauve,Classic Navy,Classic,Gold Tooth,Kelp Wrap,Cuban Chain,Emerald Stud,48.48
+94,,Charcoal,Ocean Blue,Classic,Gold Tooth,Sailor Cap,Cuban Chain,,34.44
+95,,Sage,Ocean Blue,Sleepy,Gold Tooth,None,None,,27.22
+96,,Maroon,Ocean Blue,Gold Monocle,None,Beanie,None,,30.38
+97,,Mauve,Classic Navy,Classic,None,Beanie,Cuban Chain,,25.98
+98,,Charcoal,Ocean Blue,Classic,Cigar,None,None,,18.51
+99,,Gold Dust,Midnight Black,Abyss Glow,None,Sailor Cap,None,,73.21
+100,The Don,Gold Dust,Gilded,Classic,Cigar,Crown,Cuban Chain,,128.03
+101,,Maroon,Deep Sea,Shades,Punk Cigarette,Kelp Wrap,Pearl String,Diamond Spout,68.16
+102,,Charcoal,Classic Navy,Classic,Bubble Pipe,None,None,Pinky Ring,40.63
+103,,Sage,Classic Navy,Classic,None,None,Silver Chain,,18.21
+104,,Sage,Classic Navy,Classic,Gold Tooth,None,None,Pinky Ring,34.87
+105,,Slate,Classic Navy,Classic,Punk Cigarette,Sailor Cap,Pearl String,,33.78
+106,,Slate,Arctic,Shades,Diamond Grill,Captain's Hat,None,,66.4
+107,,Charcoal,Arctic,Classic,Bubble Pipe,Beanie,None,,42.29
+108,,Sage,Steel,Laser,None,None,None,Gold Watch,42.22
+109,,Sage,Classic Navy,Laser,Gold Tooth,Sailor Cap,Silver Chain,Diamond Spout,68.53
+110,,Maroon,Classic Navy,Classic,None,None,Pearl String,,19.97
+111,,Slate,Classic Navy,Classic,None,None,Pearl String,,19.97
+112,,Sage,Ocean Blue,Classic,Bubble Pipe,Captain's Hat,Cuban Chain,Gold Watch,47.57
+113,,Charcoal,Deep Sea,Abyss Glow,Cigar,None,None,Pinky Ring,49.19
+114,,Maroon,Classic Navy,Classic,Bubble Pipe,Beanie,None,Diamond Spout,46.36
+115,,Slate,Classic Navy,Shades,Cigar,None,None,,19.92
+116,,Sage,Classic Navy,Classic,None,None,Silver Chain,Emerald Stud,28.21
+117,,Sage,Classic Navy,Shades,Punk Cigarette,None,Diamond Chain,,48.06
+118,,Slate,Deep Sea,Abyss Glow,Cigar,Beanie,None,,38.26
+119,,Maroon,Steel,Abyss Glow,Punk Cigarette,None,None,,30.38
+120,,Maroon,Classic Navy,Sleepy,None,Beanie,None,,23.71
+121,,Slate,Classic Navy,Gold Monocle,Bubble Pipe,Beanie,None,,40.38
+122,,Maroon,Steel,Shades,None,None,Pearl String,,30.66
+123,,Sage,Ocean Blue,Classic,Bubble Pipe,None,Cuban Chain,,29.87
+124,,Slate,Ocean Blue,Laser,Cigar,Sailor Cap,None,,41.23
+125,,Slate,Ocean Blue,Laser,None,Sailor Cap,Silver Chain,,45.02
+126,,Maroon,Classic Navy,Classic,None,Captain's Hat,None,Pinky Ring|Coin Spout,66.56
+127,,Charcoal,Midnight Black,Sleepy,Gold Tooth,None,Cuban Chain,,57.38
+128,,Maroon,Classic Navy,Laser,None,None,Pearl String,,38.16
+129,,Maroon,Classic Navy,Shades,Punk Cigarette,Captain's Hat,Cuban Chain,,34.74
+130,,Maroon,Arctic,Classic,None,Sailor Cap,None,,26.01
+131,,Slate,Classic Navy,Abyss Glow,Cigar,Crown,None,,49.09
+132,,Sage,Classic Navy,Shades,None,Sailor Cap,None,,23.53
+133,,Charcoal,Classic Navy,Gold Monocle,None,Sailor Cap,None,,29.29
+134,,Slate,Steel,Classic,None,None,None,,13.03
+135,,Maroon,Steel,Classic,Cigar,Kelp Wrap,None,,30.08
+136,,Sage,Steel,Shades,Cigar,Captain's Hat,Diamond Chain,Gold Watch,67.79
+137,,Sage,Midnight Black,Classic,Cigar,Beanie,Cuban Chain,Gold Watch,63.82
+138,,Mauve,Deep Sea,Abyss Glow,Diamond Grill,Halo,Pearl String,,87.9
+139,,Maroon,Steel,Abyss Glow,Gold Tooth,None,Cuban Chain,,37.05
+140,,Maroon,Deep Sea,Classic,Punk Cigarette,Kelp Wrap,None,Gold Watch,43.86
+141,,Sage,Classic Navy,Classic,None,Halo,None,Emerald Stud,34.16
+142,,Slate,Classic Navy,Classic,None,Sailor Cap,None,,16.01
+143,,Maroon,Steel,Classic,Cigar,Beanie,Silver Chain,,34.24
+144,,Slate,Classic Navy,Gold Monocle,None,Halo,None,Emerald Stud|Coin Spout,77.16
+145,,Slate,Classic Navy,Sleepy,Punk Cigarette,None,None,,22.05
+146,,Slate,Classic Navy,Classic,None,Halo,Silver Chain,,31.48
+147,,Slate,Classic Navy,Sleepy,Cigar,Sailor Cap,Silver Chain,,35.4
+148,,Charcoal,Ocean Blue,Sleepy,Cigar,Kelp Wrap,Pearl String,Diamond Spout,65.3
+149,,Charcoal,Classic Navy,Classic,None,None,None,,11.46
+150,,Gold Dust,Classic Navy,Gold Monocle,None,Captain's Hat,None,Emerald Stud,57.69
+151,,Sage,Ocean Blue,Abyss Glow,Punk Cigarette,Sailor Cap,Silver Chain,,45.2
+152,,Sage,Classic Navy,Classic,Cigar,None,None,,14.42
+153,,Maroon,Classic Navy,Classic,None,Captain's Hat,None,,16.56
+154,,Maroon,Classic Navy,Abyss Glow,Punk Cigarette,None,None,,26.21
+155,,Mauve,Ocean Blue,Classic,Cigar,None,None,Pinky Ring,36.36
+156,,Maroon,Ocean Blue,Classic,None,Kelp Wrap,None,Emerald Stud,33.86
+157,,Slate,Classic Navy,Classic,Punk Cigarette,None,None,,15.53
+158,,Sand,Steel,Laser,Punk Cigarette,None,None,,45.83
+159,,Maroon,Ocean Blue,Gold Monocle,Bubble Pipe,None,None,,34.55
+160,,Slate,Arctic,Shades,Cigar,None,Pearl String,Gold Watch|Diamond Spout,67.7
+161,,Charcoal,Midnight Black,Classic,None,None,None,,37.53
+162,,Slate,Classic Navy,Classic,None,Captain's Hat,Cuban Chain,Emerald Stud|Gold Watch,41.56
+163,,Maroon,Arctic,Abyss Glow,Cigar,Halo,None,,48.38
+164,,Maroon,Steel,Shades,Cigar,None,Cuban Chain,,29.09
+165,,Gold Dust,Classic Navy,Shades,None,Beanie,Cuban Chain,Emerald Stud|Coin Spout,92.5
+166,,Charcoal,Deep Sea,Gold Monocle,Gold Tooth,Sailor Cap,Pearl String,Coin Spout,87.9
+167,,Sage,Deep Sea,Sleepy,None,None,Cuban Chain,,27.22
+168,,Sage,Classic Navy,Classic,Punk Cigarette,None,Silver Chain,Emerald Stud,34.87
+169,,Slate,Ocean Blue,Shades,None,Beanie,None,Pinky Ring,42.88
+170,,Slate,Deep Sea,Shades,Cigar,Kelp Wrap,None,,38.26
+171,,Sage,Classic Navy,Classic,None,None,None,,9.87
+172,,Slate,Midnight Black,Classic,Gold Tooth,None,Cuban Chain,Emerald Stud,58.27
+173,,Slate,Classic Navy,Classic,None,Beanie,None,Pinky Ring|Coin Spout,67.2
+174,,Slate,Deep Sea,Shades,None,Sailor Cap,None,,28.35
+175,,Charcoal,Arctic,Sleepy,Cigar,Captain's Hat,Silver Chain,,48.55
+176,,Sage,Deep Sea,Sleepy,None,Captain's Hat,None,Emerald Stud|Gold Watch,49.91
+177,,Maroon,Classic Navy,Classic,Cigar,None,None,,13.41
+178,,Maroon,Steel,Classic,None,Sailor Cap,None,Emerald Stud|Diamond Spout,46.84
+179,,Slate,Ocean Blue,Classic,None,Captain's Hat,None,Emerald Stud,29.06
+180,,Gold Dust,Gilded,Classic,Gold Tooth,Sailor Cap,Pearl String,,120.07
+181,,Charcoal,Classic Navy,Classic,Gold Tooth,None,None,,19.79
+182,,Maroon,Ocean Blue,Sleepy,None,None,None,Pinky Ring,34.55
+183,,Slate,Classic Navy,Classic,Gold Tooth,Captain's Hat,Silver Chain,,33.22
+184,,Slate,Ocean Blue,Sleepy,Cigar,Sailor Cap,Diamond Chain,Emerald Stud,64.57
+185,,Maroon,Classic Navy,Classic,None,Sailor Cap,Silver Chain,,24.34
+186,,Sage,Arctic,Shades,None,Crown,Silver Chain,Gold Watch,69.72
+187,,Slate,Steel,Classic,Punk Cigarette,None,None,,19.7
+188,,Mauve,Steel,Classic,None,None,Pearl String,,27.93
+189,,Slate,Classic Navy,Classic,Cigar,None,None,Emerald Stud|Gold Watch,33.41
+190,,Slate,Steel,Classic,Cigar,None,Pearl String,,28.69
+191,,Sage,Classic Navy,Abyss Glow,None,None,None,Emerald Stud,30.56
+192,,Mauve,Ocean Blue,Classic,None,Captain's Hat,None,,22.84
+193,,Slate,Deep Sea,Gold Monocle,None,None,Silver Chain,Gold Watch,43.71
+194,,Slate,Steel,Classic,None,Halo,Pearl String,,38.43
+195,,Maroon,Ocean Blue,Classic,Punk Cigarette,None,None,,18.03
+196,,Mauve,Deep Sea,Classic,None,None,None,,18.48
+197,,Mauve,Deep Sea,Gold Monocle,None,None,None,Gold Watch,39.17
+198,,Mauve,Steel,Shades,None,Sailor Cap,None,,30.48
+199,,Mauve,Deep Sea,Classic,Gold Tooth,Captain's Hat,None,,34.51
+200,Old Ironside,Slate,Steel,Classic,None,Captain's Hat,None,,20.72
+201,,Slate,Deep Sea,Classic,None,Captain's Hat,None,,22.39
+202,,Sage,Classic Navy,Classic,Punk Cigarette,Captain's Hat,Cuban Chain,,29.23
+203,,Maroon,Classic Navy,Classic,Gold Tooth,Beanie,Cuban Chain,,30.53
+204,,Sand,Deep Sea,Classic,Punk Cigarette,None,Cuban Chain,,34.32
+205,,Slate,Deep Sea,Gold Monocle,Cigar,Kelp Wrap,None,,42.42
+206,,Mauve,Deep Sea,Classic,Cigar,Kelp Wrap,Cuban Chain,,40.53
+207,,Sage,Steel,Shades,Cigar,None,None,Emerald Stud,35.1
+208,,Mauve,Classic Navy,Classic,Bubble Pipe,None,Silver Chain,,33.48
+209,,Sage,Classic Navy,Sleepy,None,Kelp Wrap,None,Gold Watch,38.89
+210,,Slate,Classic Navy,Shades,Bubble Pipe,None,Silver Chain,,36.21
+211,,Slate,Deep Sea,Shades,None,None,None,,21.21
+212,,Mauve,Deep Sea,Gold Monocle,None,Halo,None,,43.45
+213,,Sand,Ocean Blue,Shades,Cigar,None,None,,30.38
+214,,Sage,Classic Navy,Abyss Glow,Cigar,Halo,Cuban Chain,,44.39
+215,,Sand,Ocean Blue,Classic,None,None,None,Emerald Stud,29.32
+216,,Slate,Classic Navy,Classic,Cigar,Sailor Cap,None,,20.55
+217,,Maroon,Deep Sea,Classic,Cigar,Kelp Wrap,None,,31.74
+218,,Maroon,Arctic,Classic,Cigar,Sailor Cap,Silver Chain,,38.89
+219,,Sage,Classic Navy,Classic,None,Captain's Hat,None,Gold Watch,27.57
+220,,Slate,Steel,Shades,Punk Cigarette,None,Silver Chain,Emerald Stud,44.55
+221,,Charcoal,Classic Navy,Classic,Gold Tooth,None,Diamond Chain,Emerald Stud,54.79
+222,,Sage,Classic Navy,Sleepy,Gold Tooth,Beanie,None,,33.06
+223,,Maroon,Classic Navy,Classic,None,None,Cuban Chain,,13.86
+224,,Gold Dust,Classic Navy,Classic,Cigar,Captain's Hat,None,Gold Watch,51.56
+225,,Charcoal,Gilded,Classic,None,None,None,Gold Watch,85.63
+226,,Slate,Classic Navy,Classic,Bubble Pipe,Beanie,None,Emerald Stud,39.7
+227,,Sage,Steel,Classic,None,Sailor Cap,Cuban Chain,Emerald Stud,36.18
+228,,Sage,Classic Navy,Shades,Cigar,None,Pearl String,,32.05
+229,,Sage,Classic Navy,Sleepy,Punk Cigarette,Captain's Hat,None,,30.75
+230,,Maroon,Steel,Sleepy,None,Kelp Wrap,Pearl String,Gold Watch,53.16
+231,,Mauve,Classic Navy,Classic,None,Crown,Cuban Chain,,42.65
+232,,Sage,Deep Sea,Shades,None,Beanie,None,Diamond Spout,47.22
+233,,Maroon,Ocean Blue,Classic,Cigar,Kelp Wrap,Cuban Chain,,33.41
+234,,Charcoal,Ocean Blue,Classic,None,Captain's Hat,None,,21.65
+235,,Slate,Classic Navy,Abyss Glow,None,None,Diamond Chain,Pinky Ring,61.21
+236,,Mauve,Ocean Blue,Classic,Cigar,Kelp Wrap,None,Gold Watch,42.2
+237,,Mauve,Classic Navy,Classic,Cigar,None,None,Coin Spout,50.53
+238,,Sand,Classic Navy,Shades,Gold Tooth,Beanie,None,,40.0
+239,,Maroon,Midnight Black,Gold Monocle,None,Halo,Cuban Chain,,64.9
+240,,Maroon,Arctic,Classic,Gold Tooth,Captain's Hat,None,,34.89
+241,,Slate,Arctic,Classic,Bubble Pipe,Crown,Diamond Chain,,81.36
+242,,Mauve,Ocean Blue,Classic,None,None,None,Pinky Ring,31.82
+243,,Sage,Classic Navy,Classic,Cigar,None,Silver Chain,,22.75
+244,,Sage,Midnight Black,Classic,Bubble Pipe,Beanie,None,,56.78
+245,,Mauve,Deep Sea,Classic,None,Beanie,None,,26.82
+246,,Maroon,Ocean Blue,Shades,None,Kelp Wrap,Pearl String,,41.49
+247,,Sand,Classic Navy,Gold Monocle,None,Kelp Wrap,Silver Chain,Emerald Stud,58.33
+248,,Maroon,Classic Navy,Classic,Punk Cigarette,Beanie,None,,23.86
+249,,Charcoal,Deep Sea,Gold Monocle,None,None,None,,27.98
+250,,Mauve,Ocean Blue,Classic,Bubble Pipe,Captain's Hat,Cuban Chain,Gold Watch,50.34
+251,,Slate,Classic Navy,Classic,Punk Cigarette,Kelp Wrap,Cuban Chain,,33.03
+252,,Sage,Arctic,Shades,None,Captain's Hat,Pearl String,,45.19
+253,,Sand,Ocean Blue,Sleepy,None,None,None,,25.83
+254,,Sage,Steel,Classic,None,None,Cuban Chain,,19.04
+255,,Maroon,Classic Navy,Gold Monocle,None,Halo,Pearl String,,44.94
+256,,Maroon,Classic Navy,Abyss Glow,Cigar,None,Pearl String,,35.2
+257,,Charcoal,Steel,Abyss Glow,Gold Tooth,Kelp Wrap,Cuban Chain,,52.14
+258,,Maroon,Arctic,Shades,Gold Tooth,None,None,,33.71
+259,,Sage,Ocean Blue,Classic,None,Kelp Wrap,None,,24.87
+260,,Mauve,Classic Navy,Classic,Cigar,None,None,,17.2
+261,,Sage,Arctic,Classic,Cigar,Beanie,Silver Chain,,41.09
+262,,Sage,Classic Navy,Classic,Punk Cigarette,None,Pearl String,,27.65
+263,,Charcoal,Gilded,Classic,Punk Cigarette,Sailor Cap,None,,89.44
+264,,Sand,Ocean Blue,Sleepy,Bubble Pipe,None,None,,38.33
+265,,Maroon,Steel,Laser,Cigar,None,Silver Chain,,44.09
+266,,Slate,Ocean Blue,Abyss Glow,Punk Cigarette,Captain's Hat,Silver Chain,Gold Watch,54.74
+267,,Gold Dust,Classic Navy,Classic,Gold Tooth,None,None,Pinky Ring,54.32
+268,,Mauve,Classic Navy,Classic,Bubble Pipe,Beanie,None,,33.48
+269,,Mauve,Steel,Classic,Punk Cigarette,Crown,Pearl String,,59.6
+270,,Slate,Classic Navy,Classic,Bubble Pipe,Beanie,None,,29.7
+271,,Mauve,Classic Navy,Classic,None,Beanie,None,,20.98
+272,,Slate,Steel,Classic,Cigar,Captain's Hat,None,,25.27
+273,,Charcoal,Deep Sea,Classic,Cigar,Sailor Cap,Cuban Chain,Coin Spout,67.32
+274,,Mauve,Ocean Blue,Laser,Cigar,Sailor Cap,None,Coin Spout,78.35
+275,,Slate,Ocean Blue,Classic,Punk Cigarette,Captain's Hat,None,,25.72
+276,,Maroon,Ocean Blue,Sleepy,Cigar,None,None,,22.42
+277,,Maroon,Classic Navy,Shades,Bubble Pipe,None,Silver Chain,,36.21
+278,,Slate,Steel,Laser,Punk Cigarette,Kelp Wrap,None,Gold Watch,60.38
+279,,Sage,Ocean Blue,Laser,Cigar,Halo,None,,49.39
+280,,Maroon,Ocean Blue,Classic,None,Sailor Cap,None,,18.51
+281,,Maroon,Deep Sea,Classic,Cigar,None,Silver Chain,,27.58
+282,,Sage,Classic Navy,Gold Monocle,None,Kelp Wrap,Cuban Chain,,38.06
+283,,Maroon,Classic Navy,Classic,None,None,None,,8.86
+284,,Slate,Classic Navy,Classic,None,Captain's Hat,None,,16.56
+285,,Maroon,Classic Navy,Abyss Glow,Cigar,None,None,Gold Watch,34.09
+286,,Slate,Steel,Classic,None,None,None,Pinky Ring,29.7
+287,,Charcoal,Steel,Abyss Glow,Gold Tooth,Halo,None,,48.93
+288,,Sage,Ocean Blue,Classic,Gold Tooth,Kelp Wrap,Silver Chain,,41.54
+289,,Mauve,Deep Sea,Classic,Cigar,Halo,None,,37.32
+290,,Maroon,Ocean Blue,Shades,Cigar,None,Cuban Chain,Emerald Stud,37.42
+291,,Charcoal,Classic Navy,Sleepy,Gold Tooth,Halo,None,,40.6
+292,,Sand,Steel,Classic,None,None,Pearl String,,32.1
+293,,Slate,Ocean Blue,Shades,None,Captain's Hat,None,Gold Watch,35.57
+294,,Maroon,Classic Navy,Sleepy,None,Beanie,Cuban Chain,,28.71
+295,,Sage,Classic Navy,Classic,None,Beanie,None,,18.21
+296,,Sand,Steel,Classic,None,None,None,,20.98
+297,,Maroon,Classic Navy,Classic,Bubble Pipe,Halo,Silver Chain,,43.98
+298,,Slate,Arctic,Classic,Cigar,Beanie,Silver Chain,Diamond Spout,56.74
+299,,Sage,Classic Navy,Classic,None,None,Pearl String,,20.98
+300,The Ghost,Arctic Haze,Arctic,Classic,None,None,None,,14.32
+301,,Mauve,Classic Navy,Classic,None,Crown,Pearl String,,48.76
+302,,Slate,Ocean Blue,Classic,Cigar,None,Cuban Chain,,20.91
+303,,Charcoal,Steel,Shades,Cigar,None,None,Diamond Spout,43.35
+304,,Charcoal,Classic Navy,Classic,Cigar,None,None,,16.01
+305,,Sage,Classic Navy,Gold Monocle,None,Sailor Cap,None,Gold Watch,37.7
+306,,Charcoal,Classic Navy,Classic,Cigar,Halo,None,Pinky Ring|Coin Spout,80.29
+307,,Sage,Ocean Blue,Classic,Punk Cigarette,None,None,,19.04
+308,,Slate,Classic Navy,Classic,Gold Tooth,Crown,Pearl String,,53.31
+309,,Mauve,Midnight Black,Classic,Gold Tooth,None,Cuban Chain,,52.06
+310,,Sage,Steel,Gold Monocle,Diamond Grill,Beanie,None,,66.39
+311,,Maroon,Ocean Blue,Classic,None,Sailor Cap,None,Diamond Spout,35.17
+312,,Maroon,Arctic,Classic,Gold Tooth,Sailor Cap,None,,34.34
+313,,Charcoal,Arctic,Classic,None,None,None,Emerald Stud|Pinky Ring,48.13
+314,,Slate,Ocean Blue,Classic,Bubble Pipe,None,None,,23.86
+315,,Sage,Ocean Blue,Shades,Punk Cigarette,None,None,,25.56
+316,,Sand,Deep Sea,Classic,None,None,None,,22.65
+317,,Mauve,Classic Navy,Abyss Glow,None,None,None,Diamond Spout,40.0
+318,,Sage,Steel,Classic,Punk Cigarette,Beanie,None,,29.04
+319,,Sage,Steel,Laser,Cigar,None,None,,36.77
+320,,Sage,Steel,Classic,Cigar,Sailor Cap,None,Emerald Stud,35.73
+321,,Slate,Arctic,Classic,Cigar,Kelp Wrap,Cuban Chain,Emerald Stud,50.91
+322,,Charcoal,Steel,Classic,Cigar,None,None,,20.17
+323,,Mauve,Steel,Shades,None,Captain's Hat,Diamond Chain,,56.03
+324,,Maroon,Classic Navy,Laser,None,Captain's Hat,None,,34.74
+325,,Maroon,Classic Navy,Abyss Glow,Gold Tooth,None,Cuban Chain,Emerald Stud|Gold Watch,52.88
+326,,Maroon,Ocean Blue,Abyss Glow,None,None,None,,22.05
+327,,Slate,Ocean Blue,Classic,Punk Cigarette,Kelp Wrap,None,,30.53
+328,,Slate,Classic Navy,Classic,None,None,Cuban Chain,,13.86
+329,,Sage,Classic Navy,Classic,Bubble Pipe,Beanie,None,Emerald Stud,40.71
+330,,Slate,Classic Navy,Classic,None,Crown,None,,33.86
+331,,Charcoal,Classic Navy,Classic,Gold Tooth,Halo,None,Emerald Stud,44.08
+332,,Charcoal,Steel,Shades,None,None,Diamond Chain,,47.14
+333,,Charcoal,Classic Navy,Gold Monocle,Diamond Grill,Crown,Cuban Chain,,85.48
+334,,Mauve,Deep Sea,Shades,None,Sailor Cap,None,,32.14
+335,,Sand,Classic Navy,Classic,Bubble Pipe,Captain's Hat,None,,37.01
+336,,Sage,Classic Navy,Classic,Bubble Pipe,Beanie,Cuban Chain,,35.71
+337,,Sage,Classic Navy,Gold Monocle,Gold Tooth,Sailor Cap,Cuban Chain,Gold Watch,51.03
+338,,Slate,Ocean Blue,Classic,None,None,Cuban Chain,Pinky Ring,33.03
+339,,Charcoal,Classic Navy,Gold Monocle,Cigar,Captain's Hat,None,,34.38
+340,,Maroon,Classic Navy,Classic,None,Halo,Pearl String,,34.26
+341,,Charcoal,Gilded,Laser,None,Sailor Cap,Silver Chain,,109.29
+342,,Maroon,Ocean Blue,Sleepy,None,Beanie,None,,26.21
+343,,Slate,Ocean Blue,Classic,Gold Tooth,None,Pearl String,,30.81
+344,,Maroon,Midnight Black,Sleepy,None,None,Pearl String,Diamond Spout,69.23
+345,,Charcoal,Steel,Classic,Diamond Grill,Beanie,Cuban Chain,,62.29
+346,,Maroon,Arctic,Abyss Glow,Cigar,Captain's Hat,None,Pinky Ring,58.45
+347,,Sand,Classic Navy,Laser,Cigar,Halo,Cuban Chain,,58.83
+348,,Gold Dust,Classic Navy,Classic,None,None,Cuban Chain,,34.32
+349,,Charcoal,Gilded,Classic,Bubble Pipe,None,Pearl String,Gold Watch|Pinky Ring,125.91
+350,,Sage,Classic Navy,Sleepy,None,Sailor Cap,Pearl String,,34.64
+351,,Mauve,Classic Navy,Classic,None,None,Silver Chain,,20.98
+352,,Maroon,Midnight Black,Classic,None,None,Pearl String,,46.05
+353,,Mauve,Ocean Blue,Classic,None,None,None,,15.15
+354,,Maroon,Steel,Classic,Cigar,None,None,Gold Watch,27.58
+355,,Maroon,Ocean Blue,Abyss Glow,None,None,Diamond Chain,,47.05
+356,,Slate,Classic Navy,Sleepy,None,Crown,Silver Chain,,48.71
+357,,Slate,Classic Navy,Classic,Gold Tooth,None,Cuban Chain,,22.2
+358,,Slate,Classic Navy,Classic,Gold Tooth,None,None,Coin Spout,50.53
+359,,Mauve,Classic Navy,Shades,None,None,Silver Chain,Pinky Ring,44.17
+360,,Charcoal,Classic Navy,Classic,Gold Tooth,None,Silver Chain,Diamond Spout,44.79
+361,,Charcoal,Classic Navy,Classic,None,Captain's Hat,None,Gold Watch,29.15
+362,,Charcoal,Classic Navy,Shades,Bubble Pipe,None,None,Diamond Spout,47.14
+363,,Charcoal,Steel,Classic,Bubble Pipe,Halo,None,,42.41
+364,,Sand,Classic Navy,Sleepy,None,None,Cuban Chain,,28.33
+365,,Mauve,Ocean Blue,Gold Monocle,None,Beanie,Cuban Chain,,39.17
+366,,Sand,Classic Navy,Classic,Punk Cigarette,Halo,Cuban Chain,,42.77
+367,,Gold Dust,Ocean Blue,Gold Monocle,Cigar,Beanie,Pearl String,,66.49
+368,,Slate,Classic Navy,Shades,None,None,None,Coin Spout,48.71
+369,,Maroon,Classic Navy,Classic,Cigar,Sailor Cap,Cuban Chain,,25.55
+370,,Slate,Classic Navy,Classic,Diamond Grill,Captain's Hat,None,,49.89
+371,,Mauve,Arctic,Classic,Cigar,Captain's Hat,None,,34.89
+372,,Maroon,Classic Navy,Shades,None,Kelp Wrap,None,,27.88
+373,,Maroon,Classic Navy,Shades,Cigar,Sailor Cap,None,,27.07
+374,,Maroon,Classic Navy,Classic,Cigar,Sailor Cap,Cuban Chain,Gold Watch,35.55
+375,,Slate,Ocean Blue,Classic,Bubble Pipe,Captain's Hat,None,Emerald Stud,41.56
+376,,Slate,Classic Navy,Shades,Cigar,Captain's Hat,None,Pinky Ring,44.28
+377,,Sage,Classic Navy,Sleepy,Cigar,Halo,None,Emerald Stud,45.22
+378,,Sage,Classic Navy,Classic,Cigar,None,None,Pinky Ring,31.09
+379,,Maroon,Steel,Classic,Cigar,None,Cuban Chain,,22.58
+380,,Sage,Ocean Blue,Classic,Bubble Pipe,None,None,,24.87
+381,,Sage,Ocean Blue,Shades,Cigar,Sailor Cap,None,Pinky Ring,47.24
+382,,Mauve,Classic Navy,Shades,None,Sailor Cap,Pearl String,,37.42
+383,,Slate,Midnight Black,Classic,Bubble Pipe,None,Cuban Chain,,52.44
+384,,Mauve,Arctic,Shades,None,Sailor Cap,Diamond Chain,,61.31
+385,,Mauve,Classic Navy,Laser,None,Beanie,None,,39.17
+386,,Maroon,Classic Navy,Classic,Gold Tooth,Captain's Hat,None,,24.89
+387,,Mauve,Classic Navy,Classic,None,None,Silver Chain,Pinky Ring,37.65
+388,,Maroon,Deep Sea,Classic,Gold Tooth,Kelp Wrap,Cuban Chain,Emerald Stud|Gold Watch,60.53
+389,,Mauve,Ocean Blue,Sleepy,Cigar,Sailor Cap,None,,33.35
+390,,Sage,Steel,Sleepy,Diamond Grill,None,None,,53.89
+391,,Sand,Classic Navy,Classic,None,Kelp Wrap,Pearl String,Diamond Spout,57.1
+392,,Charcoal,Ocean Blue,Classic,None,Beanie,Pearl String,,33.41
+393,,Charcoal,Classic Navy,Laser,Cigar,None,Pearl String,Emerald Stud|Gold Watch,65.3
+394,,Charcoal,Ocean Blue,Sleepy,Cigar,None,None,Pinky Ring,41.69
+395,,Sage,Deep Sea,Classic,Punk Cigarette,None,Silver Chain,,30.71
+396,,Slate,Ocean Blue,Shades,Gold Tooth,Captain's Hat,Pearl String,,45.02
+397,,Slate,Classic Navy,Gold Monocle,None,Sailor Cap,None,,26.69
+398,,Sage,Steel,Sleepy,Punk Cigarette,None,Cuban Chain,,32.22
+399,,Slate,Classic Navy,Classic,None,Sailor Cap,Cuban Chain,,21.01
+400,Deep King,Charcoal,Midnight Black,Abyss Glow,None,Crown,None,,73.21
+401,,Slate,Classic Navy,Classic,Cigar,Kelp Wrap,Silver Chain,,34.24
+402,,Sage,Classic Navy,Classic,None,None,Cuban Chain,,14.87
+403,,Sand,Arctic,Classic,Cigar,Sailor Cap,None,,38.51
+404,,Maroon,Arctic,Classic,None,Sailor Cap,Diamond Chain,,51.01
+405,,Slate,Ocean Blue,Shades,None,None,Cuban Chain,,22.88
+406,,Maroon,Classic Navy,Abyss Glow,Cigar,None,None,,24.09
+407,,Maroon,Classic Navy,Classic,None,Beanie,Pearl String,,28.31
+408,,Slate,Classic Navy,Classic,Cigar,None,None,,13.41
+409,,Maroon,Ocean Blue,Shades,Cigar,None,None,,22.42
+410,,Slate,Ocean Blue,Gold Monocle,None,Sailor Cap,None,,29.19
+411,,Slate,Classic Navy,Classic,Cigar,Sailor Cap,None,Gold Watch,30.55
+412,,Slate,Steel,Sleepy,None,None,None,Gold Watch,29.55
+413,,Gold Dust,Classic Navy,Classic,Cigar,Sailor Cap,None,,41.01
+414,,Slate,Ocean Blue,Classic,Cigar,Halo,None,,30.19
+415,,Sage,Ocean Blue,Shades,None,Kelp Wrap,None,,31.39
+416,,Slate,Steel,Classic,Cigar,Sailor Cap,Silver Chain,Emerald Stud,43.05
+417,,Slate,Deep Sea,Classic,None,Beanie,None,,23.03
+418,,Gold Dust,Classic Navy,Classic,Bubble Pipe,Captain's Hat,Diamond Chain,,74.51
+419,,Charcoal,Deep Sea,Classic,Punk Cigarette,None,None,Diamond Spout,40.63
+420,,Maroon,Arctic,Classic,Cigar,None,Cuban Chain,,28.41
+421,,Sage,Classic Navy,Classic,None,Captain's Hat,None,,17.57
+422,,Sage,Classic Navy,Classic,Cigar,Sailor Cap,None,,21.56
+423,,Slate,Deep Sea,Shades,Cigar,None,Cuban Chain,,30.76
+424,,Sage,Classic Navy,Classic,Punk Cigarette,None,None,,16.54
+425,,Mauve,Classic Navy,Laser,None,None,None,,30.83
+426,,Slate,Classic Navy,Shades,None,Captain's Hat,None,,23.07
+427,,Maroon,Ocean Blue,Classic,Punk Cigarette,None,Diamond Chain,,43.03
+428,,Slate,Classic Navy,Laser,None,None,Cuban Chain,,32.05
+429,,Slate,Classic Navy,Classic,Punk Cigarette,Captain's Hat,Silver Chain,Diamond Spout,48.22
+430,,Sage,Midnight Black,Shades,None,None,None,,42.46
+431,,Charcoal,Classic Navy,Classic,None,Captain's Hat,None,,19.15
+432,,Maroon,Classic Navy,Classic,Punk Cigarette,None,None,,15.53
+433,,Sand,Arctic,Abyss Glow,Cigar,Halo,Diamond Chain,Diamond Spout,98.0
+434,,Sage,Arctic,Classic,Punk Cigarette,None,Silver Chain,,34.87
+435,,Slate,Ocean Blue,Classic,None,None,Diamond Chain,Emerald Stud,46.36
+436,,Slate,Classic Navy,Classic,Cigar,None,Pearl String,,24.52
+437,,Maroon,Classic Navy,Abyss Glow,Gold Tooth,Captain's Hat,Silver Chain,Gold Watch,53.9
+438,,Slate,Steel,Classic,Punk Cigarette,None,Cuban Chain,,24.7
+439,,Charcoal,Classic Navy,Classic,Cigar,Kelp Wrap,Cuban Chain,,33.51
+440,,Sage,Ocean Blue,Sleepy,None,None,None,,18.89
+441,,Mauve,Ocean Blue,Classic,None,None,Silver Chain,,23.48
+442,,Mauve,Classic Navy,Sleepy,None,Crown,None,,44.17
+443,,Maroon,Deep Sea,Classic,None,Captain's Hat,None,,22.39
+444,,Maroon,Ocean Blue,Classic,None,Beanie,None,,19.7
+445,,Slate,Ocean Blue,Classic,Cigar,None,None,,15.91
+446,,Sand,Steel,Classic,Bubble Pipe,Halo,None,,47.77
+447,,Sand,Arctic,Classic,None,Sailor Cap,Cuban Chain,,38.96
+448,,Maroon,Classic Navy,Laser,Punk Cigarette,None,None,,33.71
+449,,Sage,Steel,Classic,Punk Cigarette,Beanie,None,Gold Watch,39.04
+450,,Slate,Arctic,Laser,None,Captain's Hat,Cuban Chain,,49.74
+451,,Sand,Steel,Gold Monocle,None,None,None,,31.67
+452,,Mauve,Steel,Classic,None,Sailor Cap,Cuban Chain,,28.96
+453,,Mauve,Deep Sea,Shades,Cigar,Halo,Pearl String,Emerald Stud,64.94
+454,,Slate,Ocean Blue,Classic,Punk Cigarette,None,Cuban Chain,Diamond Spout,39.7
+455,,Slate,Classic Navy,Gold Monocle,Cigar,None,Cuban Chain,,29.09
+456,,Sage,Steel,Shades,Gold Tooth,None,Silver Chain,,37.22
+457,,Sand,Deep Sea,Abyss Glow,Gold Tooth,Sailor Cap,Cuban Chain,,53.81
+458,,Charcoal,Gilded,Sleepy,Cigar,Crown,Silver Chain,,120.02
+459,,Maroon,Classic Navy,Classic,None,Sailor Cap,Cuban Chain,,21.01
+460,,Sage,Ocean Blue,Shades,Cigar,Captain's Hat,None,,31.13
+461,,Mauve,Classic Navy,Classic,None,None,Cuban Chain,,17.65
+462,,Gold Dust,Classic Navy,Abyss Glow,Punk Cigarette,None,None,Emerald Stud|Diamond Spout,73.33
+463,,Charcoal,Midnight Black,Abyss Glow,Cigar,Sailor Cap,None,,59.9
+464,,Mauve,Classic Navy,Shades,None,Halo,Diamond Chain,,58.45
+465,,Charcoal,Classic Navy,Classic,Gold Tooth,Sailor Cap,None,,26.94
+466,,Sand,Classic Navy,Sleepy,None,None,Cuban Chain,Emerald Stud,38.33
+467,,Sage,Ocean Blue,Shades,None,None,None,,18.89
+468,,Charcoal,Classic Navy,Classic,None,Sailor Cap,None,,18.6
+469,,Maroon,Classic Navy,Abyss Glow,None,None,None,,19.55
+470,,Sage,Midnight Black,Classic,Punk Cigarette,None,None,,42.61
+471,,Slate,Deep Sea,Classic,Cigar,Captain's Hat,None,Emerald Stud,36.93
+472,,Charcoal,Steel,Classic,Punk Cigarette,Beanie,Cuban Chain,,35.63
+473,,Sage,Arctic,Abyss Glow,None,None,None,,30.56
+474,,Slate,Classic Navy,Shades,None,None,None,,15.38
+475,,Slate,Arctic,Laser,None,Crown,None,,62.05
+476,,Slate,Classic Navy,Classic,None,Halo,Pearl String,,34.26
+477,,Maroon,Ocean Blue,Classic,None,Halo,None,Coin Spout,58.98
+478,,Slate,Steel,Shades,Cigar,None,None,,24.09
+479,,Sand,Classic Navy,Gold Monocle,None,Captain's Hat,Cuban Chain,,40.19
+480,,Charcoal,Ocean Blue,Classic,Punk Cigarette,Captain's Hat,None,,28.32
+481,,Sand,Arctic,Classic,Bubble Pipe,Beanie,None,Gold Watch,57.65
+482,,Mauve,Midnight Black,Classic,Cigar,None,None,,43.27
+483,,Charcoal,Arctic,Classic,None,None,None,Gold Watch,31.46
+484,,Slate,Classic Navy,Classic,Bubble Pipe,None,None,Pinky Ring,38.03
+485,,Slate,Arctic,Shades,None,Beanie,None,Diamond Spout,50.38
+486,,Maroon,Classic Navy,Classic,Punk Cigarette,Beanie,Diamond Chain,,48.86
+487,,Slate,Ocean Blue,Classic,Gold Tooth,None,None,Coin Spout,53.03
+488,,Sage,Classic Navy,Classic,Gold Tooth,Beanie,Cuban Chain,Gold Watch,41.54
+489,,Gold Dust,Steel,Classic,None,Beanie,None,,41.82
+490,,Maroon,Ocean Blue,Sleepy,Bubble Pipe,Sailor Cap,Pearl String,,48.63
+491,,Slate,Ocean Blue,Sleepy,Punk Cigarette,None,None,Gold Watch,34.55
+492,,Slate,Deep Sea,Classic,None,Crown,Cuban Chain,Diamond Spout,61.36
+493,,Sand,Arctic,Abyss Glow,Punk Cigarette,None,None,Coin Spout,77.5
+494,,Sage,Classic Navy,Gold Monocle,Cigar,Sailor Cap,None,Emerald Stud,42.24
+495,,Charcoal,Ocean Blue,Classic,None,Crown,None,,38.96
+496,,Mauve,Classic Navy,Classic,Cigar,None,Cuban Chain,,22.2
+497,,Maroon,Classic Navy,Abyss Glow,Gold Tooth,None,None,,27.88
+498,,Slate,Deep Sea,Classic,None,None,Cuban Chain,Emerald Stud,29.7
+499,,Charcoal,Deep Sea,Classic,None,None,None,,17.29
+500,The Siren,Charcoal,Deep Sea,Abyss Glow,None,None,None,,27.98
+501,,Sand,Classic Navy,Sleepy,None,Sailor Cap,None,,30.48
+502,,Slate,Deep Sea,Classic,None,Sailor Cap,None,,21.84
+503,,Maroon,Classic Navy,Sleepy,Punk Cigarette,Captain's Hat,Cuban Chain,,34.74
+504,,Maroon,Classic Navy,Sleepy,Bubble Pipe,Halo,Cuban Chain,,47.16
+505,,Slate,Midnight Black,Abyss Glow,None,Sailor Cap,None,Gold Watch,62.76
+506,,Maroon,Steel,Abyss Glow,None,Captain's Hat,Silver Chain,Pinky Ring,56.4
+507,,Charcoal,Gilded,Sleepy,Punk Cigarette,Captain's Hat,Pearl String,Emerald Stud,117.61
+508,,Sage,Deep Sea,Shades,Cigar,Sailor Cap,Cuban Chain,Emerald Stud,48.91
+509,,Maroon,Arctic,Sleepy,None,None,Cuban Chain,,30.38
+510,,Maroon,Deep Sea,Classic,Gold Tooth,Kelp Wrap,None,,35.53
+511,,Slate,Classic Navy,Classic,Bubble Pipe,None,None,Emerald Stud,31.36
+512,,Sand,Classic Navy,Shades,Cigar,None,None,Coin Spout,61.21
+513,,Charcoal,Deep Sea,Classic,None,Kelp Wrap,None,,29.79
+514,,Mauve,Classic Navy,Shades,Gold Tooth,Beanie,None,,35.83
+515,,Sage,Steel,Classic,Cigar,Beanie,Diamond Chain,Gold Watch,61.92
+516,,Mauve,Classic Navy,Classic,None,Kelp Wrap,None,,25.15
+517,,Sand,Classic Navy,Shades,None,None,Cuban Chain,,28.33
+518,,Sage,Classic Navy,Classic,None,None,None,Emerald Stud,19.87
+519,,Maroon,Steel,Classic,None,Captain's Hat,Cuban Chain,,25.72
+520,,Maroon,Ocean Blue,Classic,Gold Tooth,Beanie,Silver Chain,,36.36
+521,,Charcoal,Deep Sea,Shades,Punk Cigarette,Beanie,None,,38.81
+522,,Maroon,Midnight Black,Classic,None,None,None,Gold Watch,44.94
+523,,Maroon,Deep Sea,Classic,Diamond Grill,None,Pearl String,,59.14
+524,,Sand,Classic Navy,Classic,Cigar,None,Cuban Chain,,26.36
+525,,Maroon,Ocean Blue,Classic,Gold Tooth,Captain's Hat,None,,27.39
+526,,Maroon,Deep Sea,Classic,Punk Cigarette,Captain's Hat,None,,29.06
+527,,Slate,Deep Sea,Sleepy,None,Beanie,Silver Chain,Gold Watch,47.88
+528,,Sage,Arctic,Shades,Gold Tooth,None,Silver Chain,Emerald Stud,53.06
+529,,Maroon,Arctic,Classic,Gold Tooth,Beanie,Silver Chain,,43.86
+530,,Slate,Steel,Abyss Glow,Punk Cigarette,Beanie,Pearl String,,49.82
+531,,Mauve,Classic Navy,Shades,None,None,Pearl String,,30.28
+532,,Sage,Deep Sea,Classic,None,None,None,Pinky Ring,32.37
+533,,Slate,Ocean Blue,Classic,Bubble Pipe,Captain's Hat,None,,31.56
+534,,Charcoal,Deep Sea,Classic,None,Halo,None,,31.58
+535,,Mauve,Ocean Blue,Classic,None,Sailor Cap,Silver Chain,,30.63
+536,,Maroon,Ocean Blue,Classic,Cigar,Crown,None,,40.91
+537,,Maroon,Classic Navy,Laser,None,Sailor Cap,None,Emerald Stud,44.19
+538,,Mauve,Classic Navy,Sleepy,Cigar,Beanie,Cuban Chain,Pinky Ring,53.71
+539,,Sand,Arctic,Laser,None,Beanie,Cuban Chain,,58.33
+540,,Maroon,Classic Navy,Classic,Cigar,Captain's Hat,Cuban Chain,,26.1
+541,,Sage,Steel,Classic,Punk Cigarette,Crown,Cuban Chain,Gold Watch,60.71
+542,,Sand,Classic Navy,Gold Monocle,None,Captain's Hat,None,,35.19
+543,,Charcoal,Classic Navy,Classic,Punk Cigarette,None,None,Gold Watch,28.13
+544,,Sand,Classic Navy,Classic,None,Kelp Wrap,Cuban Chain,Diamond Spout,50.98
+545,,Sand,Steel,Classic,Cigar,Kelp Wrap,Silver Chain,Gold Watch,56.36
+546,,Gold Dust,Deep Sea,Classic,Punk Cigarette,Sailor Cap,None,,48.96
+547,,Maroon,Ocean Blue,Laser,None,Halo,Cuban Chain,,48.83
+548,,Slate,Ocean Blue,Laser,Punk Cigarette,Captain's Hat,Pearl String,Emerald Stud,65.02
+549,,Maroon,Steel,Sleepy,Gold Tooth,Beanie,None,,36.21
+550,,Maroon,Arctic,Classic,None,None,None,,18.86
+551,,Slate,Ocean Blue,Sleepy,None,None,None,,17.88
+552,,Slate,Classic Navy,Classic,Cigar,Beanie,None,,21.74
+553,,Slate,Classic Navy,Classic,Cigar,None,Cuban Chain,,18.41
+554,,Sage,Deep Sea,Classic,Diamond Grill,Sailor Cap,None,,56.18
+555,,Mauve,Deep Sea,Classic,Cigar,Beanie,Silver Chain,,39.7
+556,,Slate,Ocean Blue,Shades,Cigar,Captain's Hat,None,Gold Watch,40.12
+557,,Sand,Classic Navy,Sleepy,Cigar,Sailor Cap,None,Gold Watch,45.02
+558,,Gold Dust,Steel,Classic,None,Captain's Hat,Cuban Chain,,46.18
+559,,Sage,Ocean Blue,Classic,Gold Tooth,None,None,,20.71
+560,,Maroon,Deep Sea,Sleepy,None,Kelp Wrap,None,,33.71
+561,,Gold Dust,Arctic,Laser,None,None,Silver Chain,,65.83
+562,,Charcoal,Ocean Blue,Classic,Gold Tooth,None,None,,22.29
+563,,Maroon,Ocean Blue,Sleepy,Cigar,Halo,Silver Chain,,45.04
+564,,Maroon,Classic Navy,Classic,None,None,None,Emerald Stud,18.86
+565,,Slate,Ocean Blue,Classic,None,None,None,,11.36
+566,,Slate,Steel,Classic,None,None,Pearl String,,24.14
+567,,Sage,Classic Navy,Sleepy,Gold Tooth,None,None,,24.72
+568,,Slate,Classic Navy,Classic,None,Kelp Wrap,Pearl String,Pinky Ring|Diamond Spout,65.81
+569,,Mauve,Arctic,Classic,Punk Cigarette,Crown,None,,54.32
+570,,Mauve,Arctic,Classic,None,Beanie,None,,30.98
+571,,Charcoal,Steel,Sleepy,Gold Tooth,Kelp Wrap,None,,42.98
+572,,Sand,Classic Navy,Classic,Cigar,None,None,Gold Watch,31.36
+573,,Sage,Deep Sea,Gold Monocle,Gold Tooth,None,Cuban Chain,Pinky Ring|Diamond Spout,73.06
+574,,Slate,Steel,Classic,None,Sailor Cap,None,Pinky Ring,36.84
+575,,Slate,Steel,Classic,Cigar,Beanie,None,,25.91
+576,,Maroon,Steel,Classic,Punk Cigarette,Kelp Wrap,None,,32.2
+577,,Mauve,Steel,Classic,Bubble Pipe,None,None,Diamond Spout,45.98
+578,,Gold Dust,Steel,Shades,None,Sailor Cap,None,Emerald Stud,57.14
+579,,Mauve,Steel,Abyss Glow,Bubble Pipe,Kelp Wrap,None,Gold Watch,62.5
+580,,Mauve,Ocean Blue,Classic,Punk Cigarette,None,None,,21.82
+581,,Mauve,Classic Navy,Classic,None,Beanie,None,Gold Watch,30.98
+582,,Slate,Ocean Blue,Gold Monocle,None,Captain's Hat,None,,29.74
+583,,Gold Dust,Arctic,Classic,Gold Tooth,Sailor Cap,Cuban Chain,Emerald Stud|Diamond Spout,86.46
+584,,Maroon,Midnight Black,Laser,Bubble Pipe,None,Cuban Chain,,70.62
+585,,Slate,Steel,Shades,Gold Tooth,Sailor Cap,None,,35.02
+586,,Charcoal,Steel,Laser,None,None,None,Gold Watch,43.81
+587,,Sage,Ocean Blue,Classic,None,None,None,,12.37
+588,,Mauve,Steel,Classic,None,None,None,,16.82
+589,,Slate,Arctic,Classic,None,Sailor Cap,Pearl String,Emerald Stud,47.12
+590,,Sage,Classic Navy,Classic,Diamond Grill,None,Cuban Chain,,48.21
+591,,Mauve,Classic Navy,Classic,None,None,Pearl String,Gold Watch,33.76
+592,,Sand,Deep Sea,Sleepy,Gold Tooth,None,None,Emerald Stud|Coin Spout,80.83
+593,,Slate,Ocean Blue,Classic,None,None,Cuban Chain,,16.36
+594,,Sage,Classic Navy,Classic,None,None,Cuban Chain,Emerald Stud,24.87
+595,,Slate,Steel,Sleepy,Punk Cigarette,None,None,Emerald Stud,36.21
+596,,Sand,Arctic,Classic,None,Captain's Hat,Cuban Chain,,39.51
+597,,Charcoal,Classic Navy,Classic,None,Beanie,None,Gold Watch,29.79
+598,,Sage,Ocean Blue,Classic,None,Captain's Hat,None,Pinky Ring,36.73
+599,,Maroon,Arctic,Abyss Glow,None,None,Cuban Chain,,34.55
+600,Goldback,Gold Dust,Gilded,Classic,Diamond Grill,None,Diamond Chain,,151.82
+601,,Charcoal,Classic Navy,Laser,Gold Tooth,Crown,Cuban Chain,,67.98
+602,,Slate,Steel,Sleepy,None,None,None,,19.55
+603,,Maroon,Ocean Blue,Classic,Cigar,Kelp Wrap,None,,28.41
+604,,Charcoal,Steel,Classic,Punk Cigarette,None,None,Diamond Spout,38.96
+605,,Maroon,Classic Navy,Abyss Glow,Gold Tooth,None,Pearl String,,38.99
+606,,Slate,Deep Sea,Abyss Glow,None,Kelp Wrap,None,,37.88
+607,,Sage,Classic Navy,Classic,None,Sailor Cap,None,,17.02
+608,,Maroon,Classic Navy,Abyss Glow,Punk Cigarette,Captain's Hat,None,,33.9
+609,,Slate,Ocean Blue,Classic,None,Sailor Cap,None,Coin Spout,51.84
+610,,Sage,Classic Navy,Classic,Punk Cigarette,None,Pearl String,Emerald Stud,37.65
+611,,Mauve,Classic Navy,Sleepy,Diamond Grill,None,Silver Chain,,60.83
+612,,Mauve,Classic Navy,Classic,Cigar,Halo,Cuban Chain,,36.48
+613,,Maroon,Ocean Blue,Sleepy,None,Captain's Hat,None,Diamond Spout,42.24
+614,,Sage,Classic Navy,Classic,Punk Cigarette,None,Cuban Chain,,21.54
+615,,Charcoal,Arctic,Classic,None,None,Silver Chain,Gold Watch,39.79
+616,,Sage,Classic Navy,Laser,None,Crown,Cuban Chain,,58.06
+617,,Maroon,Deep Sea,Classic,None,Captain's Hat,None,Pinky Ring,39.06
+618,,Slate,Classic Navy,Classic,None,Halo,Cuban Chain,,28.15
+619,,Sage,Arctic,Abyss Glow,Cigar,None,Pearl String,,46.21
+620,,Charcoal,Steel,Gold Monocle,Punk Cigarette,Beanie,None,,41.31
+621,,Charcoal,Classic Navy,Sleepy,None,None,Cuban Chain,,22.98
+622,,Maroon,Steel,Classic,Punk Cigarette,Beanie,None,Gold Watch,38.03
+623,,Charcoal,Steel,Abyss Glow,Cigar,Halo,Cuban Chain,,50.14
+624,,Slate,Ocean Blue,Shades,Punk Cigarette,Halo,Cuban Chain,Pinky Ring,60.5
+625,,Maroon,Ocean Blue,Classic,Bubble Pipe,None,Silver Chain,,32.2
+626,,Mauve,Ocean Blue,Shades,None,Beanie,Diamond Chain,,55.0
+627,,Sand,Ocean Blue,Classic,None,Sailor Cap,None,,26.46
+628,,Charcoal,Gilded,Classic,Cigar,Beanie,None,,88.51
+629,,Slate,Classic Navy,Shades,Bubble Pipe,None,None,,27.88
+630,,Sage,Ocean Blue,Classic,Cigar,None,Silver Chain,,25.25
+631,,Slate,Deep Sea,Classic,Gold Tooth,Captain's Hat,None,,30.72
+632,,Slate,Classic Navy,Classic,Punk Cigarette,None,Pearl String,,26.64
+633,,Maroon,Ocean Blue,Laser,Cigar,None,Silver Chain,,42.42
+634,,Slate,Ocean Blue,Shades,None,Sailor Cap,None,,25.02
+635,,Gold Dust,Classic Navy,Classic,Cigar,None,Pearl String,Emerald Stud|Pinky Ring,71.64
+636,,Maroon,Ocean Blue,Classic,None,None,None,Pinky Ring,28.03
+637,,Charcoal,Deep Sea,Gold Monocle,Punk Cigarette,None,Silver Chain,Emerald Stud,52.98
+638,,Maroon,Steel,Classic,Cigar,None,None,,17.58
+639,,Charcoal,Deep Sea,Sleepy,Gold Tooth,None,None,,32.14
+640,,Sage,Classic Navy,Classic,None,Beanie,Cuban Chain,,23.21
+641,,Sage,Classic Navy,Classic,Cigar,Captain's Hat,Cuban Chain,,27.11
+642,,Maroon,Classic Navy,Classic,Punk Cigarette,Halo,None,,29.82
+643,,Sage,Classic Navy,Classic,Bubble Pipe,None,None,,22.37
+644,,Maroon,Steel,Gold Monocle,None,None,None,,23.71
+645,,Charcoal,Classic Navy,Classic,None,Halo,None,,25.75
+646,,Charcoal,Classic Navy,Classic,Cigar,Captain's Hat,Cuban Chain,,28.7
+647,,Maroon,Classic Navy,Classic,Cigar,None,None,Diamond Spout,30.08
+648,,Slate,Deep Sea,Classic,Cigar,Beanie,Cuban Chain,,32.58
+649,,Sand,Ocean Blue,Classic,None,Captain's Hat,Cuban Chain,,32.01
+650,,Slate,Steel,Sleepy,Punk Cigarette,Sailor Cap,None,,33.35
+651,,Sand,Steel,Abyss Glow,None,None,None,Emerald Stud,41.67
+652,,Slate,Ocean Blue,Classic,Punk Cigarette,None,None,,18.03
+653,,Sage,Steel,Gold Monocle,None,None,None,,24.72
+654,,Charcoal,Classic Navy,Classic,Gold Tooth,Captain's Hat,None,,27.49
+655,,Maroon,Classic Navy,Gold Monocle,Gold Tooth,Kelp Wrap,None,Pinky Ring,57.05
+656,,Maroon,Steel,Classic,None,None,None,Emerald Stud,23.03
+657,,Slate,Classic Navy,Classic,Bubble Pipe,Captain's Hat,Cuban Chain,,34.06
+658,,Maroon,Steel,Classic,Punk Cigarette,Beanie,None,,28.03
+659,,Mauve,Arctic,Laser,Gold Tooth,Beanie,None,,57.5
+660,,Sage,Ocean Blue,Classic,None,Beanie,None,,20.71
+661,,Maroon,Steel,Classic,None,Sailor Cap,None,,20.17
+662,,Mauve,Ocean Blue,Classic,Cigar,Kelp Wrap,Cuban Chain,Gold Watch,47.2
+663,,Sage,Ocean Blue,Classic,None,Sailor Cap,None,,19.52
+664,,Sand,Classic Navy,Shades,None,None,None,,23.33
+665,,Slate,Steel,Classic,Bubble Pipe,Sailor Cap,None,,32.67
+666,,Maroon,Classic Navy,Shades,Diamond Grill,Captain's Hat,Cuban Chain,,61.4
+667,,Maroon,Classic Navy,Gold Monocle,Cigar,None,Cuban Chain,,29.09
+668,,Sage,Steel,Classic,Bubble Pipe,Kelp Wrap,None,,39.04
+669,,Slate,Deep Sea,Classic,Gold Tooth,Kelp Wrap,None,,35.53
+670,,Mauve,Arctic,Sleepy,Cigar,Captain's Hat,None,Emerald Stud,51.4
+671,,Sage,Arctic,Abyss Glow,None,Sailor Cap,None,,37.7
+672,,Maroon,Steel,Classic,None,Beanie,None,Coin Spout,54.7
+673,,Charcoal,Gilded,Gold Monocle,Gold Tooth,Beanie,Cuban Chain,,107.98
+674,,Maroon,Steel,Sleepy,Gold Tooth,Crown,None,,52.88
+675,,Sage,Steel,Shades,None,Captain's Hat,None,,28.25
+676,,Maroon,Classic Navy,Abyss Glow,None,None,Cuban Chain,Emerald Stud,34.55
+677,,Sage,Ocean Blue,Sleepy,Punk Cigarette,None,Silver Chain,,33.89
+678,,Mauve,Ocean Blue,Shades,None,None,Cuban Chain,,26.67
+679,,Charcoal,Classic Navy,Classic,None,None,Silver Chain,,19.79
+680,,Slate,Classic Navy,Shades,Diamond Grill,Crown,Cuban Chain,,78.71
+681,,Charcoal,Steel,Classic,None,None,None,,15.63
+682,,Charcoal,Classic Navy,Sleepy,None,Kelp Wrap,None,Gold Watch,40.48
+683,,Gold Dust,Deep Sea,Classic,Cigar,None,Cuban Chain,Diamond Spout,61.36
+684,,Sage,Ocean Blue,Classic,None,None,Cuban Chain,Pinky Ring,34.04
+685,,Maroon,Deep Sea,Sleepy,Gold Tooth,Captain's Hat,Silver Chain,,45.57
+686,,Sage,Deep Sea,Classic,None,None,None,Diamond Spout,32.37
+687,,Sage,Midnight Black,Classic,None,None,None,,35.95
+688,,Mauve,Ocean Blue,Gold Monocle,Gold Tooth,Halo,Diamond Chain,Gold Watch,83.45
+689,,Mauve,Classic Navy,Abyss Glow,Punk Cigarette,None,Silver Chain,Diamond Spout,55.0
+690,,Maroon,Deep Sea,Shades,Punk Cigarette,None,Cuban Chain,,32.88
+691,,Mauve,Classic Navy,Gold Monocle,None,None,Cuban Chain,,28.33
+692,,Sand,Midnight Black,Classic,Punk Cigarette,Beanie,None,Diamond Spout,74.56
+693,,Sage,Deep Sea,Shades,None,Captain's Hat,Silver Chain,,38.25
+694,,Slate,Classic Navy,Classic,Punk Cigarette,Crown,Cuban Chain,,45.53
+695,,Slate,Classic Navy,Abyss Glow,Cigar,None,None,Diamond Spout,40.76
+696,,Sand,Classic Navy,Classic,None,Sailor Cap,None,,23.96
+697,,Sand,Classic Navy,Classic,Cigar,Captain's Hat,None,Emerald Stud,39.06
+698,,Gold Dust,Gilded,Classic,Gold Tooth,Beanie,None,,110.15
+699,,Slate,Ocean Blue,Classic,Cigar,None,Pearl String,,27.02
+700,The Captain,Slate,Classic Navy,Gold Monocle,Bubble Pipe,Captain's Hat,None,,39.74
+701,,Sage,Classic Navy,Shades,None,Beanie,None,,24.72
+702,,Charcoal,Ocean Blue,Gold Monocle,None,Beanie,None,,32.98
+703,,Slate,Classic Navy,Classic,Punk Cigarette,None,Pearl String,Gold Watch,36.64
+704,,Sage,Ocean Blue,Laser,None,Sailor Cap,Cuban Chain,,42.7
+705,,Slate,Deep Sea,Classic,None,Beanie,None,Gold Watch,33.03
+706,,Gold Dust,Steel,Abyss Glow,None,None,None,Coin Spout,77.5
+707,,Slate,Midnight Black,Shades,Gold Tooth,None,Silver Chain,,58.12
+708,,Maroon,Classic Navy,Sleepy,None,None,Cuban Chain,,20.38
+709,,Gold Dust,Classic Navy,Classic,Cigar,Halo,None,,48.15
+710,,Sage,Midnight Black,Abyss Glow,None,None,Silver Chain,,54.96
+711,,Charcoal,Classic Navy,Laser,Punk Cigarette,None,None,Diamond Spout,52.98
+712,,Sage,Classic Navy,Classic,None,Sailor Cap,Silver Chain,Diamond Spout,42.02
+713,,Sage,Classic Navy,Classic,Punk Cigarette,Beanie,Cuban Chain,,29.87
+714,,Maroon,Classic Navy,Abyss Glow,None,Kelp Wrap,None,,32.05
+715,,Maroon,Steel,Classic,Bubble Pipe,None,Cuban Chain,,30.53
+716,,Sage,Steel,Abyss Glow,Gold Tooth,None,None,Gold Watch|Pinky Ring,59.72
+717,,Slate,Steel,Classic,Punk Cigarette,Beanie,None,Coin Spout,61.36
+718,,Charcoal,Deep Sea,Abyss Glow,Cigar,None,Silver Chain,,40.85
+719,,Maroon,Ocean Blue,Classic,Punk Cigarette,Captain's Hat,None,,25.72
+720,,Maroon,Ocean Blue,Classic,Cigar,None,Pearl String,,27.02
+721,,Maroon,Classic Navy,Sleepy,Punk Cigarette,Captain's Hat,Silver Chain,,38.07
+722,,Maroon,Steel,Abyss Glow,Bubble Pipe,None,Cuban Chain,,41.21
+723,,Slate,Classic Navy,Sleepy,Punk Cigarette,Sailor Cap,None,Gold Watch,39.19
+724,,Slate,Ocean Blue,Shades,Cigar,None,Silver Chain,,30.76
+725,,Maroon,Classic Navy,Classic,Cigar,None,Cuban Chain,Gold Watch,28.41
+726,,Slate,Ocean Blue,Classic,None,None,Silver Chain,,19.7
+727,,Sand,Ocean Blue,Classic,Bubble Pipe,Kelp Wrap,Silver Chain,,52.65
+728,,Maroon,Classic Navy,Gold Monocle,Gold Tooth,Halo,Pearl String,,53.28
+729,,Sage,Deep Sea,Abyss Glow,Cigar,Halo,Cuban Chain,,50.22
+730,,Maroon,Classic Navy,Shades,Cigar,None,Silver Chain,,28.26
+731,,Sand,Ocean Blue,Sleepy,Diamond Grill,Captain's Hat,Pearl String,,77.97
+732,,Slate,Classic Navy,Classic,Bubble Pipe,None,Cuban Chain,,26.36
+733,,Charcoal,Classic Navy,Classic,Gold Tooth,Sailor Cap,Diamond Chain,,51.94
+734,,Sage,Classic Navy,Classic,Gold Tooth,Captain's Hat,None,,25.9
+735,,Slate,Arctic,Shades,None,None,None,,25.38
+736,,Mauve,Classic Navy,Classic,None,Captain's Hat,None,Diamond Spout,37.01
+737,,Sage,Classic Navy,Laser,None,None,None,Gold Watch,38.06
+738,,Charcoal,Deep Sea,Laser,Bubble Pipe,Halo,None,,62.26
+739,,Maroon,Ocean Blue,Classic,None,None,None,,11.36
+740,,Maroon,Ocean Blue,Classic,Punk Cigarette,Kelp Wrap,Cuban Chain,,35.53
+741,,Maroon,Ocean Blue,Gold Monocle,Punk Cigarette,None,Pearl String,,39.82
+742,,Mauve,Classic Navy,Classic,Gold Tooth,None,Pearl String,,32.1
+743,,Sage,Steel,Shades,Cigar,Captain's Hat,None,,32.79
+744,,Slate,Midnight Black,Shades,None,Beanie,None,Pinky Ring,66.45
+745,,Slate,Ocean Blue,Classic,Punk Cigarette,None,Cuban Chain,,23.03
+746,,Sand,Classic Navy,Classic,Cigar,None,None,,21.36
+747,,Charcoal,Classic Navy,Classic,Cigar,Captain's Hat,None,,23.7
+748,,Maroon,Arctic,Classic,None,Captain's Hat,Cuban Chain,,31.56
+749,,Slate,Ocean Blue,Sleepy,Gold Tooth,Beanie,None,,34.55
+750,,Slate,Ocean Blue,Sleepy,Diamond Grill,None,None,,51.21
+751,,Slate,Classic Navy,Shades,None,None,Pearl String,,26.49
+752,,Mauve,Ocean Blue,Sleepy,Bubble Pipe,Kelp Wrap,Diamond Chain,Emerald Stud|Gold Watch,91.67
+753,,Maroon,Ocean Blue,Gold Monocle,Punk Cigarette,None,None,,28.71
+754,,Sand,Classic Navy,Abyss Glow,Gold Tooth,Crown,Pearl String,Emerald Stud|Coin Spout,115.28
+755,,Maroon,Steel,Classic,None,None,None,,13.03
+756,,Maroon,Midnight Black,Classic,None,Kelp Wrap,None,,47.44
+757,,Sand,Classic Navy,Sleepy,Gold Tooth,Kelp Wrap,Silver Chain,,52.5
+758,,Slate,Classic Navy,Classic,Bubble Pipe,None,None,,21.36
+759,,Mauve,Steel,Abyss Glow,Bubble Pipe,None,None,Emerald Stud,50.0
+760,,Maroon,Ocean Blue,Abyss Glow,Bubble Pipe,None,Cuban Chain,,39.55
+761,,Sage,Classic Navy,Sleepy,None,Captain's Hat,None,,24.08
+762,,Sage,Deep Sea,Shades,None,Kelp Wrap,Pearl String,,45.83
+763,,Maroon,Deep Sea,Gold Monocle,None,Captain's Hat,None,,33.07
+764,,Sage,Ocean Blue,Classic,Cigar,Captain's Hat,None,,24.61
+765,,Charcoal,Ocean Blue,Classic,None,Captain's Hat,Diamond Chain,,46.65
+766,,Maroon,Classic Navy,Classic,Cigar,Sailor Cap,Silver Chain,,28.89
+767,,Sage,Classic Navy,Classic,Diamond Grill,None,None,Diamond Spout,59.87
+768,,Mauve,Classic Navy,Classic,Cigar,None,Cuban Chain,Gold Watch,32.2
+769,,Slate,Classic Navy,Shades,Bubble Pipe,Sailor Cap,None,,35.02
+770,,Sage,Steel,Classic,Punk Cigarette,None,None,Gold Watch,30.71
+771,,Mauve,Midnight Black,Classic,None,None,None,,38.72
+772,,Slate,Ocean Blue,Sleepy,Cigar,Sailor Cap,None,,29.57
+773,,Mauve,Classic Navy,Abyss Glow,Diamond Grill,Beanie,Diamond Chain,,90.0
+774,,Charcoal,Classic Navy,Shades,Diamond Grill,Sailor Cap,None,Emerald Stud|Gold Watch,78.45
+775,,Sand,Steel,Classic,Cigar,None,None,,25.53
+776,,Sage,Classic Navy,Classic,Bubble Pipe,None,None,Emerald Stud,32.37
+777,,Slate,Ocean Blue,Classic,Bubble Pipe,None,Cuban Chain,Pinky Ring,45.53
+778,,Charcoal,Ocean Blue,Classic,Bubble Pipe,None,None,Gold Watch,36.46
+779,,Maroon,Ocean Blue,Classic,Punk Cigarette,Halo,Diamond Chain,,57.32
+780,,Mauve,Classic Navy,Laser,Cigar,None,None,Gold Watch|Coin Spout,78.71
+781,,Mauve,Classic Navy,Classic,Punk Cigarette,None,None,,19.32
+782,,Mauve,Ocean Blue,Classic,Punk Cigarette,None,Cuban Chain,,26.82
+783,,Slate,Deep Sea,Abyss Glow,Gold Tooth,Captain's Hat,None,,41.4
+784,,Sage,Steel,Sleepy,Cigar,Beanie,Cuban Chain,,38.43
+785,,Charcoal,Classic Navy,Classic,Punk Cigarette,None,Cuban Chain,,23.13
+786,,Slate,Deep Sea,Classic,Gold Tooth,Sailor Cap,Pearl String,,41.28
+787,,Charcoal,Classic Navy,Classic,None,Beanie,None,,19.79
+788,,Slate,Steel,Abyss Glow,None,Captain's Hat,None,,31.4
+789,,Slate,Steel,Sleepy,Gold Tooth,Halo,None,Gold Watch,52.16
+790,,Sage,Arctic,Abyss Glow,Cigar,Beanie,Silver Chain,,51.77
+791,,Charcoal,Ocean Blue,Classic,None,None,None,,13.96
+792,,Slate,Deep Sea,Classic,None,Sailor Cap,None,Gold Watch,31.84
+793,,Sage,Ocean Blue,Classic,Cigar,Beanie,Silver Chain,,33.59
+794,,Sage,Classic Navy,Sleepy,None,None,None,,16.39
+795,,Maroon,Ocean Blue,Classic,Punk Cigarette,None,None,Pinky Ring,34.7
+796,,Charcoal,Gilded,Shades,Punk Cigarette,None,Cuban Chain,,93.81
+797,,Mauve,Arctic,Laser,None,Kelp Wrap,None,Emerald Stud,63.33
+798,,Charcoal,Ocean Blue,Classic,Punk Cigarette,None,None,Diamond Spout,37.29
+799,,Sage,Classic Navy,Shades,Punk Cigarette,Kelp Wrap,None,Pinky Ring,52.22
+800,Trenchkeeper,Gold Dust,Deep Sea,Classic,None,None,Cuban Chain,,40.15
+801,,Slate,Classic Navy,Classic,None,Crown,None,Emerald Stud,43.86
+802,,Slate,Classic Navy,Classic,Gold Tooth,Captain's Hat,None,,24.89
+803,,Sage,Ocean Blue,Gold Monocle,None,Sailor Cap,Silver Chain,Pinky Ring,55.2
+804,,Maroon,Steel,Classic,Bubble Pipe,None,None,,25.53
+805,,Gold Dust,Classic Navy,Classic,Cigar,None,None,Emerald Stud|Diamond Spout,60.53
+806,,Maroon,Classic Navy,Classic,None,None,Diamond Chain,,33.86
+807,,Sage,Classic Navy,Gold Monocle,None,None,None,,20.56
+808,,Sand,Arctic,Classic,None,Captain's Hat,Pearl String,,45.62
+809,,Slate,Steel,Classic,None,Beanie,None,,21.36
+810,,Mauve,Steel,Shades,Gold Tooth,Halo,Silver Chain,Emerald Stud|Gold Watch,74.29
+811,,Maroon,Classic Navy,Gold Monocle,Cigar,Sailor Cap,None,Emerald Stud,41.23
+812,,Maroon,Deep Sea,Classic,Gold Tooth,Sailor Cap,None,Gold Watch|Diamond Spout,56.84
+813,,Sand,Classic Navy,Classic,Diamond Grill,None,None,,50.15
+814,,Mauve,Classic Navy,Sleepy,Punk Cigarette,Beanie,None,,34.17
+815,,Sand,Classic Navy,Classic,Punk Cigarette,None,None,,23.48
+816,,Sand,Ocean Blue,Classic,None,None,Pearl String,,30.43
+817,,Charcoal,Classic Navy,Gold Monocle,Gold Tooth,Crown,Cuban Chain,,60.48
+818,,Gold Dust,Steel,Abyss Glow,Punk Cigarette,None,None,,50.83
+819,,Slate,Ocean Blue,Classic,None,Kelp Wrap,Cuban Chain,,28.86
+820,,Gold Dust,Classic Navy,Classic,None,Kelp Wrap,None,,41.82
+821,,Sand,Deep Sea,Shades,None,Sailor Cap,None,Gold Watch|Diamond Spout,62.98
+822,,Charcoal,Steel,Classic,Punk Cigarette,Sailor Cap,None,,29.44
+823,,Sage,Ocean Blue,Classic,Gold Tooth,Beanie,None,,29.04
+824,,Maroon,Arctic,Classic,None,Kelp Wrap,None,Gold Watch,41.36
+825,,Slate,Ocean Blue,Gold Monocle,Cigar,Captain's Hat,None,,34.28
+826,,Sage,Classic Navy,Abyss Glow,Gold Tooth,Sailor Cap,None,,36.03
+827,,Maroon,Classic Navy,Classic,Cigar,None,Cuban Chain,,18.41
+828,,Charcoal,Classic Navy,Classic,None,None,Cuban Chain,Emerald Stud|Pinky Ring,43.13
+829,,Slate,Ocean Blue,Gold Monocle,None,None,None,,22.05
+830,,Charcoal,Classic Navy,Shades,Bubble Pipe,Halo,Silver Chain,Emerald Stud|Gold Watch,73.1
+831,,Charcoal,Classic Navy,Gold Monocle,Cigar,Kelp Wrap,None,,39.19
+832,,Slate,Ocean Blue,Sleepy,Diamond Grill,Captain's Hat,None,,58.9
+833,,Maroon,Classic Navy,Sleepy,None,Halo,Cuban Chain,Diamond Spout,51.33
+834,,Sand,Deep Sea,Classic,Punk Cigarette,None,None,,29.32
+835,,Charcoal,Classic Navy,Shades,None,Crown,None,,42.98
+836,,Charcoal,Classic Navy,Abyss Glow,Punk Cigarette,Beanie,Silver Chain,,45.48
+837,,Sage,Midnight Black,Classic,None,Halo,None,,50.23
+838,,Charcoal,Gilded,Sleepy,Gold Tooth,Captain's Hat,None,,98.17
+839,,Sand,Classic Navy,Gold Monocle,Bubble Pipe,Kelp Wrap,None,,52.5
+840,,Sage,Steel,Gold Monocle,Cigar,None,Silver Chain,,37.6
+841,,Maroon,Steel,Classic,Punk Cigarette,None,None,,19.7
+842,,Slate,Ocean Blue,Abyss Glow,None,None,Pearl String,,33.16
+843,,Sage,Deep Sea,Classic,None,None,None,,15.71
+844,,Mauve,Steel,Sleepy,None,Beanie,Silver Chain,,40.0
+845,,Slate,Deep Sea,Laser,Cigar,None,Diamond Chain,Emerald Stud,72.42
+846,,Mauve,Classic Navy,Laser,None,Crown,None,,55.83
+847,,Maroon,Ocean Blue,Sleepy,None,None,Cuban Chain,,22.88
+848,,Gold Dust,Steel,Classic,Punk Cigarette,None,Cuban Chain,Gold Watch,55.15
+849,,Sage,Steel,Sleepy,Cigar,Sailor Cap,None,,32.24
+850,,Maroon,Deep Sea,Sleepy,None,Kelp Wrap,Silver Chain,Emerald Stud,52.05
+851,,Sage,Classic Navy,Classic,Punk Cigarette,Beanie,Silver Chain,,33.21
+852,,Maroon,Classic Navy,Classic,None,Kelp Wrap,Cuban Chain,,26.36
+853,,Charcoal,Classic Navy,Sleepy,Bubble Pipe,Halo,Silver Chain,,53.1
+854,,Slate,Deep Sea,Sleepy,None,None,None,Diamond Spout|Coin Spout,71.21
+855,,Charcoal,Arctic,Classic,Diamond Grill,Sailor Cap,Pearl String,,73.05
+856,,Mauve,Classic Navy,Classic,Punk Cigarette,None,Silver Chain,,27.65
+857,,Slate,Classic Navy,Gold Monocle,Punk Cigarette,Captain's Hat,None,,33.9
+858,,Charcoal,Classic Navy,Classic,Cigar,Crown,None,,41.01
+859,,Slate,Classic Navy,Classic,Cigar,None,Silver Chain,,21.74
+860,,Charcoal,Ocean Blue,Classic,Punk Cigarette,None,None,,20.63
+861,,Sage,Classic Navy,Classic,None,Beanie,None,Coin Spout,51.54
+862,,Sage,Ocean Blue,Shades,Cigar,None,Cuban Chain,,28.43
+863,,Slate,Classic Navy,Classic,Cigar,None,None,Pinky Ring,30.08
+864,,Sand,Ocean Blue,Sleepy,None,None,Cuban Chain,,30.83
+865,,Sage,Classic Navy,Shades,Punk Cigarette,None,Silver Chain,,31.39
+866,,Slate,Classic Navy,Classic,None,Crown,Cuban Chain,,38.86
+867,,Sage,Deep Sea,Classic,Punk Cigarette,None,None,,22.37
+868,,Maroon,Midnight Black,Sleepy,Bubble Pipe,Captain's Hat,None,,61.64
+869,,Maroon,Steel,Abyss Glow,None,Captain's Hat,None,,31.4
+870,,Slate,Classic Navy,Classic,None,None,Silver Chain,,17.2
+871,,Mauve,Steel,Classic,Gold Tooth,None,None,,25.15
+872,,Sage,Classic Navy,Laser,Cigar,None,Pearl String,Pinky Ring,60.38
+873,,Sand,Ocean Blue,Classic,None,Beanie,Silver Chain,,35.98
+874,,Slate,Deep Sea,Classic,Cigar,Captain's Hat,None,Pinky Ring,43.6
+875,,Maroon,Deep Sea,Gold Monocle,None,Halo,Silver Chain,Diamond Spout,64.66
+876,,Sand,Classic Navy,Abyss Glow,Punk Cigarette,None,None,,34.17
+877,,Sage,Arctic,Classic,Diamond Grill,None,None,,53.21
+878,,Slate,Steel,Gold Monocle,Cigar,Sailor Cap,None,,35.4
+879,,Maroon,Steel,Shades,Gold Tooth,Captain's Hat,None,Pinky Ring,52.24
+880,,Slate,Steel,Sleepy,None,Crown,Diamond Chain,Emerald Stud,79.55
+881,,Sand,Classic Navy,Gold Monocle,None,None,Silver Chain,,35.83
+882,,Sage,Classic Navy,Classic,Cigar,None,Diamond Chain,,39.42
+883,,Mauve,Steel,Classic,Punk Cigarette,Sailor Cap,None,Pinky Ring,47.29
+884,,Sage,Classic Navy,Classic,Gold Tooth,Sailor Cap,None,,25.35
+885,,Slate,Classic Navy,Shades,None,None,None,Emerald Stud,25.38
+886,,Maroon,Ocean Blue,Shades,None,None,None,,17.88
+887,,Mauve,Steel,Classic,Bubble Pipe,Sailor Cap,None,,36.46
+888,,Sage,Ocean Blue,Abyss Glow,None,Sailor Cap,Pearl String,,41.31
+889,,Maroon,Steel,Gold Monocle,Punk Cigarette,Kelp Wrap,None,,42.88
+890,,Slate,Classic Navy,Shades,Punk Cigarette,None,None,,22.05
+891,,Sage,Ocean Blue,Classic,None,Kelp Wrap,Cuban Chain,,29.87
+892,,Sage,Deep Sea,Shades,Bubble Pipe,Halo,None,,49.01
+893,,Charcoal,Arctic,Classic,None,Captain's Hat,None,Gold Watch,39.15
+894,,Charcoal,Classic Navy,Classic,Bubble Pipe,Kelp Wrap,None,Pinky Ring,53.13
+895,,Maroon,Deep Sea,Classic,None,Sailor Cap,None,Emerald Stud,31.84
+896,,Maroon,Ocean Blue,Laser,Punk Cigarette,None,Pearl String,,47.32
+897,,Maroon,Classic Navy,Gold Monocle,None,None,Cuban Chain,,24.55
+898,,Sand,Steel,Classic,Cigar,Halo,None,Emerald Stud,49.82
+899,,Charcoal,Classic Navy,Sleepy,Cigar,None,None,,22.52
+900,Laser Leviathan,Charcoal,Midnight Black,Laser,None,None,None,,55.71
+901,,Mauve,Classic Navy,Classic,None,Sailor Cap,Pearl String,Diamond Spout,47.57
+902,,Slate,Classic Navy,Gold Monocle,Bubble Pipe,Halo,None,,46.33
+903,,Gold Dust,Gilded,Sleepy,None,None,None,,100.0
+904,,Maroon,Arctic,Classic,Cigar,Sailor Cap,Cuban Chain,,35.55
+905,,Charcoal,Deep Sea,Classic,Gold Tooth,Crown,Cuban Chain,Diamond Spout,72.29
+906,,Gold Dust,Classic Navy,Classic,None,None,None,,29.32
+907,,Maroon,Classic Navy,Shades,Bubble Pipe,Sailor Cap,None,,35.02
+908,,Maroon,Classic Navy,Classic,Diamond Grill,Sailor Cap,Silver Chain,,57.67
+909,,Mauve,Classic Navy,Classic,None,None,Cuban Chain,Emerald Stud,27.65
+910,,Charcoal,Deep Sea,Classic,Cigar,None,None,,21.84
+911,,Slate,Arctic,Classic,Gold Tooth,Kelp Wrap,None,,39.7
+912,,Mauve,Ocean Blue,Sleepy,Cigar,None,None,Coin Spout,59.55
+913,,Gold Dust,Ocean Blue,Classic,Gold Tooth,Kelp Wrap,None,,52.65
+914,,Mauve,Classic Navy,Classic,Punk Cigarette,None,Cuban Chain,,24.32
+915,,Slate,Classic Navy,Laser,Punk Cigarette,Kelp Wrap,None,,46.21
+916,,Charcoal,Ocean Blue,Gold Monocle,None,Beanie,Silver Chain,,41.31
+917,,Sage,Midnight Black,Classic,Gold Tooth,None,None,,44.28
+918,,Maroon,Classic Navy,Classic,Gold Tooth,None,None,,17.2
+919,,Charcoal,Classic Navy,Shades,Gold Tooth,Sailor Cap,None,,33.45
+920,,Charcoal,Ocean Blue,Shades,Cigar,Crown,None,,50.02
+921,,Sage,Deep Sea,Classic,None,Kelp Wrap,None,,28.21
+922,,Sand,Deep Sea,Classic,Punk Cigarette,Captain's Hat,Cuban Chain,,42.01
+923,,Slate,Arctic,Classic,None,Halo,Pearl String,,44.26
+924,,Charcoal,Classic Navy,Gold Monocle,None,None,Cuban Chain,,27.14
+925,,Slate,Classic Navy,Classic,None,Halo,None,,23.15
+926,,Slate,Steel,Sleepy,Cigar,None,Pearl String,Gold Watch,45.2
+927,,Slate,Ocean Blue,Shades,Punk Cigarette,None,Cuban Chain,,29.55
+928,,Maroon,Steel,Classic,None,None,Cuban Chain,Coin Spout,51.36
+929,,Mauve,Arctic,Sleepy,None,Halo,None,Gold Watch,53.45
+930,,Sage,Deep Sea,Classic,Punk Cigarette,Sailor Cap,None,,29.52
+931,,Charcoal,Classic Navy,Classic,Punk Cigarette,None,None,,18.13
+932,,Charcoal,Deep Sea,Classic,Diamond Grill,None,Silver Chain,,58.96
+933,,Maroon,Steel,Classic,Bubble Pipe,Beanie,None,,33.86
+934,,Mauve,Arctic,Sleepy,Punk Cigarette,Sailor Cap,None,Gold Watch,52.98
+935,,Gold Dust,Ocean Blue,Sleepy,Cigar,Beanie,Silver Chain,,59.55
+936,,Slate,Steel,Sleepy,None,None,Silver Chain,Emerald Stud|Diamond Spout,54.55
+937,,Sage,Classic Navy,Gold Monocle,Punk Cigarette,None,None,,27.22
+938,,Maroon,Deep Sea,Classic,Cigar,Sailor Cap,None,,26.39
+939,,Charcoal,Ocean Blue,Classic,Cigar,Sailor Cap,None,Gold Watch,35.65
+940,,Charcoal,Deep Sea,Sleepy,None,None,Cuban Chain,,28.81
+941,,Charcoal,Gilded,Classic,None,Sailor Cap,None,Gold Watch,92.77
+942,,Mauve,Classic Navy,Abyss Glow,None,None,Diamond Chain,,48.33
+943,,Slate,Classic Navy,Classic,Cigar,Crown,Cuban Chain,,43.41
+944,,Maroon,Arctic,Classic,Gold Tooth,None,Cuban Chain,,32.2
+945,,Slate,Deep Sea,Classic,Gold Tooth,None,Cuban Chain,,28.03
+946,,Slate,Classic Navy,Abyss Glow,Punk Cigarette,Beanie,None,Gold Watch,44.55
+947,,Sage,Midnight Black,Sleepy,None,Captain's Hat,Silver Chain,,58.49
+948,,Gold Dust,Gilded,Shades,Gold Tooth,Crown,None,Gold Watch,143.33
+949,,Slate,Deep Sea,Gold Monocle,Bubble Pipe,Sailor Cap,Silver Chain,,53.35
+950,,Mauve,Classic Navy,Sleepy,Punk Cigarette,Captain's Hat,None,,33.53
+951,,Sage,Classic Navy,Gold Monocle,None,Sailor Cap,None,,27.7
+952,,Mauve,Arctic,Classic,Cigar,None,None,,27.2
+953,,Maroon,Classic Navy,Classic,None,Halo,Diamond Chain,,48.15
+954,,Mauve,Classic Navy,Classic,Diamond Grill,None,Pearl String,,57.1
+955,,Charcoal,Arctic,Classic,Cigar,None,None,,26.01
+956,,Gold Dust,Arctic,Shades,None,Beanie,None,,54.17
+957,,Maroon,Classic Navy,Classic,Gold Tooth,Halo,None,Gold Watch,41.48
+958,,Sand,Ocean Blue,Classic,Cigar,None,None,,23.86
+959,,Sand,Ocean Blue,Classic,None,Captain's Hat,Diamond Chain,Emerald Stud,62.01
+960,,Maroon,Arctic,Sleepy,Gold Tooth,Captain's Hat,Cuban Chain,,46.4
+961,,Charcoal,Classic Navy,Sleepy,Cigar,None,Cuban Chain,,27.52
+962,,Sage,Ocean Blue,Sleepy,Bubble Pipe,None,None,,31.39
+963,,Charcoal,Arctic,Classic,Gold Tooth,Kelp Wrap,Cuban Chain,,47.29
+964,,Maroon,Classic Navy,Classic,Cigar,Sailor Cap,None,,20.55
+965,,Slate,Ocean Blue,Abyss Glow,None,Crown,Silver Chain,,55.38
+966,,Sand,Ocean Blue,Classic,Diamond Grill,None,Silver Chain,,60.98
+967,,Mauve,Steel,Gold Monocle,None,Halo,Silver Chain,,50.12
+968,,Slate,Deep Sea,Classic,Punk Cigarette,None,Cuban Chain,,26.36
+969,,Slate,Classic Navy,Classic,None,None,None,,8.86
+970,,Charcoal,Classic Navy,Sleepy,Cigar,Captain's Hat,Cuban Chain,,35.21
+971,,Slate,Classic Navy,Classic,Diamond Grill,Halo,None,,56.48
+972,,Charcoal,Midnight Black,Classic,Gold Tooth,Captain's Hat,Cuban Chain,Diamond Spout,75.22
+973,,Sand,Classic Navy,Laser,Punk Cigarette,Beanie,None,,50.0
+974,,Mauve,Ocean Blue,Shades,None,None,Cuban Chain,Gold Watch|Pinky Ring,53.33
+975,,Mauve,Classic Navy,Classic,None,Captain's Hat,None,,20.34
+976,,Mauve,Ocean Blue,Shades,None,None,None,,21.67
+977,,Sand,Arctic,Classic,Cigar,None,Cuban Chain,Coin Spout,69.7
+978,,Mauve,Ocean Blue,Gold Monocle,Gold Tooth,None,None,,34.17
+979,,Slate,Deep Sea,Classic,None,None,Silver Chain,,23.03
+980,,Sage,Classic Navy,Sleepy,None,Kelp Wrap,None,,28.89
+981,,Charcoal,Classic Navy,Sleepy,Cigar,Halo,None,Pinky Ring,53.47
+982,,Slate,Ocean Blue,Gold Monocle,None,Beanie,Silver Chain,,38.71
+983,,Sage,Classic Navy,Classic,Cigar,Sailor Cap,Silver Chain,,29.9
+984,,Maroon,Ocean Blue,Classic,None,None,Diamond Chain,,36.36
+985,,Sand,Steel,Laser,Punk Cigarette,None,Silver Chain,,54.17
+986,,Charcoal,Classic Navy,Gold Monocle,None,Kelp Wrap,Pearl String,,45.75
+987,,Maroon,Classic Navy,Shades,Cigar,Captain's Hat,Silver Chain,Emerald Stud,45.95
+988,,Gold Dust,Ocean Blue,Sleepy,None,Halo,Cuban Chain,Diamond Spout,74.29
+989,,Maroon,Deep Sea,Classic,Bubble Pipe,None,None,Emerald Stud,37.2
+990,,Slate,Ocean Blue,Classic,Bubble Pipe,Beanie,None,,32.2
+991,,Slate,Ocean Blue,Classic,Punk Cigarette,Captain's Hat,Pearl String,Diamond Spout,53.5
+992,,Slate,Arctic,Classic,Cigar,Halo,None,,37.69
+993,,Maroon,Ocean Blue,Classic,None,Sailor Cap,Pearl String,,29.62
+994,,Maroon,Ocean Blue,Abyss Glow,None,None,Pearl String,,33.16
+995,,Charcoal,Deep Sea,Classic,None,Sailor Cap,None,,24.44
+996,,Maroon,Steel,Sleepy,None,Captain's Hat,None,Diamond Spout,43.9
+997,,Maroon,Ocean Blue,Gold Monocle,Gold Tooth,Beanie,None,Pinky Ring|Diamond Spout,72.05
+998,,Sage,Classic Navy,Sleepy,Punk Cigarette,None,None,,23.06
+999,,Sand,Steel,Classic,Cigar,None,Cuban Chain,,30.53
+1000,,Maroon,Midnight Black,Shades,None,Halo,None,,55.74

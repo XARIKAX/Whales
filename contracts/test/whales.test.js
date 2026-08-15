@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { loadFixture, mine } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { deployOcean, mintTo, MINT_PRICE } = require("./fixtures");
+const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const { deployOcean, mintTo, MINT_PRICE, PROVENANCE } = require("./fixtures");
 
 describe("Whales — minting", function () {
   it("mints at the fixed price and sends proceeds to the Trench", async function () {
@@ -41,138 +41,62 @@ describe("Whales — minting", function () {
   });
 });
 
-describe("Whales — rarity reveal", function () {
-  async function mintedOut() {
-    const ctx = await deployOcean();
-    for (let i = 0; i < 100; i++) await mintTo(ctx.whales, ctx.alice, 10);
-    return ctx;
-  }
-
-  it("cannot be revealed before the collection mints out", async function () {
+describe("Whales — metadata", function () {
+  it("commits to the finished collection at deployment", async function () {
     const { whales } = await loadFixture(deployOcean);
-    await expect(whales.commitSeed()).to.be.revertedWithCustomError(whales, "MintNotFinished");
+    expect(await whales.provenance()).to.equal(PROVENANCE);
   });
 
-  it("commits to a future block, then draws the seed from its hash", async function () {
-    const { whales } = await loadFixture(mintedOut);
-
-    await whales.commitSeed();
-    const target = await whales.seedBlock();
-    expect(target).to.be.greaterThan(await ethers.provider.getBlockNumber());
-
-    // The hash of the committed block does not exist yet.
-    await expect(whales.revealSeed()).to.be.revertedWithCustomError(whales, "SeedNotReady");
-
-    await mine(2);
-    await whales.revealSeed();
-
-    expect(await whales.revealed()).to.equal(true);
-    expect(await whales.seed()).to.not.equal(0);
-    await expect(whales.revealSeed()).to.be.revertedWithCustomError(whales, "SeedAlreadyDrawn");
-  });
-
-  it("cannot be rerolled by committing again over a live commitment", async function () {
-    const { whales } = await loadFixture(mintedOut);
-
-    await whales.commitSeed();
-    const target = await whales.seedBlock();
-
-    // Someone who dislikes the hash they are about to get tries again.
-    await expect(whales.commitSeed())
-      .to.be.revertedWithCustomError(whales, "SeedStillPending")
-      .withArgs(target);
-
-    await mine(2);
-    await expect(whales.commitSeed()).to.be.revertedWithCustomError(whales, "SeedStillPending");
-
-    // The draw stands: the seed is the hash of the block committed to first.
-    await whales.revealSeed();
-    expect(await whales.seedBlock()).to.equal(target);
-  });
-
-  it("expires and can be recommitted if nobody reveals within 256 blocks", async function () {
-    const { whales } = await loadFixture(mintedOut);
-
-    await whales.commitSeed();
-    await mine(300);
-    await expect(whales.revealSeed()).to.be.revertedWithCustomError(whales, "SeedExpired");
-
-    await whales.commitSeed();
-    await mine(2);
-    await whales.revealSeed();
-    expect(await whales.revealed()).to.equal(true);
-  });
-
-  it("spreads 1000 whales across the five tiers", async function () {
-    const { whales } = await loadFixture(mintedOut);
-    await whales.commitSeed();
-    await mine(2);
-    await whales.revealSeed();
-
-    const counts = [0, 0, 0, 0, 0];
-    for (let id = 1; id <= 1000; id++) counts[Number(await whales.tierOf(id))]++;
-
-    expect(counts.reduce((a, b) => a + b, 0)).to.equal(1000);
-    // Tiers are rolled per token, so counts vary around the target weights
-    // (575 / 300 / 100 / 24 / 1). Assert the shape, not exact numbers.
-    expect(counts[0]).to.be.greaterThan(counts[1]);
-    expect(counts[1]).to.be.greaterThan(counts[2]);
-    expect(counts[2]).to.be.greaterThan(counts[3]);
-    expect(counts[0]).to.be.within(500, 650);
-    expect(counts[1]).to.be.within(250, 350);
-  });
-});
-
-describe("Whales — on-chain art", function () {
-  it("serves placeholder metadata before the reveal", async function () {
+  it("serves a padded, per-token URI off the base", async function () {
     const { whales, alice } = await loadFixture(deployOcean);
     await mintTo(whales, alice, 1);
 
-    const json = decode(await whales.tokenURI(1));
-    expect(json.name).to.equal("Whale #1");
-    expect(json.image).to.match(/^data:image\/svg\+xml;base64,/);
-    expect(json.attributes.find((a) => a.trait_type === "Tier").value).to.equal("Unrevealed");
-    expect(json.attributes.find((a) => a.trait_type === "Status").value).to.equal("Dormant");
+    // Before the base is set, the id is still well formed.
+    expect(await whales.tokenURI(1)).to.equal("0001.json");
+
+    await whales.setBaseURI("ipfs://bafyTEST/");
+    expect(await whales.tokenURI(1)).to.equal("ipfs://bafyTEST/0001.json");
   });
 
-  it("renders a whale entirely on chain after the reveal", async function () {
-    const ctx = await loadFixture(deployOcean);
-    const { whales, token, alice } = ctx;
+  it("pads to four digits across every decade", async function () {
+    const { whales, alice } = await loadFixture(deployOcean);
+    await whales.setBaseURI("ipfs://bafyTEST/");
     for (let i = 0; i < 100; i++) await mintTo(whales, alice, 10);
-    await whales.commitSeed();
-    await mine(2);
-    await whales.revealSeed();
 
-    await token.transfer(alice.address, ethers.parseEther("1000000"));
-    await token.connect(alice).approve(await whales.getAddress(), ethers.MaxUint256);
-    await whales.connect(alice).activate(7);
-
-    const json = decode(await whales.tokenURI(7));
-    const svg = Buffer.from(json.image.split(",")[1], "base64").toString();
-
-    expect(svg).to.include("<svg");
-    expect(svg).to.include("</svg>");
-    expect(svg).to.include("<rect"); // the whale's pixels
-    expect(svg.match(/<rect/g).length).to.be.greaterThan(50);
-
-    const tier = json.attributes.find((a) => a.trait_type === "Tier").value;
-    expect(["Surface Swimmer", "Reef Cruiser", "Twilight Diver", "Abyss Dweller", "Leviathan"])
-      .to.include(tier);
-    expect(json.attributes.find((a) => a.trait_type === "Status").value).to.equal("Fed");
-    expect(json.attributes.find((a) => a.trait_type === "Weight").value).to.equal("1.00x");
+    expect(await whales.tokenURI(1)).to.equal("ipfs://bafyTEST/0001.json");
+    expect(await whales.tokenURI(42)).to.equal("ipfs://bafyTEST/0042.json");
+    expect(await whales.tokenURI(500)).to.equal("ipfs://bafyTEST/0500.json");
+    expect(await whales.tokenURI(1000)).to.equal("ipfs://bafyTEST/1000.json");
   });
 
-  it("has no metadata that anyone can change", async function () {
+  it("only the curator can point it anywhere", async function () {
+    const { whales, alice } = await loadFixture(deployOcean);
+    await expect(whales.connect(alice).setBaseURI("ipfs://evil/"))
+      .to.be.revertedWithCustomError(whales, "NotCurator");
+  });
+
+  it("freezes the art permanently, and destroys the role that could change it", async function () {
+    const { whales, deployer } = await loadFixture(deployOcean);
+    await whales.setBaseURI("ipfs://bafyFINAL/");
+
+    await expect(whales.freezeMetadata())
+      .to.emit(whales, "MetadataFrozen")
+      .withArgs("ipfs://bafyFINAL/");
+
+    expect(await whales.metadataFrozen()).to.equal(true);
+    expect(await whales.curator()).to.equal(ethers.ZeroAddress);
+
+    // Nobody can move it again — not even the address that set it.
+    await expect(whales.connect(deployer).setBaseURI("ipfs://swapped/"))
+      .to.be.revertedWithCustomError(whales, "NotCurator");
+  });
+
+  it("has no way to change the art once frozen", async function () {
     const { whales } = await loadFixture(deployOcean);
     const names = whales.interface.fragments.filter((f) => f.type === "function").map((f) => f.name);
-
-    expect(names).to.not.include("setBaseURI");
-    expect(names).to.not.include("setRenderer");
     expect(names).to.not.include("setTokenURI");
+    expect(names).to.not.include("upgradeTo");
+    // setBaseURI exists but is gated by a role that freezeMetadata destroys.
+    expect(names).to.include("freezeMetadata");
   });
 });
-
-function decode(uri) {
-  expect(uri).to.match(/^data:application\/json;base64,/);
-  return JSON.parse(Buffer.from(uri.split(",")[1], "base64").toString());
-}

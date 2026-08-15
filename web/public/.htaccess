@@ -1,0 +1,68 @@
+# Apache / LiteSpeed config for the built site — Hostinger and most shared
+# hosts read this. Vite copies everything in public/ to the root of dist/, so
+# this file ends up next to index.html where the server expects it.
+#
+# The equivalent settings for Vercel live in the repo's vercel.json. Keep the
+# two in step if you change one.
+
+# --- HTTPS, not optional ---------------------------------------------------
+# A browser wallet will not connect over http, and an https page cannot call an
+# http RPC — the request is blocked as mixed content. Anything less than a full
+# redirect leaves a version of the site that silently cannot transact.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# --- Compression -----------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# --- Caching ---------------------------------------------------------------
+# Vite fingerprints everything under /assets, so those files can never change
+# under a given name and are safe to cache for a year. index.html must not be,
+# or a deploy will not reach anyone who has visited before.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 week"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  # --- Security ------------------------------------------------------------
+  # DENY rather than SAMEORIGIN: a site with a Connect Wallet button should
+  # never be embeddable, or a phishing page can frame it and overlay its own
+  # prompts.
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+</IfModule>
+
+# --- Correct types ---------------------------------------------------------
+# Shared hosts often serve .woff2 as octet-stream, which stops the browser
+# using the preload and brings the fallback face back.
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+  AddType application/json .json
+</IfModule>
+
+# The site is a single page with in-page anchors, so there is deliberately no
+# SPA rewrite here: an unknown path should 404 rather than silently render the
+# homepage at a URL that does not exist.

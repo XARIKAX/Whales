@@ -1,6 +1,8 @@
 const { ethers } = require("hardhat");
 
 const MINT_PRICE = ethers.parseEther("0.02");
+// Stands in for the hash of the finished metadata set.
+const PROVENANCE = ethers.id("WHALES-2026/test-provenance");
 const HAUL_THRESHOLD = ethers.parseEther("0.1");
 const ACTIVATION_BURN = ethers.parseEther("1000000");
 const BASE_WEIGHT = 10_000n;
@@ -10,10 +12,9 @@ async function deployOcean({ withRouter = false, routerContract = "MockRouter" }
   const [deployer, alice, bob, carol, keeper] = await ethers.getSigners();
 
   const token = await ethers.deployContract("WhaleToken", [deployer.address]);
-  const renderer = await ethers.deployContract("WhaleRenderer");
   const whales = await ethers.deployContract("Whales", [
     await token.getAddress(),
-    await renderer.getAddress(),
+    PROVENANCE,
     MINT_PRICE,
   ]);
   const registry = await ethers.deployContract("WhaleAccountRegistry", [await whales.getAddress()]);
@@ -37,7 +38,7 @@ async function deployOcean({ withRouter = false, routerContract = "MockRouter" }
 
   await whales.setTrench(await trench.getAddress());
 
-  return { deployer, alice, bob, carol, keeper, token, renderer, whales, registry, trench, router, stock };
+  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench, router, stock };
 }
 
 /** Mints `count` whales to `to` and returns their ids. */
@@ -63,6 +64,7 @@ async function activateNew(ctx, holder) {
 
 module.exports = {
   MINT_PRICE,
+  PROVENANCE,
   HAUL_THRESHOLD,
   ACTIVATION_BURN,
   BASE_WEIGHT,
