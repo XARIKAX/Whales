@@ -96,7 +96,7 @@ export default function Actions({ ocean, wallet, onDone }) {
   if (!wallet.available) {
     return (
       <p className="notice">
-        No browser wallet detected. Everything above is read straight from the chain without one —
+        No browser wallet detected. Everything above is read straight from the chain without one.
         connect a wallet to feed a whale, haul the Trench, or elect a stock.
       </p>
     );
@@ -124,7 +124,7 @@ export default function Actions({ ocean, wallet, onDone }) {
         <button className="btn btn-primary" onClick={haul} disabled={Boolean(busy) || !ocean?.readyToHaul}>
           {ocean?.readyToHaul ? (
             <>
-              Haul the Trench — keep <span className="tip num">{eth(tip)} ETH</span>
+              Haul the Trench, keep <span className="tip num">{eth(tip)} ETH</span>
             </>
           ) : (
             "Net not full yet"
@@ -144,7 +144,7 @@ export default function Actions({ ocean, wallet, onDone }) {
           />
         </div>
         <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId}>
-          Feed — burn 1,000,000 $WHALE
+          Feed · burn 1,000,000 $WHALE
         </button>
         <button className="btn btn-ghost on-dark" onClick={deliver} disabled={Boolean(busy) || !validId}>
           Deliver
@@ -170,7 +170,7 @@ export default function Actions({ ocean, wallet, onDone }) {
         </button>
       </div>
 
-      {busy && <p className="notice">{busy} — confirm in your wallet…</p>}
+      {busy && <p className="notice">{busy}, confirm in your wallet…</p>}
       {message && <p className={`notice ${message.kind}`}>{message.text}</p>}
       {wallet.error && <p className="notice error">{wallet.error}</p>}
     </div>

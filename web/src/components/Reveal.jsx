@@ -32,7 +32,12 @@ export default function Reveal({
           setShown(true);
         }
       },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.05 }
+      /* Fire BEFORE the element arrives, not after it is a tenth of the way up
+         the screen. The old margin held content at opacity 0 while it was
+         already fully visible, so it sat there blank and then popped — which is
+         exactly what "glitchy on scroll" looks like. A threshold of 0 matters
+         too: on a tall block, 5% of it is most of a screen. */
+      { rootMargin: "0px 0px 15% 0px", threshold: 0 }
     );
 
     observer.observe(node);

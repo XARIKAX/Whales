@@ -8,12 +8,12 @@ const FACTS = [
   {
     tag: "No withdraw",
     title: "Nobody takes from the Trench",
-    body: "Not holders. Not us. The contract has no withdraw function, no owner and no upgrade path. What enters leaves one way — the haul, split across fed whales.",
+    body: "Not holders. Not us. The contract has no withdraw function, no owner and no upgrade path. What enters leaves one way: the haul, split across fed whales.",
   },
   {
     tag: "Loyalty",
     title: "1x climbing to 3.33x",
-    body: "Weight climbs the longer a whale stays active, up to a 3.33x cap. Dormant whales carry zero weight — automatically, not by anyone's decision.",
+    body: "Weight climbs the longer a whale stays active, up to a 3.33x cap. Dormant whales carry zero weight, automatically, not by anyone's decision.",
   },
   {
     tag: "Skin in the game",
@@ -28,7 +28,7 @@ const FACTS = [
   {
     tag: "Permissionless",
     title: "The keeper has no powers",
-    body: "A bot hauls by default. It holds no key the rest of us don't — anyone can call it, and whoever does keeps the 0.5% tip. If the bot dies, the ocean keeps working.",
+    body: "A bot hauls by default. It holds no key the rest of us don't. Anyone can call it, and whoever does keeps the 0.5% tip. If the bot dies, the ocean keeps working.",
   },
 ];
 
@@ -65,7 +65,7 @@ export default function Trench({ ocean, live, price }) {
               <h3 className="display">One transaction, however many whales</h3>
               <p>
                 The pot is split by a running per-weight total rather than a loop, so a single haul
-                pays every fed whale at once — whether that is three of them or all thousand.
+                pays every fed whale at once, whether that is three of them or all thousand.
               </p>
             </div>
           )}

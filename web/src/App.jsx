@@ -80,7 +80,7 @@ export default function App() {
         <section style={{ paddingBlock: 0, marginTop: 48 }}>
           <div className="wrap">
             <p className="notice pending">
-              Not launched yet. The contracts are written, tested and ready — this page goes live the
+              Not launched yet. The contracts are written, tested and ready. This page goes live the
               moment they are deployed and the addresses are set.
             </p>
           </div>

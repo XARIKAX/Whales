@@ -575,6 +575,8 @@ a:hover {
 }
 
 /* Depth ticking down the left margin: the scroll as a descent. */
+/* Hidden until the reader is actually under way. It reads as stray debris on
+   the hero, which is the one screen that has to be uncluttered. */
 .depth-rail {
   position: fixed;
   left: max(14px, calc((100vw - var(--max)) / 2 - 58px));
@@ -631,10 +633,10 @@ section {
 
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(12px);
   transition:
-    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
-    transform 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+    opacity 480ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
 }
 
 .reveal.in {
@@ -644,10 +646,10 @@ section {
 
 .reveal-stagger > * {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(12px);
   transition:
-    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal-stagger.in > * {
@@ -659,9 +661,7 @@ section {
 .reveal-stagger.in > *:nth-child(2) { transition-delay: calc(var(--reveal-step) * 1); }
 .reveal-stagger.in > *:nth-child(3) { transition-delay: calc(var(--reveal-step) * 2); }
 .reveal-stagger.in > *:nth-child(4) { transition-delay: calc(var(--reveal-step) * 3); }
-.reveal-stagger.in > *:nth-child(5) { transition-delay: calc(var(--reveal-step) * 4); }
-.reveal-stagger.in > *:nth-child(6) { transition-delay: calc(var(--reveal-step) * 5); }
-.reveal-stagger.in > *:nth-child(n + 7) { transition-delay: calc(var(--reveal-step) * 6); }
+.reveal-stagger.in > *:nth-child(n + 5) { transition-delay: calc(var(--reveal-step) * 4); }
 
 /* --- Type ------------------------------------------------------------- */
 
@@ -1362,7 +1362,8 @@ p {
 }
 
 .sprite.mirror,
-.creature.mirror {
+.creature.mirror,
+.leviathan-art.mirror {
   transform: scaleX(-1);
 }
 
@@ -1862,41 +1863,6 @@ p {
   position: relative;
   z-index: 2;
   text-align: center;
-}
-
-/* The credential line, above the headline: a live shoal, then the one fact
-   that matters before anyone has read a word. */
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 clamp(20px, 2.6vw, 30px);
-  padding: 7px 18px 7px 10px;
-  border-radius: 999px;
-  background: rgba(245, 251, 254, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(14px) saturate(150%);
-  box-shadow: 0 10px 30px rgba(8, 31, 51, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-}
-
-.hero-badge b {
-  color: var(--navy);
-  font-weight: 500;
-}
-
-.badge-shoal {
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Overlapped like a stack of avatars, because that is exactly the job it does. */
-.badge-shoal .sprite + .sprite {
-  margin-left: -7px;
 }
 
 .title-stack {
@@ -2756,8 +2722,8 @@ section > .wrap {
   /* These used to strike and flicker like an instrument coming online. On a
      page with this much ambient motion already, six cards blinking on and off
      as you scroll past reads as a rendering fault, not as a flourish. */
-  animation: instrument 620ms var(--ease-out) backwards;
-  animation-delay: calc(var(--reveal-step) * var(--i, 0));
+  animation: instrument 480ms var(--ease-out) backwards;
+  animation-delay: calc(var(--reveal-step) * min(var(--i, 0), 3));
 }
 
 @keyframes instrument {
@@ -3404,10 +3370,6 @@ input:focus {
   }
   .readout-specimen {
     grid-column: 1 / -1;
-  }
-  .hero-badge {
-    letter-spacing: 0.08em;
-    padding-inline: 10px 14px;
   }
   .kelp {
     opacity: 0.26;

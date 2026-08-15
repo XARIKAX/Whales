@@ -97,7 +97,7 @@ export default function Footer() {
           promise of return by anyone. Yield comes only from trading activity that may never happen;
           fees can be zero indefinitely. Activating a whale destroys 1,000,000 $WHALE permanently and
           cannot be undone. Selling a whale removes it from the payroll immediately. The contracts
-          are immutable and unaudited — nobody, including the developers, can recover funds, reverse
+          are immutable and unaudited. Nobody, including the developers, can recover funds, reverse
           a transaction, or intervene once they are deployed. Do not spend more than you are willing
           to lose entirely.
         </p>

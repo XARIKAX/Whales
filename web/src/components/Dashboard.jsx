@@ -36,7 +36,7 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
                     Trench pot
                   </p>
                   <div className="gauge-figure num">
-                    {ocean ? `${eth(ocean.pot, 4)} ETH` : "—"}
+                    {ocean ? `${eth(ocean.pot, 4)} ETH` : "·"}
                   </div>
                   {ocean && usd(ocean.pot, price) && (
                     <div className="num" style={{ color: "var(--gold)", marginTop: 4 }}>
@@ -48,12 +48,12 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
               <div className="gauge-note num">
                 <span>
                   {ocean?.readyToHaul
-                    ? "Ready — anyone can haul"
+                    ? "Ready, anyone can haul"
                     : ocean
                       ? `${eth(ocean.haulThreshold - ocean.pot, 4)} ETH to go`
                       : ""}
                 </span>
-                <span>threshold {ocean ? eth(ocean.haulThreshold, 3) : "—"} ETH</span>
+                <span>threshold {ocean ? eth(ocean.haulThreshold, 3) : "·"} ETH</span>
               </div>
             </div>
 
@@ -63,7 +63,7 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
                   Delivered to whales
                 </p>
                 <div className="gauge-figure num">
-                  {ocean ? eth(ocean.totalDelivered, 3) : "—"}{" "}
+                  {ocean ? eth(ocean.totalDelivered, 3) : "·"}{" "}
                   <span style={{ fontSize: "0.4em" }}>ETH</span>
                 </div>
               </div>
@@ -71,7 +71,7 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
                 <p className="featured-label" style={{ color: "rgba(245,251,254,0.5)" }}>
                   Hauls
                 </p>
-                <div className="gauge-figure num">{ocean ? String(ocean.haulCount) : "—"}</div>
+                <div className="gauge-figure num">{ocean ? String(ocean.haulCount) : "·"}</div>
                 {ocean && (
                   <p style={{ margin: "6px 0 0", fontSize: "0.8rem", color: "var(--on-dark-dim)" }}>
                     last {ago(ocean.lastHaulAt, ocean.now)}
@@ -121,9 +121,9 @@ export default function Dashboard({ ocean, whales, price, wallet, onDone }) {
                             {fed ? "Fed" : "Dormant"}
                           </span>
                         </td>
-                        <td className="right num">{fed ? multiplier(w.weight) : "—"}</td>
+                        <td className="right num">{fed ? multiplier(w.weight) : "·"}</td>
                         <td className="right num">
-                          {fed && ocean ? countdown(ocean.now - Number(w.activatedAt)) : "—"}
+                          {fed && ocean ? countdown(ocean.now - Number(w.activatedAt)) : "·"}
                         </td>
                         <td className="right num">{eth(w.claimable)}</td>
                         <td className="right num gold">

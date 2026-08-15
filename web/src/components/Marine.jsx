@@ -9,10 +9,16 @@ import Whale from "./Whale.jsx";
  * a pod, not a mascot. Fish are scenery: they sit further out and closer in than
  * the whales do, and they exist to give the pod something to have depth against.
  *
- * The illusion is depth, and depth is four things agreeing at once: near things
- * are big, fast, out of focus and pass IN FRONT of the reader; far things are
- * small, slow, hazy and pass behind everything. Get those four to agree and a
- * flat gradient becomes a place you are standing in.
+ * The illusion is depth, and depth is three things agreeing at once: near
+ * things are big, fast and pass IN FRONT of the reader; far things are small,
+ * slow, faint and pass behind everything.
+ *
+ * Every plane owns an exclusive horizontal band, and within a plane each
+ * creature owns an exclusive lane inside that band. Nothing can therefore swim
+ * over anything else — two animals crossing is not depth, it is a collision,
+ * and it reads as one. The bands also keep the water quiet where the words are:
+ * fish sit above the headline, the pod sits below the buttons, and exactly one
+ * whale is allowed through the middle.
  *
  * Every plane is pure CSS transform on a wrapper — nothing here runs per-frame
  * in JavaScript, and nothing takes a pointer event.
@@ -58,31 +64,24 @@ const pick = (r, [lo, hi]) => lo + r() * (hi - lo);
 
 /**
  * Plane definitions. `size` is sprite height in px, `cross` is seconds to
- * traverse the viewport, and `beat` is seconds per tail stroke.
+ * traverse the viewport, and `beat` is seconds per tail stroke. `y` is the
+ * band, and no two bands overlap.
  *
  * There is no blur on any of these. Depth is carried by size, speed and opacity
- * alone — a CSS blur on a moving element is re-rasterised every single frame,
- * and twenty of them was half the reason this page could not hold a frame rate.
+ * alone: a CSS blur on a moving element is re-rasterised every frame, and twenty
+ * of them was half the reason this page could not hold a frame rate.
  */
 const PLANES = {
-  /* Small fish, hazy and slow, a long way out. */
-  far: { n: 9, kind: "fish", species: "silver", size: [9, 14], cross: [64, 92], y: [8, 86], opacity: 0.3, beat: [0.62, 0.92] },
-  /* The pod. Mid-water, unhurried, and the reason anyone is looking. */
-  pod: { n: 6, kind: "whale", size: [26, 46], cross: [46, 78], y: [12, 84], opacity: 0.92, beat: [1.4, 2.4] },
-  /* A few reef fish threaded through the pod so it is not all one species. */
-  mid: { n: 5, kind: "fish", size: [20, 30], cross: [36, 56], y: [10, 88], opacity: 0.8, beat: [0.42, 0.66] },
-  /* The near plane is the whole trick. Its band is central on purpose — a
-     foreground creature only earns its cost when it crosses the headline. Blur
-     stays low: enough to sit off the focal plane, not enough to turn a sprite
-     to mush, which reads as a fault rather than as depth of field. */
-  /* Sized off the headline, not off the viewport. A whale is three times as
-     long as it is deep, so 70px of height is already 220px of animal — twice
-     that and it stops being a creature passing through the frame and becomes a
-     wall moving across the words. */
-  near: { n: 3, kind: "whale", size: [50, 74], cross: [30, 46], y: [8, 64], opacity: 0.72, beat: [1, 1.5] },
+  /* Small fish, hazy and slow, a long way out. Detail, not cast. */
+  far: { n: 4, kind: "fish", size: [9, 13], cross: [66, 94], y: [9, 25], opacity: 0.26, beat: [0.62, 0.92] },
+  /* The pod, in the open water below the message. */
+  pod: { n: 3, kind: "whale", size: [26, 42], cross: [50, 82], y: [56, 86], opacity: 0.9, beat: [1.4, 2.4] },
+  /* One, close enough to pass in front of the headline. One is the whole
+     effect; three was a traffic jam over the only words that matter. */
+  near: { n: 1, kind: "whale", size: [54, 66], cross: [34, 44], y: [31, 43], opacity: 0.7, beat: [1.1, 1.4] },
   /* Below the hero: life thins and slows as the page descends. */
-  drift: { n: 4, kind: "whale", size: [22, 38], cross: [58, 88], y: [8, 86], opacity: 0.55, beat: [1.6, 2.6] },
-  sparse: { n: 3, kind: "fish", size: [20, 34], cross: [70, 100], y: [12, 84], opacity: 0.6, beat: [0.7, 1.1] },
+  drift: { n: 3, kind: "whale", size: [22, 36], cross: [62, 92], y: [10, 84], opacity: 0.5, beat: [1.6, 2.6] },
+  sparse: { n: 2, kind: "fish", size: [20, 32], cross: [74, 104], y: [14, 80], opacity: 0.55, beat: [0.7, 1.1] },
 };
 
 const POD_SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
@@ -101,17 +100,17 @@ function school(plane, seed, shoal) {
   return Array.from({ length: spec.n }, (_, i) => {
     const cross = pick(r, spec.cross);
     const rightward = r() > 0.55;
-    /* Stratified rather than uniform: each creature gets its own horizontal
-       band and jitters inside it. Uniform placement clumps — three near whales
-       drawn independently will happily line up at the same height and blot out
-       the same word for ten seconds, which looks like a bug, not a pod. */
+    /* One lane each, with the jitter kept inside it. Placed independently they
+       clump: creatures drawn at random heights line up, cross, and blot each
+       other out, which reads as a rendering fault rather than as a pod. */
     const [y0, y1] = spec.y;
+    const lane = (y1 - y0) / spec.n;
     return {
       key: `${plane}-${i}`,
       species: palette[Math.floor(r() * palette.length)],
       kind: spec.kind,
       size: pick(r, spec.size),
-      y: y0 + ((i + r()) / spec.n) * (y1 - y0),
+      y: y0 + lane * (i + 0.15 + r() * 0.7),
       cross,
       rightward,
       beat: pick(r, spec.beat),
@@ -173,7 +172,10 @@ function Leviathan() {
   return (
     <span className="swimmer leviathan" style={{ "--from": "calc(100vw + 34rem)", "--to": "-38rem" }}>
       <span className="swimmer-bob leviathan-bob">
-        <Whale className="leviathan-art" />
+        {/* Mirrored, because it travels right to left. The silhouette is drawn
+            nose-right like every sprite on this page, and unmirrored it swam
+            the whole hero backwards. */}
+        <Whale className="leviathan-art mirror" />
       </span>
     </span>
   );

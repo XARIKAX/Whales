@@ -12,7 +12,7 @@ export function Waterline() {
         <path d="M0 13 C120 5, 220 21, 340 13 C460 5, 560 21, 680 13 C800 5, 900 21, 1020 13 C1110 7, 1160 15, 1200 12" />
         <path d="M0 13 C120 5, 220 21, 340 13 C460 5, 560 21, 680 13 C800 5, 900 21, 1020 13 C1110 7, 1160 15, 1200 12" />
       </svg>
-      <span className="waterline-label mono">Surface — 0m</span>
+      <span className="waterline-label mono">Surface · 0m</span>
     </div>
   );
 }

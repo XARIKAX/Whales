@@ -76,12 +76,12 @@ export default function Carousel({ whales }) {
         <Reveal className="tier-legend" stagger step={40}>
           {TIERS.map(([name, note]) => (
             <span key={name}>
-              <b>{name}</b> — {note}
+              <b>{name}</b> · {note}
             </span>
           ))}
         </Reveal>
         <p className="lede on-dark" style={{ marginTop: 18 }}>
-          Rarer whales don't earn more. They just flex harder — weight comes from loyalty alone.
+          Rarer whales don't earn more. They just flex harder. Weight comes from loyalty alone.
           Activated whales glow gold; dormant ones sit grey-blue in the dark.
         </p>
       </div>

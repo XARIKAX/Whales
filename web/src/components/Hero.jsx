@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import WhaleArt from "./WhaleArt.jsx";
 import Marine, { useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
-import { PixelFish } from "./pixel/sprites.jsx";
 import { eth, usd, multiplier } from "../format.js";
 import { DOCS_URL } from "../config.js";
 import Reveal from "./Reveal.jsx";
@@ -12,7 +11,7 @@ import Reveal from "./Reveal.jsx";
 /** Deterministic, so React never reshuffles the field. Two tiers: a far one
     that stays small and crisp, and a near one that is big, out of focus and
     rises faster — the same depth contract the fish are under. */
-const BUBBLES = Array.from({ length: 64 }, (_, i) => {
+const BUBBLES = Array.from({ length: 34 }, (_, i) => {
   const seed = (i * 2654435761) % 1013;
   const near = i % 3 === 0;
   return {
@@ -245,21 +244,16 @@ export default function Hero({ featured, price, wallet, live }) {
             through them and nearer ones are silhouetted against them. */}
         <Rays />
 
-        {/* The pod, mid-water. These are the characters; the fish threaded
-            through them are there to give the whales something to be big
-            against. */}
+        {/* The pod, in the open water below the message. */}
         <div className="plane plane-pod">
           <Marine plane="pod" seed={11} />
-        </div>
-        <div className="plane plane-mid">
-          <Marine plane="mid" seed={23} />
         </div>
 
         <Kelp side="left" />
         <Kelp side="right" />
 
         <div className="hero-bubbles hero-bubbles-back">
-          {bubbles.slice(0, 22).map((b, i) => (
+          {bubbles.slice(0, 18).map((b, i) => (
             <span
               key={i}
               className={`bubble${b.near ? " bubble-near" : ""}`}
@@ -287,17 +281,6 @@ export default function Hero({ featured, price, wallet, live }) {
       {/* --- The message. */}
       <div className="wrap hero-inner">
         <Reveal stagger step={95}>
-          <p className="hero-badge">
-            <span className="badge-shoal" aria-hidden="true">
-              <PixelFish species="tang" beat={0.5} style={{ height: 15 }} />
-              <PixelFish species="lemon" beat={0.42} phase={0.3} style={{ height: 15 }} />
-              <PixelFish species="coral" beat={0.56} phase={0.7} style={{ height: 15 }} />
-            </span>
-            <span>
-              $WHALE on Robinhood Chain — <b>1000 whales</b>, never more
-            </span>
-          </p>
-
           {/* Both layers carry the same line wrappers so the headline sets in
               behind its mask and its glint twin arrives on exactly the same
               frames. Any difference between the two shows up as ghosting. */}
@@ -325,8 +308,7 @@ export default function Hero({ featured, price, wallet, live }) {
           </div>
 
           <p className="hero-sub">
-            2% buy / 3% sell on every trade — all of it flows to activated whales. In ETH, tracked in
-            dollars.
+            2% buy, 3% sell. Every last bit of it goes to activated whales, in ETH.
           </p>
 
           <div className="hero-cta">
@@ -359,7 +341,7 @@ export default function Hero({ featured, price, wallet, live }) {
           reader and the page, not just behind it — this is the layer that says
           so, and it is why the field is split in two rather than doubled. */}
       <div className="hero-bubbles hero-bubbles-front" aria-hidden="true">
-        {bubbles.slice(22).map((b, i) => (
+        {bubbles.slice(18).map((b, i) => (
           <span
             key={i}
             className={`bubble${b.near ? " bubble-near" : ""}`}

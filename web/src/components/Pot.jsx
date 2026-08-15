@@ -98,7 +98,7 @@ export default function Pot({ ocean, price }) {
         </div>
         <div>
           <span>Per fed whale (est.)</span>
-          <span>{active > 0 ? `${eth(perWhale, 5)} ETH` : "—"}</span>
+          <span>{active > 0 ? `${eth(perWhale, 5)} ETH` : "·"}</span>
         </div>
         <div className="pot-split-foot">
           <span>Split by weight, not evenly</span>
