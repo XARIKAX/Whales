@@ -1,0 +1,21 @@
+{
+  "name": "@whales/dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Live Trench pot, haul countdown and per-whale earnings.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "viem": "^2.55.16"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.5",
+    "vite": "^8.2.1"
+  }
+}

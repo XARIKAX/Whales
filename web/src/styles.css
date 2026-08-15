@@ -1,0 +1,551 @@
+/* The page is a water column. Scrolling down takes you deeper, and the water
+   darkens with you — the background is fixed, the content swims through it. */
+
+:root {
+  --surface: #0a3b63;
+  --shallow: #062a4d;
+  --twilight: #04162e;
+  --abyss: #020814;
+  --trench: #01040c;
+
+  --foam: #d8f4ff;
+  --glow: #7fd4ff;
+  --kelp: #57e6c9;
+  --gold: #ffd166;
+  --coral: #ff8f7a;
+
+  --ink: #eaf6ff;
+  --ink-dim: #8fb4d0;
+  --ink-faint: #55748c;
+  --edge: rgba(127, 212, 255, 0.16);
+  --panel: rgba(4, 22, 46, 0.62);
+
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: var(--trench);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The water column. Fixed, so content descends through it as you scroll. */
+.ocean {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(
+    180deg,
+    var(--surface) 0%,
+    var(--shallow) 18%,
+    var(--twilight) 42%,
+    var(--abyss) 70%,
+    var(--trench) 100%
+  );
+  background-size: 100% 100vh;
+}
+
+/* Light shafts near the surface, fading as you sink. */
+.shafts {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--sunlight, 1);
+  transition: opacity 400ms linear;
+  background:
+    linear-gradient(102deg, transparent 44%, rgba(216, 244, 255, 0.06) 46%, transparent 49%),
+    linear-gradient(97deg, transparent 62%, rgba(216, 244, 255, 0.045) 65%, transparent 68%),
+    linear-gradient(107deg, transparent 78%, rgba(216, 244, 255, 0.03) 80%, transparent 83%);
+}
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 120px;
+}
+
+/* --- Masthead ---------------------------------------------------------- */
+
+.masthead {
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 64px 0 48px;
+}
+
+.wordmark {
+  font-family: var(--mono);
+  font-size: clamp(3rem, 13vw, 8.5rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 0.94;
+  margin: 0;
+  color: var(--foam);
+  text-shadow: 0 0 60px rgba(127, 212, 255, 0.35);
+}
+
+.ticker {
+  font-family: var(--mono);
+  color: var(--glow);
+  letter-spacing: 0.3em;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.lede {
+  font-size: clamp(1.15rem, 2.4vw, 1.65rem);
+  line-height: 1.5;
+  max-width: 30ch;
+  margin: 0;
+  color: var(--ink);
+}
+
+.lede em {
+  font-style: normal;
+  color: var(--glow);
+}
+
+.sub {
+  color: var(--ink-dim);
+  max-width: 52ch;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* --- Sections ---------------------------------------------------------- */
+
+section {
+  padding: 72px 0;
+  scroll-margin-top: 24px;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--edge);
+  padding-bottom: 12px;
+}
+
+.section-head h2 {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--glow);
+  margin: 0;
+  font-weight: 600;
+}
+
+.section-head .depth {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin-left: auto;
+}
+
+/* --- Panels and stats -------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.pot {
+  display: grid;
+  gap: 20px;
+}
+
+.pot-figure {
+  font-family: var(--mono);
+  font-size: clamp(2.4rem, 8vw, 4.6rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foam);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pot-figure span {
+  font-size: 0.32em;
+  color: var(--ink-dim);
+  letter-spacing: 0.2em;
+  margin-left: 12px;
+  font-weight: 500;
+}
+
+.pot-usd {
+  font-family: var(--mono);
+  color: var(--kelp);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The net filling up. */
+.net {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(1, 4, 12, 0.7);
+  border: 1px solid var(--edge);
+  overflow: hidden;
+}
+
+.net-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--glow), var(--kelp));
+  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.net-fill.ready {
+  background: linear-gradient(90deg, var(--gold), var(--coral));
+}
+
+.net-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  margin-top: 10px;
+}
+
+/* Six stats, so a 3-up grid fills exactly two rows and leaves no dead cell. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1px;
+  background: var(--edge);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.stat {
+  background: rgba(2, 8, 20, 0.78);
+  padding: 20px 22px;
+}
+
+.stat dt {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.45rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat dd small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* --- The pod ----------------------------------------------------------- */
+
+.pod {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.whale-card {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+
+.whale-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(127, 212, 255, 0.4);
+}
+
+.whale-card.fed {
+  border-color: rgba(87, 230, 201, 0.35);
+}
+
+.whale-art {
+  aspect-ratio: 3 / 2;
+  width: 100%;
+  display: block;
+  background: var(--abyss);
+  image-rendering: pixelated;
+}
+
+.whale-art.loading {
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+}
+
+.whale-body {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.whale-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--foam);
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.tag.fed {
+  color: var(--kelp);
+}
+
+.tag.dormant {
+  color: var(--ink-faint);
+}
+
+.tag.tier {
+  color: var(--glow);
+  border-color: var(--edge);
+}
+
+.whale-rows {
+  display: grid;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+
+.whale-rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.whale-rows dt {
+  color: var(--ink-faint);
+}
+
+.whale-rows dd {
+  margin: 0;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.whale-rows dd.earning {
+  color: var(--kelp);
+}
+
+/* --- Controls ---------------------------------------------------------- */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+button {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--abyss);
+  background: var(--glow);
+  border: none;
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+  transition: filter 150ms ease, opacity 150ms ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--glow);
+  border: 1px solid var(--edge);
+}
+
+button.gold {
+  background: var(--gold);
+}
+
+button.small {
+  padding: 7px 12px;
+  font-size: 0.72rem;
+}
+
+input,
+select {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: rgba(1, 4, 12, 0.6);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--glow);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+  flex: 1;
+}
+
+.field label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.notice {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--edge);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.notice.error {
+  color: var(--coral);
+  border-color: rgba(255, 143, 122, 0.35);
+}
+
+.notice.ok {
+  color: var(--kelp);
+  border-color: rgba(87, 230, 201, 0.35);
+}
+
+.notice.info {
+  color: var(--ink-dim);
+}
+
+.muted {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+a {
+  color: var(--glow);
+}
+
+/* --- Loop diagram ------------------------------------------------------ */
+
+.loop {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  counter-reset: step;
+}
+
+.loop-step {
+  background: rgba(2, 8, 20, 0.6);
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  padding: 18px 16px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  position: relative;
+}
+
+.loop-step strong {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--glow);
+  margin-bottom: 8px;
+}
+
+footer {
+  border-top: 1px solid var(--edge);
+  padding: 40px 0 0;
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    padding: 0 16px 80px;
+  }
+  section {
+    padding: 52px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+  }
+}
