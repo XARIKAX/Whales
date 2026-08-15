@@ -115,7 +115,11 @@ def mouth_cigar():
     put(m, 33, 28, ".kkkkkkkk")
     m[(42, 26)] = ACC["o"]; m[(42, 27)] = ACC["O"]   # hot tip
     m[(43, 26)] = ACC["k"]; m[(43, 27)] = ACC["k"]
-    for (i, j) in [(43, 22), (45, 19), (42, 16)]:
+    # Smoke. The middle puff sat at column 45, which put its right-hand cell at
+    # column 48 on a 0-47 grid — off the canvas, silently clipped by the
+    # renderer and so invisible either way. Moved one column left so the QA
+    # gate stays meaningful rather than being loosened to accommodate it.
+    for (i, j) in [(43, 22), (44, 19), (42, 16)]:
         put(m, i, j-1, ".mm.")
         put(m, i, j,   "mMMm")
         put(m, i, j+1, ".mm.")

@@ -20,3 +20,7 @@ web/.vite/
 # Python
 __pycache__/
 *.pyc
+
+# The 1000 renders are ~140MB and belong on IPFS, not in git.
+# Regenerate with: cd pipeline && python3 generate.py
+pipeline/output/images/
