@@ -18,7 +18,6 @@ import {
   CurveBars,
   SplitFigure,
   WalletFigure,
-  StockFigure,
 } from "../components/docs/Figures.jsx";
 
 /* --- Contents ------------------------------------------------------------- */
@@ -30,7 +29,6 @@ const SECTIONS = [
   ["loyalty", "Loyalty"],
   ["haul", "The haul"],
   ["wallet", "The whale's wallet"],
-  ["stock", "Paid in stock"],
   ["art", "The art"],
   ["powers", "What nobody can do"],
   ["questions", "Questions"],
@@ -105,7 +103,7 @@ const POWERS = [
 const QUESTIONS = [
   [
     "Do I have to do anything to get paid?",
-    "Activate once, then no. Anyone can trigger a haul and anyone can deliver, and a bot does both — but it has no special access, so if it stops, any wallet on earth can do the same job for the same tip.",
+    "Activate once, then no. Anyone can trigger a haul and anyone can deliver, and a bot does both, but it has no special access, so if it stops, any wallet on earth can do the same job for the same tip.",
     true,
   ],
   [
@@ -199,7 +197,7 @@ export default function Docs() {
               <Reveal>
                 <p className="doc-lede">
                   One billion tokens, minted once at deployment and never again. There is no mint
-                  function, so supply can only ever fall — and it does, every time somebody activates
+                  function, so supply can only ever fall, and it does, every time somebody activates
                   a whale.
                 </p>
                 <p>
@@ -223,7 +221,7 @@ export default function Docs() {
               <Reveal>
                 <p className="doc-lede">
                   Owning a whale is not enough. A whale earns nothing until it is fed, and feeding it
-                  costs {ACTIVATION_COST.toLocaleString()} $WHALE — burned, not paid to anyone.
+                  costs {ACTIVATION_COST.toLocaleString()} $WHALE, burned rather than paid to anyone.
                 </p>
                 <p>
                   That single rule does the work of a staking contract without one. There is nothing
@@ -241,7 +239,7 @@ export default function Docs() {
 
               <Reveal>
                 <p>
-                  Selling deactivates it in the same transaction, through the ERC-721 transfer hook —
+                  Selling deactivates it in the same transaction, through the ERC-721 transfer hook:
                   not by anyone's decision, and not on a delay. The new owner burns their own million
                   to wake it, which is why the supply keeps falling every time a whale changes hands.
                 </p>
@@ -253,7 +251,7 @@ export default function Docs() {
               <Reveal>
                 <p className="doc-lede">
                   Every whale wakes at 1.00x. Stay fed and it climbs to a hard cap of 3.33x after a
-                  year — so a whale held through the year earns more than triple what a whale
+                  year, so a whale held through the year earns more than triple what a whale
                   activated this morning earns from the same pot.
                 </p>
               </Reveal>
@@ -278,7 +276,7 @@ export default function Docs() {
                 <p>
                   Weight holds flat between tiers and jumps when one is crossed. Promotion is
                   permissionless: anybody can promote any whale to the tier it has already earned,
-                  including a stranger, and the call can only ever raise a weight — never lower one.
+                  including a stranger, and the call can only ever raise a weight, never lower one.
                   A whale nobody syncs simply keeps earning at its old rate until someone does.
                 </p>
               </Reveal>
@@ -305,7 +303,7 @@ export default function Docs() {
               <Reveal>
                 <p>
                   Splitting a pot a thousand ways in one transaction is normally the part that breaks
-                  — a loop over a thousand holders does not fit in a block. It works here because the
+                  (a loop over a thousand holders does not fit in a block). It works here because the
                   haul does not loop. It adds to a single running figure for ETH-per-unit-of-weight,
                   which credits every fed whale at once, at fixed cost, no matter how many there are.
                 </p>
@@ -324,7 +322,7 @@ export default function Docs() {
                 </Note>{" "}
                 bot presses these buttons on a schedule, but it holds no privileged role. It earns
                 the same 0.5% tip any wallet earns for the same call. If it disappears, the system
-                does not stop — the tip just goes to whoever notices first.
+                does not stop; the tip just goes to whoever notices first.
               </p>
             </Section>
 
@@ -346,9 +344,16 @@ export default function Docs() {
               <Reveal>
                 <p>
                   The wallet's address is worked out from the token id alone, so it exists as an
-                  address before anyone creates it — ETH sent early is not lost, it is waiting. And
+                  address before anyone creates it, so ETH sent early is not lost, it is waiting. And
                   because the whale's identity is written into the wallet's own code, it can never be
                   pointed at a different whale.
+                </p>
+                <p>
+                  Getting it out is one call, and only the whale's current owner can make it. Your
+                  position page lists what is sitting in each of your whales' wallets and puts a
+                  withdraw button on any that has a balance; the first withdraw for a given whale
+                  takes two transactions, because the wallet has to be created before it can be
+                  spent from, and one every time after.
                 </p>
                 <p>
                   The practical consequence is worth reading twice: a whale that has been earning for
@@ -359,33 +364,10 @@ export default function Docs() {
             </Section>
 
             {/* 07 --------------------------------------------------------- */}
-            <Section id="stock" n={7} title="Paid in stock">
+            <Section id="art" n={7} title="The art" guide="monocle">
               <Reveal>
                 <p className="doc-lede">
-                  Optional, off by default. A whale's owner can name a token, and that whale's share
-                  of every haul is swapped into it on the way in instead of arriving as ETH.
-                </p>
-                <p>
-                  There is no allowlist — you can elect anything that trades. Two guards make that
-                  safe for everyone else rather than just for you: if the swap fails for any reason
-                  the whale is paid in ETH rather than left with nothing, and the swap runs under a
-                  hard gas ceiling, so one deliberately hostile token cannot take down the batch that
-                  is paying everybody else.
-                </p>
-              </Reveal>
-
-              <Reveal>
-                <Figure n={6} title="Every path out of the split ends in the whale's wallet, including the one where the swap fails.">
-                  <StockFigure />
-                </Figure>
-              </Reveal>
-            </Section>
-
-            {/* 08 --------------------------------------------------------- */}
-            <Section id="art" n={8} title="The art" guide="monocle">
-              <Reveal>
-                <p className="doc-lede">
-                  A thousand whales, ten of them one-of-ones. Traits are cosmetic and nothing more —
+                  A thousand whales, ten of them one-of-ones. Traits are cosmetic and nothing more:
                   a legendary and the plainest whale in the pod earn exactly the same.
                 </p>
               </Reveal>
@@ -419,8 +401,8 @@ export default function Docs() {
                       contract at deployment and immutable after it. Change any trait on any whale
                       and it stops matching.
                     </Note>
-                  </b>{" "}
-                  — a fingerprint of all 1000 pieces of metadata, in order, fixed at deployment. And{" "}
+                  </b>
+                  , a fingerprint of all 1000 pieces of metadata, in order, fixed at deployment. And{" "}
                   <b>
                     <Note term="freezing">
                       `freezeMetadata()`. It locks the base URI and sets the curator address to zero
@@ -441,8 +423,8 @@ export default function Docs() {
               <ProvenanceWidget />
             </Section>
 
-            {/* 09 --------------------------------------------------------- */}
-            <Section id="powers" n={9} title="What nobody can do" guide="plain">
+            {/* 08 --------------------------------------------------------- */}
+            <Section id="powers" n={8} title="What nobody can do" guide="plain">
               <Reveal>
                 <p className="doc-lede">
                   The system has exactly one privileged action. It runs during deployment, it wires
@@ -476,8 +458,8 @@ export default function Docs() {
               </p>
             </Section>
 
-            {/* 10 --------------------------------------------------------- */}
-            <Section id="questions" n={10} title="Questions">
+            {/* 09 --------------------------------------------------------- */}
+            <Section id="questions" n={9} title="Questions">
               <Questions items={QUESTIONS} />
 
               <Reveal className="doc-end">

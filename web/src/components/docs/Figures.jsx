@@ -166,8 +166,8 @@ export function CurveFigure() {
           <text className="chart-tick" x={xAt(i)} y={PLOT.y1 + 26} textAnchor="middle">
             {label}
           </text>
-          {/* The first point sits on the 1.00x gridline, whose own tick already
-              reads 1.00x — two identical labels a few pixels apart read as a
+          {/* The first point sits on the 1.00x gridline, whose own tick says
+              1.00x, since two identical labels a few pixels apart read as a
               rendering fault, so that one is left to the axis. */}
           {i > 0 && (
             <text className="chart-val" x={xAt(i)} y={yAt(w) - 16} textAnchor="middle">
@@ -178,7 +178,7 @@ export function CurveFigure() {
       ))}
 
       <text className="chart-axis" x={PLOT.x0} y={PLOT.y1 + 52}>
-        Time fed — the stops are the tiers, evenly spaced, not a linear calendar
+        Time fed. The stops are the tiers, evenly spaced, not a linear calendar
       </text>
     </svg>
   );
@@ -256,7 +256,7 @@ export function SplitFigure() {
 
       <p className="split-sum mono">
         Same pot, same block. The oldest whale takes {((3.33 / TOTAL_WEIGHT) * 100).toFixed(0)}% and
-        the newest {((1 / TOTAL_WEIGHT) * 100).toFixed(0)}% — the only difference between them is how
+        the newest {((1 / TOTAL_WEIGHT) * 100).toFixed(0)}%. The only difference between them is how
         long each has been fed.
       </p>
     </div>
@@ -305,63 +305,6 @@ export function WalletFigure() {
         <span className="feed" aria-hidden="true">
           <span className="mono">every haul</span>
         </span>
-      </div>
-    </div>
-  );
-}
-
-/* --- 6. Stock election ---------------------------------------------------- */
-
-/**
- * The one part of the system with a branch in it, which is exactly why it was
- * the hardest paragraph on the page to hold in your head. Drawn, the guarantee
- * is the shape rather than a sentence: every path out of the split ends in the
- * whale's wallet, including the one where the swap fails.
- */
-export function StockFigure() {
-  return (
-    <div className="branch">
-      <div className="node branch-in">
-        <span className="chain-tag mono">Your share</span>
-        <p className="chain-title mono">at the haul</p>
-      </div>
-
-      <span className="wire wire-down" aria-hidden="true">
-        <span className="mono">elected a token?</span>
-      </span>
-
-      <div className="branch-legs">
-        <div className="branch-leg">
-          <span className="leg-tag mono">No election</span>
-          <span className="wire wire-down gold-wire" aria-hidden="true" />
-          <div className="node leg-end">
-            <p className="chain-title mono">ETH</p>
-          </div>
-        </div>
-
-        <div className="branch-leg">
-          <span className="leg-tag mono">Swap succeeds</span>
-          <span className="wire wire-down gold-wire" aria-hidden="true" />
-          <div className="node leg-end">
-            <p className="chain-title mono">$TOKEN</p>
-          </div>
-        </div>
-
-        <div className="branch-leg">
-          <span className="leg-tag mono">Swap fails, or runs long</span>
-          <span className="wire wire-down gold-wire" aria-hidden="true" />
-          <div className="node leg-end">
-            <p className="chain-title mono">ETH</p>
-          </div>
-        </div>
-      </div>
-
-      <span className="wire wire-down" aria-hidden="true">
-        <span className="mono">always</span>
-      </span>
-
-      <div className="node branch-out">
-        <span className="chain-tag mono">Into the whale's wallet</span>
       </div>
     </div>
   );

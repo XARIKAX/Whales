@@ -16,9 +16,10 @@ import Whale from "./Whale.jsx";
  * Every plane owns an exclusive horizontal band, and within a plane each
  * creature owns an exclusive lane inside that band. Nothing can therefore swim
  * over anything else — two animals crossing is not depth, it is a collision,
- * and it reads as one. The bands also keep the water quiet where the words are:
- * fish sit above the headline, the pod sits below the buttons, and exactly one
- * whale is allowed through the middle.
+ * and it reads as one. The bands stack from the surface to the sea floor and
+ * cover the whole scene, message included: everything here paints behind the
+ * words, and confining it to the strips of water the words do not occupy only
+ * ever produced a pod queued along the top edge.
  *
  * Every plane is pure CSS transform on a wrapper — nothing here runs per-frame
  * in JavaScript, and nothing takes a pointer event.
@@ -79,32 +80,45 @@ function rng(seed) {
 const pick = (r, [lo, hi]) => lo + r() * (hi - lo);
 
 /**
- * Plane definitions. `size` is sprite height in px, `cross` is seconds to
- * traverse the viewport, and `beat` is seconds per tail stroke. `y` is the
- * band, and no two bands overlap.
+ * The hero, as five planes stacked from the surface to the sea floor.
+ *
+ * `y` is a share of the hero, `cap` is the tallest a sprite may be as a share
+ * of it, and the two together guarantee the bands never touch: a plane's lowest
+ * sprite bottoms out at exactly `y1`, because the jitter each creature gets is
+ * its lane minus a whole sprite. So the bands can be packed edge to edge and
+ * still never produce a collision.
+ *
+ * Creatures cross behind the message now. They always did pass behind it in the
+ * z-order; what changed is that they are no longer banished to the two strips
+ * of water it does not occupy, which had pushed the entire pod into the top
+ * fifth of the scene and left the rest of the hero empty. Depth needs the whole
+ * frame: something small and faint near the surface, something large and slow
+ * further down, and the headline sitting in the middle of it rather than on top
+ * of a cleared shelf.
+ *
+ * `cross` is seconds to traverse the viewport and `beat` is seconds per tail
+ * stroke: big whales beat slowly and cross slowly, and that difference in
+ * cadence sells the difference in distance more than the scale does.
  *
  * There is no blur on any of these. Depth is carried by size, speed and opacity
  * alone: a CSS blur on a moving element is re-rasterised every frame, and twenty
  * of them was half the reason this page could not hold a frame rate.
  */
-/*
- * `y` is now a share of the band the plane is dropped into rather than of the
- * whole hero, and `cap` is the tallest a sprite may be as a share of that band.
- * On a short laptop the water below the message is a hundred pixels; three
- * forty-pixel whales in a hundred pixels is a pile, not a pod, so they shrink
- * to fit the water they have instead of climbing out of it.
- */
 const PLANES = {
-  /* The pod, in the open water above the message. It gets the upper band
-     because the upper band is the one with room: measured across every window
-     size, the water above the headline runs 110px to 270px and the water below
-     the readout runs 55px to 115px, most of which is wave. Whales near the
-     surface is also simply where whales are. */
-  pod: { n: 3, kind: "whale", size: [26, 42], cross: [50, 82], y: [0, 96], cap: 24, opacity: 0.85, beat: [1.4, 2.4] },
-  /* Reef fish in the kelp at the foot of the hero. Scenery, not cast, but close
-     enough now to have colour: at the top of the scene they were nine grey
-     pixels at a quarter opacity, which is not detail, it is dust. */
-  reef: { n: 4, kind: "fish", size: [11, 18], cross: [58, 88], y: [0, 96], cap: 20, opacity: 0.44, beat: [0.6, 0.95] },
+  /* Surface haze. Nine pixels of fish at a fifth opacity: texture, not cast. */
+  far: { n: 3, kind: "fish", size: [9, 14], cross: [72, 104], y: [3, 14], cap: 2, opacity: 0.24, beat: [0.6, 0.9] },
+  /* Distant whales, small and slow, a long way out. */
+  high: { n: 2, kind: "whale", size: [20, 32], cross: [64, 96], y: [16, 32], cap: 4.5, opacity: 0.36, beat: [1.8, 2.8] },
+  /* The pod, at the depth of the headline, crossing behind it. */
+  mid: { n: 2, kind: "whale", size: [36, 54], cross: [50, 78], y: [34, 52], cap: 7, opacity: 0.44, beat: [1.5, 2.3] },
+  /* One near whale, big and unhurried, crossing under the message. It is the
+     faintest thing in the scene precisely because it is the largest: at this
+     size anything more solid stops being water behind the words and starts
+     being an obstruction in front of them. */
+  low: { n: 1, kind: "whale", size: [62, 88], cross: [38, 56], y: [56, 70], cap: 11, opacity: 0.28, beat: [1.2, 1.7] },
+  /* Reef fish in the kelp at the foot of the scene, close enough to have
+     colour: at the top of the frame they were grey dust. */
+  reef: { n: 3, kind: "fish", size: [12, 20], cross: [58, 88], y: [74, 88], cap: 2.6, opacity: 0.44, beat: [0.6, 0.95] },
   /* Below the hero, life thins and slows as the page descends. These two run
      in lanes: strips of empty page between one block of content and the next.
      One creature to a lane, sized to the lane, so a whale is a detail passing

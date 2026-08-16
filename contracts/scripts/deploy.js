@@ -6,20 +6,55 @@
 //   LAUNCH_RECIPIENT  address that receives the 1B $WHALE for the Flap launch
 //   PROVENANCE        0x… hash from scripts/provenance.js — required
 //   BASE_URI          ipfs://<CID>/ for the metadata (optional, settable later)
-//   MINT_PRICE        ETH price per whale            (default 0.02)
+//   MINT_PRICE_USD    dollar price per whale         (default 1)
+//   ETH_USD           ETH price used to convert it   — required off a dev chain
+//   MINT_PRICE        explicit ETH price, skips the conversion above
 //   HAUL_THRESHOLD    minimum pot before a haul      (default 0.1)
-//   SWAP_ROUTER       AMM for stock election         (default: disabled)
-//   WETH              wrapped native token, required when SWAP_ROUTER is set
 const fs = require("fs");
 const path = require("path");
 const { ethers, network } = require("hardhat");
 
+const DEV_NETWORKS = ["hardhat", "localhost"];
+
+/**
+ * The mint price is denominated in dollars but stored on chain as an immutable
+ * native-token amount, so the conversion happens exactly once, here. Stating
+ * the intent as "$1 at $1880/ETH" rather than a raw "0.000531914893617021"
+ * means a slipped decimal is visible in the deploy log instead of being
+ * discovered after it is permanent.
+ */
+function resolveMintPrice() {
+  if (process.env.MINT_PRICE) {
+    return { wei: ethers.parseEther(process.env.MINT_PRICE), usd: null, ethUsd: null };
+  }
+
+  const usd = process.env.MINT_PRICE_USD || "1";
+  const ethUsd = process.env.ETH_USD;
+
+  if (!ethUsd) {
+    if (!DEV_NETWORKS.includes(network.name)) {
+      throw new Error(
+        `mint price is $${usd} per whale, but ETH_USD is not set so it cannot be converted.\n` +
+        "  Set ETH_USD to the rate you are pricing at, or MINT_PRICE to an explicit ETH amount."
+      );
+    }
+    // A dev chain has no real rate to quote; keep local runs a one-liner.
+    return { wei: ethers.parseEther("0.02"), usd: null, ethUsd: null };
+  }
+
+  const wei = (ethers.parseEther(usd) * 10n ** 18n) / ethers.parseEther(ethUsd);
+  if (wei === 0n) throw new Error(`$${usd} at $${ethUsd}/ETH rounds to zero wei`);
+
+  return { wei, usd, ethUsd };
+}
+
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  const launchRecipient = process.env.LAUNCH_RECIPIENT || deployer.address;
-  const mintPrice = ethers.parseEther(process.env.MINT_PRICE || "0.02");
+  // Everything the environment has to get right is checked before the first
+  // round trip, so a slipped decimal or a missing hash fails in a second rather
+  // than after a wallet has been unlocked and a node contacted.
+  const price = resolveMintPrice();
+  const mintPrice = price.wei;
   const haulThreshold = ethers.parseEther(process.env.HAUL_THRESHOLD || "0.1");
-  const router = process.env.SWAP_ROUTER || ethers.ZeroAddress;
   const provenance = process.env.PROVENANCE;
   const baseURI = process.env.BASE_URI || "";
 
@@ -29,13 +64,17 @@ async function main() {
       "  node scripts/provenance.js ../pipeline/output/metadata"
     );
   }
-  const weth = process.env.WETH || ethers.ZeroAddress;
 
-  if (router !== ethers.ZeroAddress && weth === ethers.ZeroAddress) {
-    throw new Error("SWAP_ROUTER is set but WETH is not; stock election needs both");
-  }
+  const [deployer] = await ethers.getSigners();
+  const launchRecipient = process.env.LAUNCH_RECIPIENT || deployer.address;
 
   console.log(`deploying to ${network.name} from ${deployer.address}`);
+  console.log(
+    price.usd
+      ? `mint price ${ethers.formatEther(mintPrice)} ETH — $${price.usd} at $${price.ethUsd}/ETH, ` +
+        `${ethers.formatEther(mintPrice * 1000n)} ETH if all 1000 are minted`
+      : `mint price ${ethers.formatEther(mintPrice)} ETH`
+  );
 
   const token = await ethers.deployContract("WhaleToken", [launchRecipient]);
   await token.waitForDeployment();
@@ -62,8 +101,6 @@ async function main() {
     await whales.getAddress(),
     await registry.getAddress(),
     haulThreshold,
-    router,
-    weth,
   ]);
   await trench.waitForDeployment();
 
@@ -90,11 +127,13 @@ async function main() {
     parameters: {
       launchRecipient,
       mintPrice: mintPrice.toString(),
+      mintPriceUsd: price.usd,
+      ethUsdAtDeploy: price.ethUsd,
+      maxPerMint: 10,
+      perWalletLimit: null,
       provenance,
       baseURI: baseURI || null,
       haulThreshold: haulThreshold.toString(),
-      swapRouter: router,
-      weth,
     },
   };
 

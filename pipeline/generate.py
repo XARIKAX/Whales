@@ -292,8 +292,10 @@ for name, w, *_ in T.BODIES:
     WEIGHTS[("Body", name)] = w
 
 
-def attributes(t, legend_name=None):
+def attributes(t, legend_name=None, tier=None):
     out = []
+    if tier:
+        out.append({"trait_type": "Tier", "value": tier})
     for key in ("Background", "Body", "Eyes", "Mouth", "Headwear", "Neck"):
         v = t.get(key)
         if v and v != "None":
@@ -305,6 +307,35 @@ def attributes(t, legend_name=None):
     if legend_name:
         out.append({"trait_type": "Legendary", "value": legend_name})
     return out
+
+
+# How the 990 non-legendaries split once ranked by rarity score. Cosmetic:
+# weight comes from loyalty alone and a Legendary earns exactly what a Common
+# earns. It lives in the metadata rather than being recomputed in the browser
+# because the metadata is the thing provenance commits to — a tier derived
+# client-side is a label anyone can quietly change.
+TIER_BANDS = (("Rare", 50), ("Uncommon", 190))
+
+
+def assign_tiers(ids, by_id):
+    """Tier per token id, over the whole collection and not a --limit slice, so
+    a sample run labels its whales exactly as the full run would."""
+    # Ties broken by id, so the bands are a function of the seed and nothing
+    # else — two runs cannot disagree about who sits on a boundary.
+    ranked = sorted(
+        (tid for tid in ids if tid not in LEGENDARIES),
+        key=lambda tid: (-rarity_score(by_id[tid]), tid),
+    )
+
+    tiers = {tid: "Legendary" for tid in LEGENDARIES}
+    cut = 0
+    for name, count in TIER_BANDS:
+        for tid in ranked[cut:cut + count]:
+            tiers[tid] = name
+        cut += count
+    for tid in ranked[cut:]:
+        tiers[tid] = "Common"
+    return tiers
 
 
 def rarity_score(t):
@@ -476,6 +507,8 @@ def main():
     (OUT / "images").mkdir(parents=True, exist_ok=True)
     (OUT / "metadata").mkdir(parents=True, exist_ok=True)
 
+    tiers = assign_tiers(ids, by_id)
+
     print(f"rendering {min(args.limit, SUPPLY)}")
     rows_csv = []
     for n, tid in enumerate(ids[:args.limit], 1):
@@ -487,12 +520,13 @@ def main():
             "name": f"WHALES #{tid:04d}",
             "description": "1000 whales. Every fee in the ocean.",
             "image": f"ipfs://{args.cid}/{tid:04d}.png",
-            "attributes": attributes(t, legend[0] if legend else None),
+            "attributes": attributes(t, legend[0] if legend else None, tiers[tid]),
         }
         (OUT / "metadata" / f"{tid:04d}.json").write_text(json.dumps(meta, indent=1))
 
         rows_csv.append({
             "id": tid,
+            "tier": tiers[tid],
             "legendary": legend[0] if legend else "",
             "background": t["Background"], "body": t["Body"], "eyes": t["Eyes"],
             "mouth": t["Mouth"], "headwear": t["Headwear"], "neck": t["Neck"],

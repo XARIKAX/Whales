@@ -8,7 +8,7 @@ const ACTIVATION_BURN = ethers.parseEther("1000000");
 const BASE_WEIGHT = 10_000n;
 const MAX_WEIGHT = 33_300n;
 
-async function deployOcean({ withRouter = false, routerContract = "MockRouter" } = {}) {
+async function deployOcean() {
   const [deployer, alice, bob, carol, keeper] = await ethers.getSigners();
 
   const token = await ethers.deployContract("WhaleToken", [deployer.address]);
@@ -19,26 +19,15 @@ async function deployOcean({ withRouter = false, routerContract = "MockRouter" }
   ]);
   const registry = await ethers.deployContract("WhaleAccountRegistry", [await whales.getAddress()]);
 
-  let router = { getAddress: async () => ethers.ZeroAddress };
-  let stock = null;
-  let weth = ethers.ZeroAddress;
-  if (withRouter) {
-    router = await ethers.deployContract(routerContract);
-    stock = await ethers.deployContract("MockStock", ["Tokenised NVDA", "tNVDA"]);
-    weth = "0x0000000000000000000000000000000000000042";
-  }
-
   const trench = await ethers.deployContract("Trench", [
     await whales.getAddress(),
     await registry.getAddress(),
     HAUL_THRESHOLD,
-    await router.getAddress(),
-    weth,
   ]);
 
   await whales.setTrench(await trench.getAddress());
 
-  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench, router, stock };
+  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench };
 }
 
 /** Mints `count` whales to `to` and returns their ids. */

@@ -301,7 +301,7 @@ export default function Loop({ stages }) {
                 onFocus={() => setStage(i)}
                 onBlur={() => setStage(null)}
                 aria-pressed={stage === i}
-                aria-label={`${STAGE_LABEL[i]} — hold the animation on this stage`}
+                aria-label={`${STAGE_LABEL[i]}: hold the animation on this stage`}
               >
                 <span className="loop-key-n mono">{String(i + 1).padStart(2, "0")}</span>
                 <span className="loop-key-head">

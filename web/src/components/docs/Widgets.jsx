@@ -382,7 +382,7 @@ export function HaulWidget({ ocean }) {
   return (
     <Widget
       title="Work out a haul"
-      hint="Drag either dial — nothing is signed and nothing is sent"
+      hint="Drag either dial. Nothing is signed and nothing is sent"
       fallback={
         <p className="widget-fallback">
           A 10 ETH pot across 120 activated whales pays 0.0829 ETH to a whale at 1.00x and 0.2740 ETH
