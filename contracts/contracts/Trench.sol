@@ -5,7 +5,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {ITrench} from "./interfaces/ITrench.sol";
 import {IWhales} from "./interfaces/IWhales.sol";
 import {IWhaleAccountRegistry} from "./interfaces/IWhaleAccountRegistry.sol";
-import {ISwapRouter} from "./interfaces/ISwapRouter.sol";
 
 /// @title The Trench
 /// @notice Every fee in the ocean ends up here. The Flap launch tax arrives as
@@ -30,10 +29,6 @@ contract Trench is ITrench, ReentrancyGuard {
     uint256 public constant TIP_BPS = 50; // 0.5% to whoever presses the button
     uint256 public constant BPS = 10_000;
 
-    /// @dev Ceiling on gas forwarded to a stock-election swap. Generous for a
-    ///      real AMM hop, bounded against a hostile token.
-    uint256 public constant SWAP_GAS_LIMIT = 400_000;
-
     // --- Immutable wiring -------------------------------------------------
 
     IWhales public immutable whales;
@@ -41,11 +36,6 @@ contract Trench is ITrench, ReentrancyGuard {
 
     /// @notice Minimum pot before the net can be hauled.
     uint256 public immutable haulThreshold;
-
-    /// @notice Optional AMM used for stock election. Zero disables it and every
-    ///         whale is paid in ETH.
-    ISwapRouter public immutable router;
-    address public immutable weth;
 
     // --- Distribution accounting ------------------------------------------
 
@@ -71,9 +61,6 @@ contract Trench is ITrench, ReentrancyGuard {
     ///         pot -- it already belongs to a whale.
     uint256 public reserved;
 
-    /// @notice The stock each whale is paid in, or zero for ETH.
-    mapping(uint256 => address) public stockElection;
-
     // --- Lifetime stats ---------------------------------------------------
 
     uint256 public totalReceived;
@@ -88,28 +75,22 @@ contract Trench is ITrench, ReentrancyGuard {
     error OnlyWhales();
     error BelowThreshold(uint256 pot, uint256 threshold);
     error NoActiveWhales();
-    error NotHolder(uint256 tokenId, address caller);
     error DeliveryFailed(uint256 tokenId, address account);
     error TipFailed();
 
     event Received(address indexed from, uint256 amount);
     event Hauled(address indexed keeper, uint256 pot, uint256 distributed, uint256 tip, uint256 totalWeight);
-    event Delivered(uint256 indexed tokenId, address indexed account, uint256 amount, address asset);
-    event StockElected(uint256 indexed tokenId, address indexed stock);
+    event Delivered(uint256 indexed tokenId, address indexed account, uint256 amount);
     event WeightChanged(uint256 indexed tokenId, uint256 oldWeight, uint256 newWeight, uint256 totalWeight);
 
     constructor(
         IWhales whales_,
         IWhaleAccountRegistry registry_,
-        uint256 haulThreshold_,
-        ISwapRouter router_,
-        address weth_
+        uint256 haulThreshold_
     ) {
         whales = whales_;
         registry = registry_;
         haulThreshold = haulThreshold_;
-        router = router_;
-        weth = weth_;
     }
 
     // --- Taking money in --------------------------------------------------
@@ -210,8 +191,7 @@ contract Trench is ITrench, ReentrancyGuard {
 
     /// @notice Push a whale's share into the whale's own wallet.
     /// @dev Permissionless -- no claim form, and the holder does not have to be
-    ///      the one to call it. Delivers the elected stock when one is set and
-    ///      the swap succeeds, otherwise ETH.
+    ///      the one to call it.
     function deliver(uint256 tokenId) public nonReentrant returns (uint256 amount) {
         return _deliver(tokenId);
     }
@@ -234,42 +214,10 @@ contract Trench is ITrench, ReentrancyGuard {
         totalDelivered += amount;
 
         address account = registry.createAccount(tokenId);
-        address stock = stockElection[tokenId];
-
-        if (stock != address(0) && address(router) != address(0)) {
-            address[] memory path = new address[](2);
-            path[0] = weth;
-            path[1] = stock;
-
-            // Gas-capped on purpose. The elected token is named by the holder
-            // with no allowlist, so a hostile one could otherwise burn the
-            // whole transaction's gas and take a keeper's entire delivery
-            // batch down with it. Capped, a bad election costs only its own
-            // whale a swap, and that whale still gets paid in ETH below.
-            try router.swapExactETHForTokensSupportingFeeOnTransferTokens{
-                value: amount,
-                gas: SWAP_GAS_LIMIT
-            }(0, path, account, block.timestamp) {
-                emit Delivered(tokenId, account, amount, stock);
-                return amount;
-            } catch {
-                // Thin book, bad token, dead router -- the whale still gets paid.
-            }
-        }
 
         (bool ok,) = account.call{value: amount}("");
         if (!ok) revert DeliveryFailed(tokenId, account);
-        emit Delivered(tokenId, account, amount, address(0));
-    }
-
-    /// @notice Choose the asset this whale is paid in. Zero means ETH.
-    /// @dev The holder names the token themselves -- there is no allowlist and
-    ///      nobody curates it. A token that cannot be bought just falls back to
-    ///      ETH at delivery.
-    function electStock(uint256 tokenId, address stock) external {
-        if (whales.ownerOf(tokenId) != msg.sender) revert NotHolder(tokenId, msg.sender);
-        stockElection[tokenId] = stock;
-        emit StockElected(tokenId, stock);
+        emit Delivered(tokenId, account, amount);
     }
 
     // --- Views for the dashboard and the keeper ---------------------------
@@ -278,23 +226,31 @@ contract Trench is ITrench, ReentrancyGuard {
         uint256 tokenId;
         address holder;
         address account;
+        /// @dev ETH sitting in the whale's own wallet: delivered, and waiting
+        ///      for the holder to move it out with `WhaleAccount.execute`.
+        uint256 accountBalance;
+        /// @dev False until the wallet's code exists. The address is fixed
+        ///      either way, so the balance above is real regardless -- but the
+        ///      holder has to create the account before it can be spent from.
+        bool accountDeployed;
         uint64 activatedAt;
         uint256 weight;
         uint256 claimable;
         uint256 lifetimeEarned;
-        address stock;
     }
 
     function whaleState(uint256 tokenId) public view returns (WhaleState memory) {
+        address account = registry.accountOf(tokenId);
         return WhaleState({
             tokenId: tokenId,
             holder: whales.ownerOf(tokenId),
-            account: registry.accountOf(tokenId),
+            account: account,
+            accountBalance: account.balance,
+            accountDeployed: account.code.length != 0,
             activatedAt: whales.activatedAt(tokenId),
             weight: weightOf[tokenId],
             claimable: claimable(tokenId),
-            lifetimeEarned: lifetimeEarned[tokenId],
-            stock: stockElection[tokenId]
+            lifetimeEarned: lifetimeEarned[tokenId]
         });
     }
 

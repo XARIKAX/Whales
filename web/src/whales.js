@@ -24,6 +24,10 @@ export function fromChain(rows, now = Math.floor(Date.now() / 1000)) {
       tokenId: Number(row.tokenId),
       holder: row.holder,
       account: row.account,
+      // Already delivered and sitting in the whale's own wallet, waiting for
+      // the holder to move it out.
+      accountBalance: row.accountBalance ?? 0n,
+      accountDeployed: Boolean(row.accountDeployed),
       fed,
       weight: Number(row.weight || 0),
       heldDays: fed ? Math.max(0, Math.floor((now - Number(row.activatedAt)) / 86_400)) : 0,
@@ -31,7 +35,6 @@ export function fromChain(rows, now = Math.floor(Date.now() / 1000)) {
       // The contract calls this `claimable`. The pages call it what a holder
       // would: money that is theirs and has not landed yet.
       unclaimed: row.claimable ?? 0n,
-      stock: row.stock,
       // Tier is a metadata trait, which is a gateway fetch away rather than a
       // contract read, so the tiles fill it in as their art arrives.
       tier: null,

@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { CHAIN, ADDRESSES, PRICE_URL, PRICE_PATH, LOG_LOOKBACK, resolveUri } from "./config.js";
-import { trenchAbi, whalesAbi, erc20Abi } from "./abi.js";
+import { trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi } from "./abi.js";
 
 export const publicClient = createPublicClient({ chain: CHAIN, transport: http() });
 
@@ -187,4 +187,54 @@ export async function readEthPrice() {
   }
 }
 
-export { ADDRESSES, trenchAbi, whalesAbi, erc20Abi };
+/** Where a whale's wallet is, and whether it exists yet. */
+export async function readAccount(tokenId) {
+  const address = await publicClient.readContract({
+    address: ADDRESSES.registry,
+    abi: registryAbi,
+    functionName: "accountOf",
+    args: [BigInt(tokenId)],
+  });
+  const [balance, code] = await Promise.all([
+    publicClient.getBalance({ address }),
+    publicClient.getBytecode({ address }),
+  ]);
+  return { address, balance, deployed: Boolean(code && code !== "0x") };
+}
+
+/**
+ * Move a whale's ETH out of its own wallet and into the holder's.
+ *
+ * `execute` is restricted on chain to `ownerOf(tokenId)`, so this is a call
+ * only the holder can make — the dashboard is not being trusted with anything.
+ *
+ * Two transactions the first time: a whale's wallet address is fixed from the
+ * moment the token exists, and ETH can arrive there before any code does, so
+ * the account has to be created before it can be spent from. After that it is
+ * one. `createAccount` is permissionless and idempotent.
+ */
+export async function withdrawFromWhale({ client, holder, tokenId, whaleAccount, deployed, amount, onStep }) {
+  if (!deployed) {
+    onStep?.("Creating the whale's wallet — confirm the first of two.");
+    const created = await client.writeContract({
+      account: holder,
+      address: ADDRESSES.registry,
+      abi: registryAbi,
+      functionName: "createAccount",
+      args: [BigInt(tokenId)],
+      chain: client.chain,
+    });
+    await publicClient.waitForTransactionReceipt({ hash: created });
+  }
+
+  return client.writeContract({
+    account: holder,
+    address: whaleAccount,
+    abi: whaleAccountAbi,
+    functionName: "execute",
+    args: [holder, amount, "0x"],
+    chain: client.chain,
+  });
+}
+
+export { ADDRESSES, trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi };

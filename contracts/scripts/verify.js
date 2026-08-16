@@ -28,13 +28,7 @@ async function main() {
     [
       "Trench",
       contracts.trench,
-      [
-        contracts.whales,
-        contracts.registry,
-        parameters.haulThreshold,
-        parameters.swapRouter,
-        parameters.weth,
-      ],
+      [contracts.whales, contracts.registry, parameters.haulThreshold],
     ],
   ];
 

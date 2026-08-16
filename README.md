@@ -9,13 +9,13 @@ splits it across activated whale NFTs — paid in ETH on Robinhood Chain.
 ```
 trades taxed  →  tax lands in the Trench  →  anyone hauls
                                                  ↓
-     ETH (or stock) arrives   ←   split by loyalty weight
-     in the whale's own wallet     across every fed whale
+     ETH arrives in the       ←   split by loyalty weight
+     whale's own wallet            across every fed whale
 ```
 
 | Path | What it is |
 | --- | --- |
-| `contracts/` | Five contracts, 60 tests, deploy scripts |
+| `contracts/` | Five contracts, 56 tests, deploy scripts |
 | `pipeline/` | The Python generator that produced the 1000 PNGs and their metadata |
 | `keeper/` | A bot that presses the buttons anyone can press |
 | `web/` | The dashboard: live pot, haul countdown, per-whale earnings |
@@ -73,6 +73,12 @@ NFT — sell the whale and the wallet goes with it, contents and all.
 The address is a pure function of the token id, so ETH sent before the account
 exists is not lost; it is waiting when the account is created.
 
+Getting it out is `execute(to, value, data)`, restricted on chain to
+`ownerOf(tokenId)`. The dashboard offers it as a **Withdraw** button on each
+card in `/portfolio` and in the actions console — a convenience over a call only
+the holder can make. The first withdraw for a whale is two transactions, because
+the wallet has to be created before it can be spent from; after that it is one.
+
 ---
 
 ## How the haul works
@@ -86,6 +92,13 @@ That works at 1000 whales because the split is an accumulator, not a loop:
 whale at once in O(1). `deliver` is the separate, batchable step that moves a
 whale's share into its wallet. Until then the share is safe in the contract.
 
+So ETH makes three stops, and the dashboard shows the balance at each:
+
+```
+Trench  ──haul + deliver──▶  the whale's own wallet  ──withdraw──▶  you
+ anyone can press these two                    only the holder can press this
+```
+
 **Loyalty weighting.** Every activated whale starts at 1x and climbs to a
 3.33x cap by staying active:
 
@@ -96,11 +109,6 @@ whale's share into its wallet. Until then the share is safe in the contract.
 Promotion is permissionless — anyone can promote any whale to the tier it has
 already earned, and the call can only ever *raise* a weight. A whale nobody
 syncs simply keeps earning at its old rate.
-
-**Stock election.** A whale's share can be auto-swapped into a stock token the
-holder names. There is no allowlist. If the swap fails for any reason the whale
-is paid in ETH rather than stranded, and the swap runs under a hard gas ceiling
-so a hostile token can't take a keeper's whole delivery batch down with it.
 
 **A keeper bot presses the buttons, but has no special powers** — whoever
 hauls earns the tip. If the bot dies, any wallet does its job.
@@ -168,7 +176,7 @@ wallet doesn't also have.
 ```bash
 cd contracts
 npm install
-npx hardhat test        # 60 tests
+npx hardhat test        # 56 tests
 ```
 
 `solc` is pinned in `devDependencies` rather than fetched at build time, so
@@ -217,9 +225,12 @@ refuses to guess: set `ETH_USD`, or `MINT_PRICE` for an explicit ETH amount.
 Because the amount is fixed at deployment, the dollar price drifts with ETH from
 that block onward.
 
-`HAUL_THRESHOLD` (0.1) has a default. `SWAP_ROUTER` and `WETH` are optional —
-set both to enable stock election, leave them unset and every whale is paid in
-ETH.
+`HAUL_THRESHOLD` (0.1) has a default.
+
+**Everything is ETH, end to end.** The Flap tax arrives as ETH and leaves as
+ETH, into each whale's own wallet. The Trench holds no router, calls no AMM and
+offers no way to be paid in anything else, so a delivery has one outcome and no
+dependency outside this repo. A test asserts the ABI cannot grow one.
 
 Addresses are written to `contracts/deployments/<network>.json`, which the
 keeper and dashboard both read — and which is gitignored, so back it up. Then
@@ -332,7 +343,6 @@ contracts/test/
   loyalty.test.js     the weight curve, and permissionless syncing
   trench.test.js      haul maths, the tip, delivery, conservation
   account.test.js     token-bound wallets and who controls them
-  stock.test.js       stock election, its ETH fallback, and a hostile token
 ```
 
 The one worth reading is the conservation invariant in `trench.test.js`: across

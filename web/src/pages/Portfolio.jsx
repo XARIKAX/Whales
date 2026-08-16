@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatEther } from "viem";
 import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
@@ -7,6 +8,7 @@ import { Link } from "../router.jsx";
 import { useWhaleArt } from "../components/WhaleArt.jsx";
 import { SAMPLE_WHALES } from "../placeholder.js";
 import { useHauls } from "../hooks.js";
+import { publicClient, withdrawFromWhale } from "../chain.js";
 import { speciesFor } from "../whales.js";
 import { usd, multiplier, address, eth } from "../format.js";
 
@@ -33,9 +35,39 @@ function Reading({ label, value, unit, meter, of }) {
 
 /* --- One whale in the holdings grid -------------------------------------- */
 
-function Holding({ whale, price }) {
+function Holding({ whale, price, wallet, connected, onDone }) {
   const earned = Number(formatEther(whale.lifetimeEarned));
   const waiting = Number(formatEther(whale.unclaimed));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  /* Money that has already been delivered is not in this page's gift — it is
+     in the whale's own wallet, and only the holder can move it. */
+  const inWallet = whale.accountBalance ?? 0n;
+  const mine = connected && wallet?.account?.toLowerCase() === whale.holder?.toLowerCase();
+
+  async function withdraw() {
+    setBusy(true);
+    setError(null);
+    try {
+      const client = await wallet.client();
+      const hash = await withdrawFromWhale({
+        client,
+        holder: client.account.address,
+        tokenId: whale.tokenId,
+        whaleAccount: whale.account,
+        deployed: whale.accountDeployed,
+        amount: inWallet,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Transaction reverted.");
+      onDone?.();
+    } catch (e) {
+      setError(e.shortMessage || e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   /* A page about what you own should show the thing you own. The drawn creature
      stands in until the gateway hands over the real pixels, so the card never
@@ -79,23 +111,35 @@ function Holding({ whale, price }) {
           <dd className="mono">{num(waiting, 4)} ETH</dd>
         </div>
         <div>
+          <dt className="mono">In its wallet</dt>
+          <dd className="mono">{num(Number(formatEther(inWallet)), 4)} ETH</dd>
+        </div>
+        <div>
           <dt className="mono">Held</dt>
           <dd className="mono">{whale.heldDays}d</dd>
         </div>
       </dl>
 
-      {!whale.fed && (
+      {inWallet > 0n && mine && (
+        <button className="btn btn-foam btn-sm holding-cta" onClick={withdraw} disabled={busy}>
+          {busy ? "Confirm in your wallet…" : `Withdraw ${num(Number(formatEther(inWallet)), 4)} ETH`}
+        </button>
+      )}
+
+      {!whale.fed && inWallet === 0n && (
         <Link className="btn btn-foam btn-sm holding-cta" to="/activate">
           Wake it
         </Link>
       )}
+
+      {error && <p className="notice error">{error}</p>}
     </article>
   );
 }
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Portfolio({ wallet, whales, ocean, price, live }) {
+export default function Portfolio({ wallet, whales, ocean, price, live, onRefresh }) {
   const account = wallet?.account;
   /* Connected means real, even when the honest answer is "none". */
   const connected = Boolean(account) && live;
@@ -107,6 +151,8 @@ export default function Portfolio({ wallet, whales, ocean, price, live }) {
   const earned = pod.reduce((sum, w) => sum + Number(formatEther(w.lifetimeEarned)), 0);
   const waiting = pod.reduce((sum, w) => sum + Number(formatEther(w.unclaimed)), 0);
   const weight = pod.reduce((sum, w) => sum + w.weight, 0) / 10_000;
+  const inWallets = pod.reduce((sum, w) => sum + (w.accountBalance ?? 0n), 0n);
+  const withdrawable = Number(formatEther(inWallets));
 
   /* Collection-wide figures come from the contract, not from a marketplace. A
      floor price and a 24h volume would have to be fetched from somewhere that
@@ -128,8 +174,9 @@ export default function Portfolio({ wallet, whales, ocean, price, live }) {
               Everything you <span className="tide on-dark">hold.</span>
             </h1>
             <p className="lede on-dark">
-              Every whale in this wallet, what each is worth at the floor, what each has earned, and
-              what is waiting to land. Read straight from the chain once the contracts are deployed.
+              Every whale in this wallet, what each has earned, what is still waiting in the Trench,
+              and what is sitting in the whale's own wallet ready for you to withdraw. Read straight
+              from the contracts.
             </p>
           </Reveal>
 
@@ -174,11 +221,11 @@ export default function Portfolio({ wallet, whales, ocean, price, live }) {
             of={`${weight.toFixed(2)}x total weight`}
           />
           <Reading
-            label="Share of the pod"
-            value={<CountUp value={supply ? (held / supply) * 100 : 0} format={(n) => n.toFixed(1)} />}
-            unit="%"
-            meter={supply ? held / supply : 0}
-            of={`${activated} of ${supply} activated`}
+            label="In your whale wallets"
+            value={<CountUp value={withdrawable} format={(n) => num(n, 4)} />}
+            unit="ETH"
+            meter={withdrawable / Math.max(withdrawable + waiting, 1e-9)}
+            of="yours to withdraw, on each card below"
           />
         </div>
         <p className="strip-foot mono">
@@ -201,7 +248,14 @@ export default function Portfolio({ wallet, whales, ocean, price, live }) {
 
           <Reveal className="holdings" stagger step={60}>
             {pod.map((whale) => (
-              <Holding key={whale.tokenId} whale={whale} price={price} />
+              <Holding
+                key={whale.tokenId}
+                whale={whale}
+                price={price}
+                wallet={wallet}
+                connected={connected}
+                onDone={onRefresh}
+              />
             ))}
           </Reveal>
 

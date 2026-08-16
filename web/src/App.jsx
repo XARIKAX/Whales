@@ -132,7 +132,17 @@ export default function App() {
       )}
 
       {route === "/portfolio" && (
-        <Portfolio wallet={wallet} whales={held} ocean={ocean} price={price} live={live} />
+        <Portfolio
+          wallet={wallet}
+          whales={held}
+          ocean={ocean}
+          price={price}
+          live={live}
+          onRefresh={() => {
+            refresh();
+            refreshWhales();
+          }}
+        />
       )}
 
       {route !== "/activate" && route !== "/portfolio" && (

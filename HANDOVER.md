@@ -10,19 +10,20 @@ local Hardhat chain.
 
 ## What exists
 
-Five contracts in `contracts/contracts/`, 60 passing tests (`npx hardhat test`):
+Five contracts in `contracts/contracts/`, 56 passing tests (`npx hardhat test`):
 
 | Contract | State |
 | --- | --- |
 | `WhaleToken.sol` | ERC20. 1B minted once at deploy, no mint function, no owner. |
 | `Whales.sol` | ERC721, 1000 supply, burn-to-activate, loyalty weighting, transfer-hook deactivation, IPFS metadata with a one-way freeze. |
-| `Trench.sol` | Fee sink. No withdraw function. `haul()` splits by weight via an O(1) accumulator; `deliver()` pushes into whale wallets. |
-| `WhaleAccount.sol` + `WhaleAccountRegistry.sol` | ERC-6551-style wallet per whale, identity in bytecode. |
+| `Trench.sol` | Fee sink. No withdraw function. `haul()` splits by weight via an O(1) accumulator; `deliver()` pushes ETH into whale wallets. ETH in, ETH out — no router, no swap. |
+| `WhaleAccount.sol` + `WhaleAccountRegistry.sol` | ERC-6551-style wallet per whale, identity in bytecode. `execute` is holder-only and is how ETH leaves; the dashboard drives it from a Withdraw button. |
 
 Plus `contracts/scripts/deploy.js` (refuses to report success unless the
 deployer role actually died), `scripts/provenance.js`, and `keeper/keeper.js`.
 
-The 1000 PNGs and their metadata are committed under `pipeline/output/`.
+The 1000 metadata files and ten contact sheets are committed under
+`pipeline/output/`; the full-size renders are regenerated (see step 2).
 
 ---
 
@@ -58,7 +59,7 @@ The 1000 PNGs are not in git — they are 133MB and are regenerated instead. The
 ten contact sheets under `pipeline/output/sheets/` are committed as the check on
 that: a fresh run reproduces all ten byte for byte. Verified — a clean
 `python3 generate.py` here matched every sheet's md5 and reproduced provenance
-`0x7f19…d709` exactly. So step (a) below starts by rebuilding them.
+`0x4e3e…2284` exactly. So step (a) below starts by rebuilding them.
 
 ```bash
 # a. regenerate the renders, then pin pipeline/output/images/ → image CID
@@ -91,7 +92,6 @@ MINT_PRICE_USD      dollar price per whale — default 1
 ETH_USD             the rate it is converted at; required off a dev chain
 MINT_PRICE          explicit ETH amount, skips the conversion
 HAUL_THRESHOLD      default 0.1
-SWAP_ROUTER / WETH  both, or neither
 ```
 
 `deploy.js` calls `setTrench` and asserts the deployer role is zero afterwards.
@@ -161,12 +161,6 @@ no pause and no priority.
 just pointing the launch tax at its address. Confirm Flap's launch contract
 actually allows an arbitrary tax recipient. That has never been verified
 against Flap's real contract, only assumed.
-
-**Stock election.** `Trench` takes a router and WETH address at construction.
-Both are `address(0)` today, which disables the feature and pays everyone in
-ETH. Supply a real AMM router and WETH to turn it on. The swap is gas-capped at
-400k on purpose — the elected token is unvetted by design, so a hostile one
-must not be able to burn a keeper's whole batch.
 
 **Mint proceeds.** They accumulate in `Whales` until anyone calls
 `sweepToTrench()`, which sends them to the Trench and therefore to holders.

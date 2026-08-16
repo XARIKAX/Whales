@@ -41,6 +41,10 @@ function sample(count, seed) {
       /* Wei, as bigints, exactly as the chain would hand them over. */
       lifetimeEarned: BigInt(Math.floor(fed ? r() * 2.4e18 : 0)),
       unclaimed: BigInt(Math.floor(fed ? r() * 1.1e17 : 0)),
+      /* Delivered and sitting in the whale's own wallet. The sample carries it
+         so the withdraw row is visible before a wallet is connected. */
+      accountBalance: BigInt(Math.floor(fed ? r() * 4.2e17 : 0)),
+      accountDeployed: fed,
     };
   }).sort((a, b) => Number(b.lifetimeEarned - a.lifetimeEarned));
 }
