@@ -64,8 +64,33 @@ async function main() {
       "  Wiring it would price activation wrongly and permanently. Stopping."
     );
   }
-  if (supply < burn) {
-    throw new Error("token supply is smaller than one activation burn — wrong token");
+  // ACTIVATION_BURN is 1,000,000e18 and immutable. It was sized against a 1e9
+  // supply, where it is exactly 0.1% and the whole collection is activatable.
+  // The token now comes from Flap with a supply nobody here chose, so the
+  // relationship has to be checked rather than assumed: a smaller supply caps
+  // how many of the 1000 whales can EVER be woken, permanently.
+  const maxSupply = await whales.MAX_SUPPLY();
+  const activatable = supply / burn;
+
+  console.log(`activatable ${activatable} of ${maxSupply} whales at this supply`);
+
+  if (activatable < maxSupply) {
+    const message =
+      `this token's supply only ever allows ${activatable} of ${maxSupply} whales to be activated.\n` +
+      `  Activating all ${maxSupply} needs ${ethers.formatUnits(burn * maxSupply, decimals)} tokens; supply is ${ethers.formatUnits(supply, decimals)}.\n` +
+      "  ACTIVATION_BURN is immutable, so this cannot be corrected after wiring.\n" +
+      "  Set ALLOW_PARTIAL_ACTIVATION=1 if that is genuinely intended.";
+    if (process.env.ALLOW_PARTIAL_ACTIVATION !== "1") throw new Error(message);
+    console.log(`\nWARNING: ${message}`);
+  }
+
+  // Even at exactly the break-even supply, every token in existence would have
+  // to be burned for the last whale to wake.
+  if (activatable === maxSupply) {
+    console.log(
+      "\nNOTE: activating all whales would burn 100% of supply. In practice the\n" +
+      "collection will never be fully activated at this ratio."
+    );
   }
 
   console.log("\nwiring — this cannot be undone");
