@@ -4,6 +4,7 @@ import Marine, { Leviathan, useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
 import { eth, usd, multiplier } from "../format.js";
 import { DOCS_URL } from "../config.js";
+import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
 import { onDive } from "../dive.js";
 
@@ -36,13 +37,6 @@ const BUBBLES = Array.from({ length: 34 }, (_, i) => {
  * handler, which forces a synchronous layout of the document on every frame you
  * scroll — and it was one of three places doing that.
  *
- * `--free-top` and `--free-bottom` are the top and bottom of the message as a
- * share of the hero, and they are the reason nothing swims over the words. The
- * shoals used to sit in bands picked by eye, which held at one window size and
- * put a whale through the readout at the next: the message runs from 17% to 87%
- * of the hero on a short laptop and from 29% to 75% on a phone. Measured, the
- * water above and below it is exactly the water that is free.
- *
  * There is deliberately no pointer term either. Tying the scene to the cursor
  * made every plane twitch under the smallest mouse movement.
  */
@@ -51,24 +45,15 @@ function useDrift(ref) {
     const node = ref.current;
     if (!node) return;
 
-    const inner = node.querySelector(".hero-inner");
     let top = 0;
     let height = 1;
 
     const measure = () => {
       top = node.offsetTop;
       height = node.offsetHeight || 1;
-      if (!inner) return;
-      const from = (inner.offsetTop / height) * 100;
-      const to = ((inner.offsetTop + inner.offsetHeight) / height) * 100;
-      node.style.setProperty("--free-top", `${from.toFixed(2)}%`);
-      node.style.setProperty("--free-bottom", `${to.toFixed(2)}%`);
     };
 
     measure();
-    /* Anton arrives after first paint and the headline changes height when it
-       does. Measured before that, the bands are set against the fallback face. */
-    document.fonts?.ready.then(measure).catch(() => {});
     window.addEventListener("resize", measure);
 
     let stop;
@@ -263,20 +248,30 @@ export default function Hero({ featured, price, wallet, live }) {
             animal in the way. */}
         <div className="plane plane-deep">
           <Leviathan />
+          <Marine plane="far" seed={41} />
         </div>
 
         {/* The rays sit between the far and mid shoals, so distant fish are lit
             through them and nearer ones are silhouetted against them. */}
         <Rays />
 
-        {/* The two bands of free water, measured off the message itself. The
-            pod takes the open water above it, the reef fish take the kelp
-            below it, and neither can reach the words in between. */}
-        <div className="band band-top">
-          <Marine plane="pod" seed={11} />
+        {/* Five bands from the surface to the sea floor, each on its own
+            parallax. They cover the whole scene, message included: all of this
+            paints behind the words, and keeping it out of the middle of the
+            frame simply left the middle of the frame empty. */}
+        <div className="plane plane-high">
+          <Marine plane="high" seed={11} />
         </div>
 
-        <div className="band band-bottom">
+        <div className="plane plane-mid">
+          <Marine plane="mid" seed={5} />
+        </div>
+
+        <div className="plane plane-low">
+          <Marine plane="low" seed={19} />
+        </div>
+
+        <div className="plane plane-reef">
           <Marine plane="reef" seed={3} />
         </div>
 
@@ -352,9 +347,17 @@ export default function Hero({ featured, price, wallet, live }) {
                 ? `${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`
                 : "Connect wallet"}
             </button>
-            <a className="btn btn-ghost" href={DOCS_URL}>
-              Read the docs
-            </a>
+            {/* Internal by default, so the click is a route change rather than a
+                reload; only an externally hosted VITE_DOCS_URL leaves the site. */}
+            {DOCS_URL.startsWith("/") ? (
+              <Link className="btn btn-ghost" to={DOCS_URL}>
+                Read the docs
+              </Link>
+            ) : (
+              <a className="btn btn-ghost" href={DOCS_URL} target="_blank" rel="noreferrer">
+                Read the docs
+              </a>
+            )}
           </div>
 
           <Readout featured={featured} price={price} live={live} />

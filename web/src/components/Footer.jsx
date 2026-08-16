@@ -1,4 +1,5 @@
-import { ADDRESSES, CHAIN, LINKS, explorerUrl } from "../config.js";
+import { ADDRESSES, CHAIN, LINKS, DOCS_URL, explorerUrl } from "../config.js";
+import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
 import Seabed from "./Seabed.jsx";
 
@@ -80,7 +81,13 @@ export default function Footer() {
                 OpenSea
               </a>
             )}
-            {LINKS.docs && <a href={LINKS.docs}>Docs</a>}
+            {DOCS_URL.startsWith("/") ? (
+              <Link to={DOCS_URL}>Docs</Link>
+            ) : (
+              <a href={DOCS_URL} target="_blank" rel="noreferrer">
+                Docs
+              </a>
+            )}
             {!LINKS.x && !LINKS.opensea && (
               <span style={{ color: "var(--on-dark-faint)" }}>
                 Set VITE_X_URL and VITE_OPENSEA_URL to list them here.

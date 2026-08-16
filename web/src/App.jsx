@@ -17,6 +17,7 @@ import { useCardTilt } from "./components/Cursor.jsx";
 import Overture, { useOverture } from "./components/Overture.jsx";
 
 import Activate from "./pages/Activate.jsx";
+import Docs from "./pages/Docs.jsx";
 import Portfolio from "./pages/Portfolio.jsx";
 
 /* --- The landing page ---------------------------------------------------- */
@@ -119,6 +120,8 @@ export default function App() {
         </>
       )}
 
+      {route === "/docs" && <Docs />}
+
       {route === "/activate" && (
         <Activate
           wallet={wallet}
@@ -145,7 +148,7 @@ export default function App() {
         />
       )}
 
-      {route !== "/activate" && route !== "/portfolio" && (
+      {route !== "/activate" && route !== "/portfolio" && route !== "/docs" && (
         <Landing
           ocean={ocean}
           whales={whales}

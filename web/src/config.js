@@ -73,8 +73,12 @@ export const LINKS = {
   docs: env.VITE_DOCS_URL || "",
 };
 
-/** "Read the docs" falls back to the on-page explainer so it is never dead. */
-export const DOCS_URL = LINKS.docs || "#how";
+/**
+ * Where "Read the docs" goes. The site carries its own docs page, so the
+ * default is internal and can never be dead; VITE_DOCS_URL only exists for a
+ * deployment that keeps its documentation somewhere else entirely.
+ */
+export const DOCS_URL = LINKS.docs || "/docs";
 
 export const explorerUrl = (kind, value) =>
   CHAIN.blockExplorers?.default?.url ? `${CHAIN.blockExplorers.default.url}/${kind}/${value}` : null;
