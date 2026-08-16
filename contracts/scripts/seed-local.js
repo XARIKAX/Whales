@@ -40,9 +40,16 @@ async function main() {
   }
   process.stdout.write("\n");
 
-  // 2. Point the collection at metadata so tokenURI resolves locally. The real
-  //    deploy uses the pinned CID; this is only so the dashboard has art.
-  await (await whales.setBaseURI("ipfs://bafyLOCALTEST/")).wait();
+  // 2. Point the collection at metadata so tokenURI resolves locally.
+  //
+  //    An ipfs:// base only resolves once the collection is pinned, so a local
+  //    run shows a wall of whales with no art — which is exactly the case the
+  //    dashboard most needs to be exercised against. Serve pipeline/output over
+  //    HTTP with CORS enabled and point SEED_BASE_URI at its metadata/ folder,
+  //    and the site loads the real 1000 images.
+  const baseURI = process.env.SEED_BASE_URI || "ipfs://bafyLOCALTEST/";
+  await (await whales.setBaseURI(baseURI)).wait();
+  console.log(`base URI ${baseURI}`);
 
   // 3. Feed a pod, oldest first, so the loyalty curve is visible on the site.
   //    Ages are laid down by activating in waves and rewinding the clock

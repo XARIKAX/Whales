@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { POLL_MS, CONFIGURED } from "./config.js";
-import { readOcean, readWhales, readArt, readEthPrice, getWalletClient } from "./chain.js";
+import { readOcean, readWhales, readWhaleBalance, readHauls, readEthPrice, getWalletClient } from "./chain.js";
 import { onDive } from "./dive.js";
 
 /** Re-reads the chain on an interval so the pot moves without a refresh. */
@@ -57,21 +57,41 @@ export function useWhales(count) {
   return { whales, error, refresh };
 }
 
-/** Fetches a whale's on-chain art once and keeps it. */
-export function useArt(tokenId) {
-  const [art, setArt] = useState(null);
+/** A wallet's $WHALE, re-read whenever the wallet or the pod changes. */
+export function useWhaleBalance(account, signal) {
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
+    if (!CONFIGURED || !account) {
+      setBalance(null);
+      return;
+    }
     let live = true;
-    readArt(tokenId)
-      .then((value) => live && setArt(value))
-      .catch(() => live && setArt(null));
+    readWhaleBalance(account)
+      .then((value) => live && setBalance(value))
+      .catch(() => live && setBalance(null));
     return () => {
       live = false;
     };
-  }, [tokenId]);
+  }, [account, signal]);
 
-  return art;
+  return balance;
+}
+
+/** Recent hauls from the Trench's own logs. Empty is a normal answer. */
+export function useHauls(haulCount) {
+  const [hauls, setHauls] = useState([]);
+
+  useEffect(() => {
+    if (!CONFIGURED) return;
+    let live = true;
+    readHauls().then((rows) => live && setHauls(rows));
+    return () => {
+      live = false;
+    };
+  }, [haulCount]);
+
+  return hauls;
 }
 
 /**

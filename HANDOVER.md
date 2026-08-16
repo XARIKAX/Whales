@@ -97,11 +97,25 @@ SWAP_ROUTER / WETH  both, or neither
 `deploy.js` calls `setTrench` and asserts the deployer role is zero afterwards.
 That is the only privileged action in the system and it destroys itself.
 
+### 3b. Verify the source on the explorer
+
+```bash
+npx hardhat run scripts/verify.js --network robinhood
+```
+
+Reads `deployments/robinhood.json` for the addresses and constructor arguments,
+so it cannot disagree with what was actually deployed. Safe to re-run. The
+per-whale accounts are not covered: the registry creates them on demand, so
+verify one after the first delivery and the explorer matches the rest by
+bytecode.
+
 ### 4. Check a token renders, then freeze
 
-Load `tokenURI(1)` through a gateway and confirm the image resolves. Then call
-`freezeMetadata()`. It is one-way and destroys the curator role — after it,
-nobody can point the collection anywhere else. Do not freeze before checking.
+Load `tokenURI(1)`, resolve it through your gateway, and confirm both the JSON
+and the PNG it points at come back. Check a few across decades — `0001`, `0100`,
+`1000` — since the id is padded to four digits. Then call `freezeMetadata()`. It
+is one-way and destroys the curator role — after it, nobody can point the
+collection anywhere else. Do not freeze before checking.
 
 ### 5. Point the Flap launch tax at the Trench
 
@@ -113,8 +127,19 @@ Set these in Vercel (or wherever it's hosted) and **redeploy** — they are bake
 in at build time, so setting them alone does nothing:
 
 ```
-VITE_CHAIN_ID  VITE_RPC_URL  VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY
+VITE_CHAIN_ID       4663
+VITE_CHAIN_NAME     Robinhood Chain
+VITE_RPC_URL        a paid endpoint, not the rate-limited public one
+VITE_EXPLORER_URL   https://robinhoodchain.blockscout.com
+VITE_IPFS_GATEWAY   yours if you have one — every whale image goes through it
+VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY   from the deploy
 ```
+
+`VITE_IPFS_GATEWAY` is not optional in practice: `tokenURI` returns `ipfs://…`,
+which a browser cannot fetch and an `<img src>` cannot load, so with a gateway
+that is down or rate-limiting, every whale on the site is a blank tile. It
+defaults to `https://ipfs.io/ipfs/`, which is fine to launch on and the first
+thing to replace.
 
 ---
 
