@@ -319,11 +319,11 @@ function Scrubber() {
 
 /* --- 3. The provenance verifier ------------------------------------------- */
 
-const PROVENANCE = "0x7f1908587224fd9d204fc67ef385aeccdb808c959fe19876fa167c949f36d709";
+const PROVENANCE = "0xbe5d0cdd294722826d3f314623f29a168a5cfd3e762f2aa1f34915adcb2881e6";
 
 const VERIFY = `git clone https://github.com/XARIKAX/Whales && cd Whales
-cd pipeline && pip install pillow numpy && python3 generate.py
-cd ../contracts && node scripts/provenance.js ../pipeline/output/metadata`;
+cd pipeline && pip install pillow numpy && python3 generate.py && python3 publish.py
+cd ../contracts && node scripts/provenance.js ../web/public/metadata`;
 
 /**
  * The one claim on the page a reader can settle themselves in a single paste.
@@ -369,7 +369,7 @@ function Verifier() {
       </div>
 
       <dl className="verify-out">
-        <dt className="mono">Expected, for the committed metadata</dt>
+        <dt className="mono">Expected, for the published metadata</dt>
         <dd className="mono">{PROVENANCE}</dd>
       </dl>
     </div>

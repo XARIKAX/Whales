@@ -1,0 +1,36 @@
+{
+ "name": "WHALES #0457",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0457.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Uncommon"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Sand"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Deep Sea"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Abyss Glow"
+  },
+  {
+   "trait_type": "Mouth",
+   "value": "Gold Tooth"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Sailor Cap"
+  },
+  {
+   "trait_type": "Neck",
+   "value": "Cuban Chain"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

@@ -1,0 +1,40 @@
+{
+ "name": "WHALES #0028",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0028.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Rare"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Maroon"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Classic Navy"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Classic"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Captain's Hat"
+  },
+  {
+   "trait_type": "Neck",
+   "value": "Diamond Chain"
+  },
+  {
+   "trait_type": "Bling",
+   "value": "Pinky Ring"
+  },
+  {
+   "trait_type": "Bling",
+   "value": "Diamond Spout"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

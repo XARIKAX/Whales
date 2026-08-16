@@ -50,33 +50,66 @@ import, and compile for `shanghai`.
 `Trench.sol` deliberately uses the storage-based `ReentrancyGuard`, not
 `ReentrancyGuardTransient`, so there is no `TSTORE` dependency.
 
-### 2. Pin the art to IPFS and set the real CID
+### 2. The art — done, with a caveat that matters
 
-Every metadata file currently reads `ipfs://__REPLACE_WITH_CID__/0042.png`.
-Two CIDs, in this order:
+**Already done.** The collection is served from the site's own domain rather
+than IPFS:
 
-The 1000 PNGs are not in git — they are 133MB and are regenerated instead. The
-ten contact sheets under `pipeline/output/sheets/` are committed as the check on
-that: a fresh run reproduces all ten byte for byte. Verified — a clean
-`python3 generate.py` here matched every sheet's md5 and reproduced provenance
-`0x4e3e…2284` exactly. So step (a) below starts by rebuilding them.
-
-```bash
-# a. regenerate the renders, then pin pipeline/output/images/ → image CID
-cd pipeline && pip install pillow numpy && python3 generate.py
-# b. regenerate metadata pointing at it
-python3 generate.py --cid <image-CID>
-# c. pin pipeline/output/metadata/ (1000 JSON) → gives you BASE_URI
-# d. recompute the provenance hash over the final metadata
-cd ../contracts && node scripts/provenance.js ../pipeline/output/metadata
+```
+tokenURI(42)  →  https://whalenft.fun/metadata/0042.json
+   image      →  https://whalenft.fun/whales/0042.png
 ```
 
-Use a pinning service (Pinata, web3.storage, NFT.Storage) or a node you keep
-running — an unpinned CID is garbage-collected and the art disappears.
+Both directories are in `web/public/` and go out with the site. `vercel.json`
+adds `Access-Control-Allow-Origin: *` to both, and a year's immutable cache to
+the images. The files carry real `.json` and `.png` extensions and are named to
+match what the contract already emits — zero-padded to four digits — so no
+contract change and no `Content-Type` override were needed.
 
-The provenance hash **changes when the CID changes**, because the CID is inside
-the metadata. Compute it last, from the exact files you pinned. The hash in the
-README is for the placeholder-CID files and is not the deploy value.
+Rebuild them with:
+
+```bash
+cd pipeline && python3 generate.py && python3 publish.py
+cd ../contracts && node scripts/provenance.js ../web/public/metadata
+```
+
+The published PNGs are 728px, not the 1248px masters. 1000 masters is 122 MB
+and Vercel's Hobby plan caps a deployment's source files at 100 MB, so they
+would not deploy at all. `publish.py --size 1248` is one flag if the project
+moves to Pro, whose ceiling is 1 GB.
+
+**The caveat.** A domain is not IPFS. The images can be replaced by whoever
+controls the domain, and if it lapses they are gone. Provenance makes a change
+to the metadata *detectable*, not impossible.
+
+Two consequences, and both are easy to get wrong:
+
+1. **Do not call `freezeMetadata()` while the base URI is a domain.** It would
+   lock the pointer permanently at a URL whose contents are still mutable —
+   the worst of both, since it also removes the ability to move to IPFS later.
+2. **The provenance hash is set at deploy and is immutable.** It currently
+   covers metadata containing `https://whalenft.fun/...` image URLs. Moving to
+   IPFS later changes those URLs, changes the files, and changes the hash — at
+   which point the hash on chain will not match the files being served, and the
+   verification instructions on the docs page become false.
+
+So decide *before* deploying which of these is the launch configuration:
+
+- **Ship self-hosted.** Deploy with the current hash, leave metadata unfrozen,
+  and be straight in the docs that the art is verifiable rather than immutable.
+- **Move to IPFS first.** Pin `web/public/whales/` then `web/public/metadata/`
+  (regenerating the metadata between the two so the `image` fields carry the
+  image CID), recompute provenance over the pinned files, deploy with that
+  hash, check a token renders, then `freezeMetadata()`.
+
+The second is the stronger claim and the one the site's copy currently makes.
+The first is live today.
+
+Current provenance, over the published metadata:
+
+```
+0xbe5d0cdd294722826d3f314623f29a168a5cfd3e762f2aa1f34915adcb2881e6
+```
 
 ### 3. Deploy
 
@@ -109,13 +142,20 @@ per-whale accounts are not covered: the registry creates them on demand, so
 verify one after the first delivery and the explorer matches the rest by
 bytecode.
 
-### 4. Check a token renders, then freeze
+### 4. Check a token renders
 
-Load `tokenURI(1)`, resolve it through your gateway, and confirm both the JSON
-and the PNG it points at come back. Check a few across decades — `0001`, `0100`,
-`1000` — since the id is padded to four digits. Then call `freezeMetadata()`. It
-is one-way and destroys the curator role — after it, nobody can point the
-collection anywhere else. Do not freeze before checking.
+Open `https://whalenft.fun/metadata/0001.json` in a browser: it should come back
+as raw JSON, and the `image` URL inside it should load. Check a few across
+decades — `0001`, `0100`, `1000` — since the id is padded to four digits. Then
+call `tokenURI(1)` on the deployed contract and confirm it returns that same
+URL.
+
+Then open the collection on OpenSea and use **Refresh metadata**, which makes
+their crawler re-read `tokenURI`, fetch the JSON, cache the images and compute
+rarity from the attributes.
+
+**Do not call `freezeMetadata()` yet** — see the caveat in step 2. It is only
+correct once the base URI points at IPFS.
 
 ### 5. Point the Flap launch tax at the Trench
 
