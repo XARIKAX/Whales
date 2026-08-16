@@ -15,8 +15,15 @@ export const CHAIN = defineChain({
     : undefined,
 });
 
+/**
+ * The three contracts this repository deploys.
+ *
+ * $WHALE is deliberately absent: it is launched on Flap and wired into the
+ * Whales contract afterwards, so the site reads the address off the chain
+ * instead of being told it. That removes the one env var that could disagree
+ * with what activation actually burns.
+ */
 export const ADDRESSES = {
-  whaleToken: env.VITE_WHALE_TOKEN,
   whales: env.VITE_WHALES,
   trench: env.VITE_TRENCH,
   registry: env.VITE_REGISTRY,

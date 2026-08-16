@@ -80,6 +80,7 @@ export const whalesAbi = [
   { type: "function", name: "MAX_SUPPLY", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "ACTIVATION_BURN", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
   { type: "function", name: "mintPrice", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "whaleToken", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
   { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "string" }] },
   { type: "function", name: "nextTierAt", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "uint256" }] },
   { type: "function", name: "weightOf", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ type: "uint256" }] },

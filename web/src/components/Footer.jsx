@@ -6,7 +6,6 @@ import { copy } from "./docs/reading.js";
 import { toast } from "./docs/Chrome.jsx";
 
 const CONTRACTS = [
-  ["$WHALE token", "whaleToken"],
   ["Whales NFT", "whales"],
   ["The Trench", "trench"],
   ["Account registry", "registry"],

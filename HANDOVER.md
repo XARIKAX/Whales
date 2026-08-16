@@ -14,7 +14,6 @@ Five contracts in `contracts/contracts/`, 56 passing tests (`npx hardhat test`):
 
 | Contract | State |
 | --- | --- |
-| `WhaleToken.sol` | ERC20. 1B minted once at deploy, no mint function, no owner. |
 | `Whales.sol` | ERC721, 1000 supply, burn-to-activate, loyalty weighting, transfer-hook deactivation, IPFS metadata with a one-way freeze. |
 | `Trench.sol` | Fee sink. No withdraw function. `haul()` splits by weight via an O(1) accumulator; `deliver()` pushes ETH into whale wallets. ETH in, ETH out — no router, no swap. |
 | `WhaleAccount.sol` + `WhaleAccountRegistry.sol` | ERC-6551-style wallet per whale, identity in bytecode. `execute` is holder-only and is how ETH leaves; the dashboard drives it from a Withdraw button. |
@@ -118,7 +117,9 @@ Current provenance, over the published metadata:
 ```
 ROBINHOOD_RPC_URL   https, not http
 PRIVATE_KEY         funded deployer — local shell only, never in Vercel
-LAUNCH_RECIPIENT    receives the 1B $WHALE for the Flap launch
+WHALE_TOKEN         the $WHALE launched on Flap. Optional — leave it unset if
+                    the token does not exist yet and wire it in afterwards
+                    with scripts/set-whale-token.js
 PROVENANCE          0x… from step 2 — required, the deploy refuses without it
 BASE_URI            ipfs://<metadata-CID>/  (can also be set after)
 MINT_PRICE_USD      dollar price per whale — default 1
@@ -127,8 +128,25 @@ MINT_PRICE          explicit ETH amount, skips the conversion
 HAUL_THRESHOLD      default 0.1
 ```
 
-`deploy.js` calls `setTrench` and asserts the deployer role is zero afterwards.
-That is the only privileged action in the system and it destroys itself.
+`deploy.js` calls `setTrench`. If `WHALE_TOKEN` was supplied it calls
+`setWhaleToken` too, and the deployer role retires itself the moment both are
+wired — the script refuses to report success in any other state.
+
+### 3c. Wire $WHALE once Flap has launched it
+
+Skip if `WHALE_TOKEN` was already set at deploy.
+
+```bash
+WHALE_TOKEN=0x… npx hardhat run scripts/set-whale-token.js --network robinhood
+```
+
+Between deploying and this call the system is half-wired: **minting works,
+activation reverts**, and the deployer still holds the role that performs this
+one action. Be aware of what that means — until it is done, the deployer can
+name *any* contract as the asset activation burns. The script checks name,
+symbol, decimals and supply, and refuses anything without code behind it,
+because a wrong address here is a collection nobody can ever activate and there
+is no second attempt.
 
 ### 3b. Verify the source on the explorer
 
@@ -173,7 +191,8 @@ VITE_RPC_URL        a paid endpoint, not the rate-limited public one
 VITE_EXPLORER_URL   https://robinhoodchain.blockscout.com
 VITE_IPFS_GATEWAY   yours if you have one — every whale image goes through it
 VITE_WALLETCONNECT_ID   from cloud.reown.com — already set on the live site
-VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY   from the deploy
+VITE_WHALES  VITE_TRENCH  VITE_REGISTRY   from the deploy
+                    ($WHALE is read off the chain, so there is no env var for it)
 ```
 
 `VITE_WALLETCONNECT_ID` is what puts WalletConnect, Rainbow and Coinbase in the

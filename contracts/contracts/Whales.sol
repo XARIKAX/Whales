@@ -2,7 +2,8 @@
 pragma solidity ^0.8.28;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWhales} from "./interfaces/IWhales.sol";
 import {ITrench} from "./interfaces/ITrench.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -16,6 +17,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 ///      needs a list of who is eligible -- it reads the whale.
 contract Whales is ERC721, IWhales {
     using Strings for uint256;
+    using SafeERC20 for IERC20;
     // --- Fixed parameters -------------------------------------------------
 
     uint256 public constant MAX_SUPPLY = 1000;
@@ -23,6 +25,17 @@ contract Whales is ERC721, IWhales {
 
     /// @notice 1,000,000 $WHALE -- 0.1% of supply -- burned per activation.
     uint256 public constant ACTIVATION_BURN = 1_000_000e18;
+
+    /// @notice Where the burn goes.
+    ///
+    /// @dev $WHALE is launched on Flap, so this contract cannot assume anything
+    ///      about it beyond ERC20. `burnFrom` is an OpenZeppelin extension, not
+    ///      part of the standard -- calling it on a token that does not
+    ///      implement it would revert, and `activate` would be permanently
+    ///      broken on a contract with no owner and no upgrade path. A transfer
+    ///      to an address nobody holds the key to works against every ERC20 and
+    ///      puts the tokens equally far beyond reach.
+    address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
     /// @notice Every activated whale starts here: 1.00x.
     uint256 public constant BASE_WEIGHT = 10_000;
@@ -32,14 +45,23 @@ contract Whales is ERC721, IWhales {
 
     // --- Wiring -----------------------------------------------------------
 
-    ERC20Burnable public immutable whaleToken;
     uint256 public immutable mintPrice;
 
-    /// @notice The Trench. Set exactly once, right after deployment, because
-    ///         the two contracts reference each other. `deployer` is zeroed in
-    ///         the same call -- this is the only privileged action that ever
-    ///         exists in the system, and it can only happen once.
+    /// @notice The $WHALE launched on Flap, burned to activate a whale.
+    ///
+    /// @dev Not a constructor argument, because the NFTs deploy before the
+    ///      token exists: Flap mints it at launch, and its address is unknown
+    ///      until then. Wired exactly once afterwards, and never changeable.
+    ///      Minting works without it; activation does not.
+    IERC20 public whaleToken;
+
+    /// @notice The Trench. Wired exactly once, because it and this contract
+    ///         reference each other and one has to be deployed first.
     ITrench public trench;
+
+    /// @notice May perform the two wiring calls above, each once, and nothing
+    ///         else. Zeroed automatically the moment both are done, so the role
+    ///         cannot outlive the job it exists for.
     address public deployer;
 
     // --- State ------------------------------------------------------------
@@ -82,6 +104,9 @@ contract Whales is ERC721, IWhales {
     error WrongPayment(uint256 sent, uint256 expected);
     error TrenchNotSet();
     error TrenchAlreadySet();
+    error WhaleTokenNotSet();
+    error WhaleTokenAlreadySet();
+    error NotAContract(address target);
     error NotDeployer();
     error NotCurator();
     error MetadataIsFrozen();
@@ -91,27 +116,50 @@ contract Whales is ERC721, IWhales {
     event Deactivated(uint256 indexed tokenId, address indexed formerHolder);
     event WeightSynced(uint256 indexed tokenId, uint256 weight);
     event TrenchSet(address trench);
+    event WhaleTokenSet(address whaleToken);
     event BaseURISet(string uri);
     event MetadataFrozen(string uri);
     event SweptToTrench(uint256 amount);
 
-    constructor(ERC20Burnable whaleToken_, bytes32 provenance_, uint256 mintPrice_)
+    constructor(bytes32 provenance_, uint256 mintPrice_)
         ERC721("Whales", "WHALE")
     {
-        whaleToken = whaleToken_;
         provenance = provenance_;
         mintPrice = mintPrice_;
         deployer = msg.sender;
         curator = msg.sender;
     }
 
-    /// @notice One-shot wiring, then the deployer role is destroyed.
+    /// @notice One-shot wiring. The role dies once both are connected.
     function setTrench(ITrench trench_) external {
         if (msg.sender != deployer) revert NotDeployer();
         if (address(trench) != address(0)) revert TrenchAlreadySet();
         trench = trench_;
-        deployer = address(0);
         emit TrenchSet(address(trench_));
+        _retireWhenWired();
+    }
+
+    /// @notice Name the token activation burns. Once, permanently.
+    ///
+    /// @dev Requires code at the address. Wiring an EOA or a mistyped address
+    ///      would leave a collection nobody can ever activate, and there is no
+    ///      second attempt and nobody able to correct it.
+    function setWhaleToken(IERC20 whaleToken_) external {
+        if (msg.sender != deployer) revert NotDeployer();
+        if (address(whaleToken) != address(0)) revert WhaleTokenAlreadySet();
+        if (address(whaleToken_).code.length == 0) revert NotAContract(address(whaleToken_));
+        whaleToken = whaleToken_;
+        emit WhaleTokenSet(address(whaleToken_));
+        _retireWhenWired();
+    }
+
+    /// @dev The deployer role exists only to connect the two addresses that
+    ///      cannot be known at construction. With both connected there is
+    ///      nothing left for it to do, so it stops existing.
+    function _retireWhenWired() internal {
+        if (address(trench) != address(0) && address(whaleToken) != address(0)) {
+            deployer = address(0);
+        }
     }
 
     // --- Minting ----------------------------------------------------------
@@ -175,18 +223,25 @@ contract Whales is ERC721, IWhales {
     /// @dev Requires an ERC20 allowance of `ACTIVATION_BURN` to this contract.
     function activate(uint256 tokenId) public {
         if (address(trench) == address(0)) revert TrenchNotSet();
+        if (address(whaleToken) == address(0)) revert WhaleTokenNotSet();
         if (ownerOf(tokenId) != msg.sender) revert NotHolder(tokenId, msg.sender);
         if (activatedAt[tokenId] != 0) revert AlreadyActive(tokenId);
 
         activatedAt[tokenId] = uint64(block.timestamp);
         activationCount[tokenId] += 1;
         totalActivated += 1;
-        totalBurnedForActivation += ACTIVATION_BURN;
 
-        whaleToken.burnFrom(msg.sender, ACTIVATION_BURN);
+        // Measured rather than assumed. A launchpad token may tax transfers, in
+        // which case less than ACTIVATION_BURN reaches the burn address, and the
+        // counter holders read should say what actually left circulation.
+        uint256 before = whaleToken.balanceOf(BURN_ADDRESS);
+        whaleToken.safeTransferFrom(msg.sender, BURN_ADDRESS, ACTIVATION_BURN);
+        uint256 burned = whaleToken.balanceOf(BURN_ADDRESS) - before;
+
+        totalBurnedForActivation += burned;
         trench.onWeightChange(tokenId, BASE_WEIGHT);
 
-        emit Activated(tokenId, msg.sender, ACTIVATION_BURN);
+        emit Activated(tokenId, msg.sender, burned);
     }
 
     function activateMany(uint256[] calldata tokenIds) external {
