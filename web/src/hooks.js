@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { POLL_MS, CONFIGURED, CHAIN } from "./config.js";
-import { readOcean, readWhales, readWhaleBalance, readHauls, readEthPrice, getWalletClient } from "./chain.js";
+import { readOcean, readWhales, readWhaleBalance, readHauls, readEthPrice } from "./chain.js";
 import { onDive } from "./dive.js";
 
 /** Re-reads the chain on an interval so the pot moves without a refresh. */
@@ -206,66 +206,12 @@ export function useDive() {
   return { deep, lit };
 }
 
-/** Wallet connection, kept deliberately thin: one account, one chain. */
-export function useWallet() {
-  const [account, setAccount] = useState(null);
-  const [error, setError] = useState(null);
-  const [connecting, setConnecting] = useState(false);
-  const [chainId, setChainId] = useState(null);
-  const clientRef = useRef(null);
-
-  const connect = useCallback(async () => {
-    setConnecting(true);
-    try {
-      const client = await getWalletClient();
-      clientRef.current = client;
-      setAccount(client.account.address);
-      setError(null);
-      return client;
-    } catch (e) {
-      setError(e.shortMessage || e.message);
-      throw e;
-    } finally {
-      setConnecting(false);
-    }
-  }, []);
-
-  const client = useCallback(async () => clientRef.current || connect(), [connect]);
-
-  useEffect(() => {
-    if (!window.ethereum) return;
-
-    const onAccounts = (accounts) => {
-      clientRef.current = null;
-      setAccount(accounts[0] || null);
-    };
-
-    /* The chain is tracked rather than only checked at connect time. A wallet
-       that switches networks mid-session leaves every button on the page
-       pointing at contracts that are not there, and the button is the only
-       place that can say so before a transaction fails. */
-    const onChain = (hex) => {
-      clientRef.current = null;
-      setChainId(parseInt(hex, 16));
-    };
-
-    window.ethereum.request?.({ method: "eth_chainId" }).then(onChain).catch(() => {});
-    window.ethereum.on?.("accountsChanged", onAccounts);
-    window.ethereum.on?.("chainChanged", onChain);
-    return () => {
-      window.ethereum.removeListener?.("accountsChanged", onAccounts);
-      window.ethereum.removeListener?.("chainChanged", onChain);
-    };
-  }, []);
-
-  return {
-    account,
-    connect,
-    client,
-    error,
-    connecting,
-    chainId,
-    wrongNetwork: Boolean(account) && chainId !== null && chainId !== CHAIN.id,
-    available: Boolean(window.ethereum),
-  };
-}
+/**
+ * Wallet connection.
+ *
+ * The implementation moved to `components/wallet/` when the stack became
+ * lazily loaded — it has to be a context now, because the object a page reads
+ * differs depending on whether wagmi has arrived yet. Re-exported here so the
+ * dozen call sites that import it from `hooks.js` did not all have to move.
+ */
+export { useWallet } from "./components/wallet/context.js";

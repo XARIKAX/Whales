@@ -303,6 +303,17 @@ cp .env.example .env    # fill in from contracts/deployments/<network>.json
 npm run dev             # npm run build for dist/
 ```
 
+Wallets go through **RainbowKit** — browser extensions, WalletConnect's QR code,
+Rainbow and Coinbase. Set `VITE_WALLETCONNECT_ID` from
+[cloud.reown.com](https://cloud.reown.com) or the list is extensions only, which
+on a phone is an empty modal.
+
+The whole wallet stack (wagmi, RainbowKit, WalletConnect) is ~320 kB gzipped and
+is **loaded on demand**, not on page load: it arrives when the pointer touches
+the Connect pill, when the route is `/activate` or `/portfolio`, or when a
+previous session is still connected. A reader who opens the docs and never
+connects downloads none of it — 184 kB against 500+ kB for the naive wiring.
+
 Env vars are baked in at build time. Changing them requires a rebuild/redeploy.
 
 Three pages — `/` (the dive), `/activate`, `/portfolio` — routed by

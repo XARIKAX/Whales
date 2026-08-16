@@ -1,26 +1,45 @@
-import { createPublicClient, createWalletClient, custom, http } from "viem";
+import { createPublicClient, http } from "viem";
 import { CHAIN, ADDRESSES, PRICE_URL, PRICE_PATH, LOG_LOOKBACK, resolveUri } from "./config.js";
 import { trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi } from "./abi.js";
 
 export const publicClient = createPublicClient({ chain: CHAIN, transport: http() });
 
+/**
+ * A signer for the connected wallet.
+ *
+ * Everything that writes goes through here, and it stays a plain async function
+ * rather than a hook because half its callers are event handlers rather than
+ * components.
+ *
+ * wagmi is imported *here*, inside the call, and that import is load-bearing
+ * rather than stylistic. This module is reached from `hooks.js` on every page,
+ * so a top-level `import` of wagmi put the whole wallet stack — connectors,
+ * WalletConnect's core, all of it — into the first chunk of a documentation
+ * page that never signs anything. Deferring it to the one function that
+ * actually needs a signer is what keeps the reading pages light.
+ *
+ * The chain switch is not optional. A wallet left on another network will
+ * happily sign against addresses that do not exist there, and it surfaces as an
+ * unexplained revert rather than "you are on the wrong network" — cheaper to
+ * move the wallet than to explain afterwards.
+ */
 export async function getWalletClient() {
-  if (!window.ethereum) throw new Error("No wallet found. Install a browser wallet to sign.");
-  const [account] = await window.ethereum.request({ method: "eth_requestAccounts" });
+  const [core, { wagmiConfig }] = await Promise.all([import("@wagmi/core"), import("./wagmi.js")]);
 
-  const current = await window.ethereum.request({ method: "eth_chainId" });
-  if (parseInt(current, 16) !== CHAIN.id) {
+  const { address, chainId } = core.getAccount(wagmiConfig);
+  if (!address) throw new Error("Connect a wallet to sign.");
+
+  if (chainId !== CHAIN.id) {
     try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: `0x${CHAIN.id.toString(16)}` }],
-      });
+      await core.switchChain(wagmiConfig, { chainId: CHAIN.id });
     } catch {
       throw new Error(`Switch your wallet to ${CHAIN.name} (chain ${CHAIN.id}) to sign.`);
     }
   }
 
-  return createWalletClient({ account, chain: CHAIN, transport: custom(window.ethereum) });
+  const client = await core.getWalletClient(wagmiConfig, { chainId: CHAIN.id });
+  if (!client) throw new Error(`This wallet cannot sign on ${CHAIN.name}.`);
+  return client;
 }
 
 /** Header numbers: pot, threshold, all-time totals. One call. */
