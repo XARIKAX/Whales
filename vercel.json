@@ -38,6 +38,14 @@
   ],
   "rewrites": [
     {
+      "source": "/docs",
+      "destination": "/docs.html"
+    },
+    {
+      "source": "/docs/",
+      "destination": "/docs.html"
+    },
+    {
       "source": "/((?!assets/|fonts/|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }

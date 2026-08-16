@@ -49,6 +49,7 @@ export async function readOcean() {
     mintPrice,
     supply,
     now: Number(block.timestamp),
+    block: block.number,
   };
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { POLL_MS, CONFIGURED } from "./config.js";
+import { POLL_MS, CONFIGURED, CHAIN } from "./config.js";
 import { readOcean, readWhales, readArt, readEthPrice, getWalletClient } from "./chain.js";
 import { onDive } from "./dive.js";
 
@@ -190,9 +190,12 @@ export function useDive() {
 export function useWallet() {
   const [account, setAccount] = useState(null);
   const [error, setError] = useState(null);
+  const [connecting, setConnecting] = useState(false);
+  const [chainId, setChainId] = useState(null);
   const clientRef = useRef(null);
 
   const connect = useCallback(async () => {
+    setConnecting(true);
     try {
       const client = await getWalletClient();
       clientRef.current = client;
@@ -202,6 +205,8 @@ export function useWallet() {
     } catch (e) {
       setError(e.shortMessage || e.message);
       throw e;
+    } finally {
+      setConnecting(false);
     }
   }, []);
 
@@ -209,16 +214,38 @@ export function useWallet() {
 
   useEffect(() => {
     if (!window.ethereum) return;
+
     const onAccounts = (accounts) => {
       clientRef.current = null;
       setAccount(accounts[0] || null);
     };
-    window.ethereum.on?.("accountsChanged", onAccounts);
-    window.ethereum.on?.("chainChanged", () => {
+
+    /* The chain is tracked rather than only checked at connect time. A wallet
+       that switches networks mid-session leaves every button on the page
+       pointing at contracts that are not there, and the button is the only
+       place that can say so before a transaction fails. */
+    const onChain = (hex) => {
       clientRef.current = null;
-    });
-    return () => window.ethereum.removeListener?.("accountsChanged", onAccounts);
+      setChainId(parseInt(hex, 16));
+    };
+
+    window.ethereum.request?.({ method: "eth_chainId" }).then(onChain).catch(() => {});
+    window.ethereum.on?.("accountsChanged", onAccounts);
+    window.ethereum.on?.("chainChanged", onChain);
+    return () => {
+      window.ethereum.removeListener?.("accountsChanged", onAccounts);
+      window.ethereum.removeListener?.("chainChanged", onChain);
+    };
   }, []);
 
-  return { account, connect, client, error, available: Boolean(window.ethereum) };
+  return {
+    account,
+    connect,
+    client,
+    error,
+    connecting,
+    chainId,
+    wrongNetwork: Boolean(account) && chainId !== null && chainId !== CHAIN.id,
+    available: Boolean(window.ethereum),
+  };
 }

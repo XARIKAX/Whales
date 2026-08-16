@@ -2,6 +2,8 @@ import { ADDRESSES, CHAIN, LINKS, DOCS_URL, explorerUrl } from "../config.js";
 import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
 import Seabed from "./Seabed.jsx";
+import { copy } from "./docs/reading.js";
+import { toast } from "./docs/Chrome.jsx";
 
 const CONTRACTS = [
   ["$WHALE token", "whaleToken"],
@@ -21,7 +23,88 @@ const LANTERNS = Array.from({ length: 14 }, (_, i) => {
   };
 });
 
+/**
+ * EIP-55 casing, computed rather than trusted.
+ *
+ * The addresses arrive from an env file that somebody typed, and a lower-cased
+ * address pasted into a block explorer works while a *wrongly* mixed-cased one
+ * is rejected as a bad checksum. Deriving the casing here means the row a
+ * reader copies is always the canonical form, whatever was in `.env`.
+ *
+ * Keccak is already in the bundle for viem, so this costs nothing new.
+ */
+function checksummed(address, keccak) {
+  const raw = address.slice(2).toLowerCase();
+  const hash = keccak(raw);
+  let out = "0x";
+  for (let i = 0; i < raw.length; i += 1) {
+    out += parseInt(hash[i], 16) >= 8 ? raw[i].toUpperCase() : raw[i];
+  }
+  return out;
+}
+
+/* Lazily bound: importing viem's hashing at module scope would pull it into the
+   first chunk for the sake of a footer. */
+let keccakHex = null;
+async function loadKeccak() {
+  if (keccakHex) return keccakHex;
+  const { keccak256, toHex } = await import("viem");
+  keccakHex = (ascii) => keccak256(toHex(ascii)).slice(2);
+  return keccakHex;
+}
+
+/**
+ * One contract, as a row you can act on.
+ *
+ * Three affordances, because an address on a page is only useful if you can do
+ * something with it: read it, copy it exactly, and check it on an explorer.
+ * Before deployment there is no address, and the row says that rather than
+ * printing "not configured", which reads like a fault on our side.
+ */
+function ContractRow({ label, value }) {
+  const href = value && explorerUrl("address", value);
+
+  const take = async () => {
+    if (!value) return;
+    const keccak = await loadKeccak().catch(() => null);
+    const text = keccak ? checksummed(value, keccak) : value;
+    toast((await copy(text)) ? "Address copied" : "Could not copy");
+  };
+
+  return (
+    <div className="addr-row">
+      <span className="addr-label mono">{label}</span>
+
+      {value ? (
+        <>
+          <button type="button" className="addr mono addr-copy" onClick={take} title="Copy address">
+            <span className="addr-text">{value}</span>
+            <span className="addr-icon" aria-hidden="true" />
+          </button>
+          {href && (
+            <a className="addr-verify mono" href={href} target="_blank" rel="noreferrer">
+              Verify on {CHAIN.blockExplorers?.default?.name || "the explorer"} ↗
+            </a>
+          )}
+        </>
+      ) : (
+        <span className="chip mono">
+          <span className="chip-sweep" aria-hidden="true" />
+          Awaiting deployment
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function Footer() {
+  /* Only what is actually configured. An unset link used to leave a line of
+     instructions to ourselves sitting in the live footer. */
+  const elsewhere = [
+    LINKS.x && ["X / Twitter", LINKS.x],
+    LINKS.opensea && ["OpenSea", LINKS.opensea],
+  ].filter(Boolean);
+
   return (
     <footer className="abyss" id="abyss">
       {/* The only things visible this deep are the ones making their own light. */}
@@ -49,38 +132,20 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="abyss-col">
+          <div className="abyss-col" id="contracts">
             <h4>Contracts</h4>
-            {CONTRACTS.map(([label, key]) => {
-              const value = ADDRESSES[key];
-              const href = value && explorerUrl("address", value);
-              return (
-                <div key={key} style={{ marginBottom: 14 }}>
-                  <span style={{ marginBottom: 4, color: "var(--on-dark-faint)" }}>{label}</span>
-                  {href ? (
-                    <a className="addr mono" href={href} target="_blank" rel="noreferrer">
-                      {value}
-                    </a>
-                  ) : (
-                    <span className="addr mono">{value || "not configured"}</span>
-                  )}
-                </div>
-              );
-            })}
+            {CONTRACTS.map(([label, key]) => (
+              <ContractRow key={key} label={label} value={ADDRESSES[key]} />
+            ))}
           </div>
 
           <div className="abyss-col">
             <h4>Elsewhere</h4>
-            {LINKS.x && (
-              <a href={LINKS.x} target="_blank" rel="noreferrer">
-                X / Twitter
+            {elsewhere.map(([label, href]) => (
+              <a key={label} href={href} target="_blank" rel="noreferrer">
+                {label}
               </a>
-            )}
-            {LINKS.opensea && (
-              <a href={LINKS.opensea} target="_blank" rel="noreferrer">
-                OpenSea
-              </a>
-            )}
+            ))}
             {DOCS_URL.startsWith("/") ? (
               <Link to={DOCS_URL}>Docs</Link>
             ) : (
@@ -88,16 +153,15 @@ export default function Footer() {
                 Docs
               </a>
             )}
-            {!LINKS.x && !LINKS.opensea && (
-              <span style={{ color: "var(--on-dark-faint)" }}>
-                Set VITE_X_URL and VITE_OPENSEA_URL to list them here.
-              </span>
-            )}
           </div>
         </Reveal>
 
         <p className="trust">
-          Only trust contract addresses listed on this site. We will never message you first.
+          Only trust{" "}
+          <a className="trust-link" href="#contracts">
+            contract addresses
+          </a>{" "}
+          listed on this site. We will never message you first.
         </p>
 
         <p className="disclaimer">
