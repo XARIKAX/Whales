@@ -132,8 +132,16 @@ VITE_CHAIN_NAME     Robinhood Chain
 VITE_RPC_URL        a paid endpoint, not the rate-limited public one
 VITE_EXPLORER_URL   https://robinhoodchain.blockscout.com
 VITE_IPFS_GATEWAY   yours if you have one — every whale image goes through it
+VITE_WALLETCONNECT_ID   from cloud.reown.com — already set on the live site
 VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY   from the deploy
 ```
+
+`VITE_WALLETCONNECT_ID` is what puts WalletConnect, Rainbow and Coinbase in the
+wallet list. Without it the list is browser extensions only, so a visitor on a
+phone opens the modal onto nothing. It is a public identifier, not a secret —
+it ends up in the bundle either way. The Reown project's allowed-domains list
+needs **both** `whalenft.fun` and `www.whalenft.fun`, because the site redirects
+between them and WalletConnect refuses a domain that is not listed.
 
 `VITE_IPFS_GATEWAY` is not optional in practice: `tokenURI` returns `ipfs://…`,
 which a browser cannot fetch and an `<img src>` cannot load, so with a gateway
