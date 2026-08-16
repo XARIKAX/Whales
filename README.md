@@ -179,6 +179,12 @@ python3 generate.py --cid bafy…     # 1000 PNGs + metadata into output/
 Deterministic from the `WHALES-2026` seed — same input, same 1000 whales.
 Details in [`pipeline/README.md`](pipeline/README.md).
 
+The 1000 renders are 133MB at 1248×1248, so they are regenerated rather than
+committed. What *is* committed is the evidence: the 1000 metadata files, and ten
+contact sheets under `output/sheets/`. A fresh `python3 generate.py` reproduces
+all ten sheets byte for byte and the same `PROVENANCE` hash, which is what makes
+"regenerate it yourself and check" a real claim rather than a hopeful one.
+
 ### Deploying
 
 ```bash
@@ -190,12 +196,22 @@ PRIVATE_KEY=0x…              \
 LAUNCH_RECIPIENT=0x…         \
 PROVENANCE=0x…               \
 BASE_URI=ipfs://bafy…/       \
+MINT_PRICE_USD=1             \
+ETH_USD=1880                 \
 npx hardhat run scripts/deploy.js --network robinhood
 ```
 
-`MINT_PRICE` (0.02) and `HAUL_THRESHOLD` (0.1) have defaults. `SWAP_ROUTER` and
-`WETH` are optional — set both to enable stock election, leave them unset and
-every whale is paid in ETH.
+**The mint is $1 a whale, ten a transaction, no per-wallet limit.** The price is
+stored on chain as an immutable native-token amount, so `deploy.js` converts it
+once from `MINT_PRICE_USD` at the `ETH_USD` rate you name and prints both in the
+deploy log — $1 at $1880/ETH is `0.000531914893617021 ETH`. Off a dev chain it
+refuses to guess: set `ETH_USD`, or `MINT_PRICE` for an explicit ETH amount.
+Because the amount is fixed at deployment, the dollar price drifts with ETH from
+that block onward.
+
+`HAUL_THRESHOLD` (0.1) has a default. `SWAP_ROUTER` and `WETH` are optional —
+set both to enable stock election, leave them unset and every whale is paid in
+ETH.
 
 Addresses are written to `contracts/deployments/<network>.json`, which the
 keeper and dashboard both read. Check a token renders, then call

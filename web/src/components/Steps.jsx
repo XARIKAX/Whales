@@ -4,8 +4,8 @@ import { Lane } from "./Marine.jsx";
 const STEPS = [
   {
     n: "01",
-    title: "Buy",
-    body: "All 1000 whales minted. Pick one up on secondary.",
+    title: "Mint",
+    body: "$1 a whale, ten a transaction, no limit per wallet. 1000 and then never again.",
   },
   {
     n: "02",

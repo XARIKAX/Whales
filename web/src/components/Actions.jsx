@@ -15,6 +15,7 @@ export default function Actions({ ocean, wallet, onDone }) {
   const [connecting, setConnecting] = useState(false);
   const [tokenId, setTokenId] = useState("");
   const [stock, setStock] = useState("");
+  const [quantity, setQuantity] = useState("1");
 
   async function run(label, build) {
     setBusy(label);
@@ -50,6 +51,20 @@ export default function Actions({ ocean, wallet, onDone }) {
 
   const haul = () =>
     run("Haul", (client, account) => write(client, account, ADDRESSES.trench, trenchAbi, "haul", []));
+
+  /** Ten a transaction, no per-wallet limit — send it again for more. */
+  const mint = () =>
+    run("Mint", (client, account) =>
+      write(
+        client,
+        account,
+        ADDRESSES.whales,
+        whalesAbi,
+        "mint",
+        [BigInt(quantity)],
+        ocean.mintPrice * BigInt(quantity)
+      )
+    );
 
   /** Activation burns $WHALE, so it needs an allowance first. */
   const feed = () =>
@@ -93,11 +108,15 @@ export default function Actions({ ocean, wallet, onDone }) {
   const validId = /^\d+$/.test(tokenId) && BigInt(tokenId) > 0n;
   const validStock = stock.trim() === "" || isAddress(stock.trim());
 
+  const validQuantity = /^\d+$/.test(quantity) && Number(quantity) >= 1 && Number(quantity) <= 10;
+  const soldOut = ocean ? ocean.minted >= ocean.maxSupply : false;
+  const cost = ocean && validQuantity ? ocean.mintPrice * BigInt(quantity) : 0n;
+
   if (!wallet.available) {
     return (
       <p className="notice">
         No browser wallet detected. Everything above is read straight from the chain without one.
-        connect a wallet to feed a whale, haul the Trench, or elect a stock.
+        Connect a wallet to mint a whale, feed it, haul the Trench, or elect a stock.
       </p>
     );
   }
@@ -128,6 +147,32 @@ export default function Actions({ ocean, wallet, onDone }) {
             </>
           ) : (
             "Net not full yet"
+          )}
+        </button>
+      </div>
+
+      <div className="row">
+        <div className="field" style={{ maxWidth: 140 }}>
+          <label htmlFor="quantity">How many (max 10)</label>
+          <input
+            id="quantity"
+            inputMode="numeric"
+            placeholder="1"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+          />
+        </div>
+        <button
+          className="btn btn-primary"
+          onClick={mint}
+          disabled={Boolean(busy) || !validQuantity || soldOut || !ocean}
+        >
+          {soldOut ? (
+            "All 1000 minted"
+          ) : (
+            <>
+              Mint · <span className="num">{eth(cost)} ETH</span>
+            </>
           )}
         </button>
       </div>
