@@ -22,7 +22,6 @@ const SECTIONS = [
   ["loyalty", "Loyalty"],
   ["haul", "The haul"],
   ["wallet", "The whale's wallet"],
-  ["stock", "Paid in stock"],
   ["art", "The art"],
   ["powers", "What nobody can do"],
   ["questions", "Questions"],
@@ -375,6 +374,13 @@ export default function Docs() {
                   pointed at a different whale.
                 </p>
                 <p>
+                  Getting it out is one call, and only the whale's current owner can make it. Your
+                  position page lists what is sitting in each of your whales' wallets and puts a
+                  withdraw button on any that has a balance; the first withdraw for a given whale
+                  takes two transactions, because the wallet has to be created before it can be
+                  spent from, and one every time after.
+                </p>
+                <p>
                   The practical consequence is worth reading twice: a whale that has been earning for
                   a year and has never been emptied is carrying its earnings <em>with it</em> when
                   you sell. Check the balance before you list one, and check it before you buy one.
@@ -383,24 +389,7 @@ export default function Docs() {
             </Section>
 
             {/* 07 --------------------------------------------------------- */}
-            <Section id="stock" n={7} title="Paid in stock">
-              <Reveal>
-                <p className="doc-lede">
-                  Optional, off by default. A whale's owner can name a token, and that whale's share
-                  of every haul is swapped into it on the way in instead of arriving as ETH.
-                </p>
-                <p>
-                  There is no allowlist: you can elect anything that trades. Two guards make that
-                  safe for everyone else rather than just for you: if the swap fails for any reason
-                  the whale is paid in ETH rather than left with nothing, and the swap runs under a
-                  hard gas ceiling, so one deliberately hostile token cannot take down the batch that
-                  is paying everybody else.
-                </p>
-              </Reveal>
-            </Section>
-
-            {/* 08 --------------------------------------------------------- */}
-            <Section id="art" n={8} title="The art">
+            <Section id="art" n={7} title="The art">
               <Reveal>
                 <p className="doc-lede">
                   A thousand whales, ten of them one-of-ones. Traits are cosmetic and nothing more:
@@ -443,8 +432,8 @@ export default function Docs() {
               </Reveal>
             </Section>
 
-            {/* 09 --------------------------------------------------------- */}
-            <Section id="powers" n={9} title="What nobody can do">
+            {/* 08 --------------------------------------------------------- */}
+            <Section id="powers" n={8} title="What nobody can do">
               <Reveal>
                 <p className="doc-lede">
                   The system has exactly one privileged action. It runs during deployment, it wires
@@ -474,8 +463,8 @@ export default function Docs() {
               </p>
             </Section>
 
-            {/* 10 --------------------------------------------------------- */}
-            <Section id="questions" n={10} title="Questions">
+            {/* 09 --------------------------------------------------------- */}
+            <Section id="questions" n={9} title="Questions">
               <Reveal className="qa" stagger step={50}>
                 {QUESTIONS.map(([q, a]) => (
                   <div className="q" key={q}>

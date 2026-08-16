@@ -10,19 +10,20 @@ local Hardhat chain.
 
 ## What exists
 
-Five contracts in `contracts/contracts/`, 60 passing tests (`npx hardhat test`):
+Five contracts in `contracts/contracts/`, 56 passing tests (`npx hardhat test`):
 
 | Contract | State |
 | --- | --- |
 | `WhaleToken.sol` | ERC20. 1B minted once at deploy, no mint function, no owner. |
 | `Whales.sol` | ERC721, 1000 supply, burn-to-activate, loyalty weighting, transfer-hook deactivation, IPFS metadata with a one-way freeze. |
-| `Trench.sol` | Fee sink. No withdraw function. `haul()` splits by weight via an O(1) accumulator; `deliver()` pushes into whale wallets. |
-| `WhaleAccount.sol` + `WhaleAccountRegistry.sol` | ERC-6551-style wallet per whale, identity in bytecode. |
+| `Trench.sol` | Fee sink. No withdraw function. `haul()` splits by weight via an O(1) accumulator; `deliver()` pushes ETH into whale wallets. ETH in, ETH out — no router, no swap. |
+| `WhaleAccount.sol` + `WhaleAccountRegistry.sol` | ERC-6551-style wallet per whale, identity in bytecode. `execute` is holder-only and is how ETH leaves; the dashboard drives it from a Withdraw button. |
 
 Plus `contracts/scripts/deploy.js` (refuses to report success unless the
 deployer role actually died), `scripts/provenance.js`, and `keeper/keeper.js`.
 
-The 1000 PNGs and their metadata are committed under `pipeline/output/`.
+The 1000 metadata files and ten contact sheets are committed under
+`pipeline/output/`; the full-size renders are regenerated (see step 2).
 
 ---
 
@@ -58,7 +59,7 @@ The 1000 PNGs are not in git — they are 133MB and are regenerated instead. The
 ten contact sheets under `pipeline/output/sheets/` are committed as the check on
 that: a fresh run reproduces all ten byte for byte. Verified — a clean
 `python3 generate.py` here matched every sheet's md5 and reproduced provenance
-`0x7f19…d709` exactly. So step (a) below starts by rebuilding them.
+`0x4e3e…2284` exactly. So step (a) below starts by rebuilding them.
 
 ```bash
 # a. regenerate the renders, then pin pipeline/output/images/ → image CID
@@ -91,17 +92,30 @@ MINT_PRICE_USD      dollar price per whale — default 1
 ETH_USD             the rate it is converted at; required off a dev chain
 MINT_PRICE          explicit ETH amount, skips the conversion
 HAUL_THRESHOLD      default 0.1
-SWAP_ROUTER / WETH  both, or neither
 ```
 
 `deploy.js` calls `setTrench` and asserts the deployer role is zero afterwards.
 That is the only privileged action in the system and it destroys itself.
 
+### 3b. Verify the source on the explorer
+
+```bash
+npx hardhat run scripts/verify.js --network robinhood
+```
+
+Reads `deployments/robinhood.json` for the addresses and constructor arguments,
+so it cannot disagree with what was actually deployed. Safe to re-run. The
+per-whale accounts are not covered: the registry creates them on demand, so
+verify one after the first delivery and the explorer matches the rest by
+bytecode.
+
 ### 4. Check a token renders, then freeze
 
-Load `tokenURI(1)` through a gateway and confirm the image resolves. Then call
-`freezeMetadata()`. It is one-way and destroys the curator role — after it,
-nobody can point the collection anywhere else. Do not freeze before checking.
+Load `tokenURI(1)`, resolve it through your gateway, and confirm both the JSON
+and the PNG it points at come back. Check a few across decades — `0001`, `0100`,
+`1000` — since the id is padded to four digits. Then call `freezeMetadata()`. It
+is one-way and destroys the curator role — after it, nobody can point the
+collection anywhere else. Do not freeze before checking.
 
 ### 5. Point the Flap launch tax at the Trench
 
@@ -113,8 +127,19 @@ Set these in Vercel (or wherever it's hosted) and **redeploy** — they are bake
 in at build time, so setting them alone does nothing:
 
 ```
-VITE_CHAIN_ID  VITE_RPC_URL  VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY
+VITE_CHAIN_ID       4663
+VITE_CHAIN_NAME     Robinhood Chain
+VITE_RPC_URL        a paid endpoint, not the rate-limited public one
+VITE_EXPLORER_URL   https://robinhoodchain.blockscout.com
+VITE_IPFS_GATEWAY   yours if you have one — every whale image goes through it
+VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_REGISTRY   from the deploy
 ```
+
+`VITE_IPFS_GATEWAY` is not optional in practice: `tokenURI` returns `ipfs://…`,
+which a browser cannot fetch and an `<img src>` cannot load, so with a gateway
+that is down or rate-limiting, every whale on the site is a blank tile. It
+defaults to `https://ipfs.io/ipfs/`, which is fine to launch on and the first
+thing to replace.
 
 ---
 
@@ -136,12 +161,6 @@ no pause and no priority.
 just pointing the launch tax at its address. Confirm Flap's launch contract
 actually allows an arbitrary tax recipient. That has never been verified
 against Flap's real contract, only assumed.
-
-**Stock election.** `Trench` takes a router and WETH address at construction.
-Both are `address(0)` today, which disables the feature and pays everyone in
-ETH. Supply a real AMM router and WETH to turn it on. The swap is gas-capped at
-400k on purpose — the elected token is unvetted by design, so a hostile one
-must not be able to burn a keeper's whole batch.
 
 **Mint proceeds.** They accumulate in `Whales` until anyone calls
 `sweepToTrench()`, which sends them to the Trench and therefore to holders.

@@ -15,7 +15,7 @@ Writes into `output/`:
 | --- | --- |
 | `images/0001.png … 1000.png` | the art |
 | `metadata/0001.json … 1000.json` | ERC-721 metadata, `image` pointing at `--cid` |
-| `rarity.csv` | every token's traits and rarity score, one row each |
+| `rarity.csv` | every token's tier, traits and rarity score, one row each |
 | `sheets/0001-0100.png …` | ten contact sheets, 100 whales each |
 | `provenance.json` | written by `contracts/scripts/provenance.js`, not by this |
 
@@ -43,6 +43,14 @@ sprite coordinates.
 **Ten legendaries first**, pinned to ids 1, 100, 200 … 900, exempt from the
 weights. Their trait tuples are reserved so no regular whale can accidentally
 become a near-twin of a one-of-one.
+
+**Tiers are a label, not a payout.** The ten legendaries are Legendary; the
+other 990 are ranked by rarity score and banded 50 Rare / 190 Uncommon / 750
+Common, with ties broken by id so the bands are a function of the seed alone.
+It goes in the metadata as a `Tier` trait because that is what provenance
+commits to — a tier computed in the browser is one anybody can change. The
+contracts never read it: weight comes from loyalty, and a Legendary earns
+exactly what a Common earns.
 
 **The other 990 by quota, not by dice.** The brief asks the advertised weights
 to hold within ±1.5pp. Rolling each token independently can't promise that —

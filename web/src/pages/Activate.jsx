@@ -1,10 +1,15 @@
 import { useState } from "react";
+import { formatEther, maxUint256 } from "viem";
 import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
 import Creature from "../components/pixel/creature.jsx";
+import { useWhaleArt } from "../components/WhaleArt.jsx";
 import { Link } from "../router.jsx";
 import { SAMPLE_WHALES, ACTIVATION_COST } from "../placeholder.js";
-import { eth, multiplier } from "../format.js";
+import { publicClient, ADDRESSES, whalesAbi, erc20Abi } from "../chain.js";
+import { useWhaleBalance } from "../hooks.js";
+import { speciesFor } from "../whales.js";
+import { multiplier } from "../format.js";
 
 /* --- The three things that have to be true ------------------------------- */
 
@@ -38,21 +43,28 @@ const EFFECTS = [
 /* --- One whale in the picker --------------------------------------------- */
 
 function WhaleRow({ whale, selected, onSelect, disabled }) {
+  // Tier is a metadata trait rather than a contract field, so it arrives with
+  // the art. Until it does the row still draws — with the whale's own tier when
+  // this is the sample pod, and a plain humpback when it is not.
+  const { ref, tier } = useWhaleArt(whale.tokenId);
+  const shown = tier || whale.tier;
+
   return (
     <button
       type="button"
+      ref={ref}
       className={`pick${selected ? " on" : ""}${whale.fed ? " fed" : ""}`}
       onClick={() => !whale.fed && onSelect(whale.tokenId)}
       disabled={disabled || whale.fed}
       aria-pressed={selected}
     >
       <span className="pick-art">
-        <Creature kind="whale" species={whale.species} height={34} beat={2.1} />
+        <Creature kind="whale" species={speciesFor(shown)} height={34} beat={2.1} />
       </span>
 
       <span className="pick-id">
         <b className="mono">#{whale.tokenId}</b>
-        <span className="pick-tier mono">{whale.tier}</span>
+        <span className="pick-tier mono">{shown || "—"}</span>
       </span>
 
       <span className="pick-state mono">
@@ -67,17 +79,73 @@ function WhaleRow({ whale, selected, onSelect, disabled }) {
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Activate({ wallet, whales, live }) {
+export default function Activate({ wallet, whales, live, onDone }) {
   const account = wallet?.account;
-  const pod = live && whales?.length ? whales : SAMPLE_WHALES;
-  const dormant = pod.filter((w) => !w.fed);
   const [picked, setPicked] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
 
-  /* Placeholder until there is a chain to read: a wallet that holds enough to
-     wake one whale, so the page can be seen in its working state. */
-  const balance = live ? 0 : 2_400_000;
+  /* Connected means real, even when the honest answer is "none". The sample
+     only stands in for a visitor who has not connected yet, so the page can be
+     read before it can be used — never on top of a wallet's actual position. */
+  const connected = Boolean(account) && live;
+  const pod = connected ? whales : SAMPLE_WHALES;
+  const dormant = pod.filter((w) => !w.fed);
+
+  const balanceWei = useWhaleBalance(account, whales.length);
+  const balance = connected ? Math.floor(Number(formatEther(balanceWei ?? 0n))) : 2_400_000;
   const enough = balance >= ACTIVATION_COST;
-  const ready = Boolean(account) && enough && picked !== null;
+  const ready = connected && enough && picked !== null && !busy;
+
+  /* Two transactions: the allowance the burn needs, then the burn. The first is
+     skipped when the wallet has already given one. */
+  async function activate() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const client = await wallet.client();
+      const owner = client.account.address;
+      const write = (address, abi, functionName, args) =>
+        client.writeContract({ account: owner, address, abi, functionName, args, chain: client.chain });
+
+      const [allowance, burn] = await Promise.all([
+        publicClient.readContract({
+          address: ADDRESSES.whaleToken,
+          abi: erc20Abi,
+          functionName: "allowance",
+          args: [owner, ADDRESSES.whales],
+        }),
+        publicClient.readContract({
+          address: ADDRESSES.whales,
+          abi: whalesAbi,
+          functionName: "ACTIVATION_BURN",
+        }),
+      ]);
+
+      if (allowance < burn) {
+        setMessage({ kind: "info", text: "Approving the burn — confirm the first of two." });
+        const approval = await write(ADDRESSES.whaleToken, erc20Abi, "approve", [
+          ADDRESSES.whales,
+          maxUint256,
+        ]);
+        await publicClient.waitForTransactionReceipt({ hash: approval });
+      }
+
+      const hash = await write(ADDRESSES.whales, whalesAbi, "activate", [BigInt(picked)]);
+      setMessage({ kind: "info", text: `Sent ${hash.slice(0, 14)}… waiting for the block.` });
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Transaction reverted.");
+
+      setMessage({ kind: "ok", text: `Whale #${picked} is awake, from block ${receipt.blockNumber}.` });
+      setPicked(null);
+      onDone?.();
+    } catch (e) {
+      setMessage({ kind: "error", text: e.shortMessage || e.message });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <main className="sheet" id="top">
@@ -172,7 +240,7 @@ export default function Activate({ wallet, whales, live }) {
             <div className="picker">
               <div className="picker-head">
                 <span className="mono">Your whales</span>
-                {!live && <span className="tag mono">Sample data</span>}
+                {!connected && <span className="tag mono">Sample data</span>}
               </div>
 
               {pod.map((whale) => (
@@ -187,7 +255,8 @@ export default function Activate({ wallet, whales, live }) {
 
               {pod.length === 0 && (
                 <p className="picker-empty">
-                  Nothing in this wallet yet. All 1000 are minted, so the way in is secondary.
+                  No whales in this wallet. Mint one for $1 on the front page, ten a transaction,
+                  or pick one up on secondary.
                 </p>
               )}
             </div>
@@ -213,13 +282,20 @@ export default function Activate({ wallet, whales, live }) {
               </div>
 
               <div className="commit-actions">
-                <button className="btn btn-foam" disabled={!ready}>
-                  {ready ? `Approve and activate #${picked}` : "Activate"}
+                <button className="btn btn-foam" disabled={!ready} onClick={activate}>
+                  {busy
+                    ? "Confirm in your wallet…"
+                    : ready
+                      ? `Approve and activate #${picked}`
+                      : "Activate"}
                 </button>
                 <Link className="btn btn-ghost on-dark" to="/portfolio">
                   See your position
                 </Link>
               </div>
+
+              {message && <p className={`notice ${message.kind}`}>{message.text}</p>}
+              {wallet.error && <p className="notice error">{wallet.error}</p>}
             </div>
           </Reveal>
 
@@ -256,5 +332,3 @@ export default function Activate({ wallet, whales, live }) {
     </main>
   );
 }
-
-export { eth };

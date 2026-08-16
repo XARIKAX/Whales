@@ -10,8 +10,6 @@
 //   ETH_USD           ETH price used to convert it   — required off a dev chain
 //   MINT_PRICE        explicit ETH price, skips the conversion above
 //   HAUL_THRESHOLD    minimum pot before a haul      (default 0.1)
-//   SWAP_ROUTER       AMM for stock election         (default: disabled)
-//   WETH              wrapped native token, required when SWAP_ROUTER is set
 const fs = require("fs");
 const path = require("path");
 const { ethers, network } = require("hardhat");
@@ -57,20 +55,14 @@ async function main() {
   const price = resolveMintPrice();
   const mintPrice = price.wei;
   const haulThreshold = ethers.parseEther(process.env.HAUL_THRESHOLD || "0.1");
-  const router = process.env.SWAP_ROUTER || ethers.ZeroAddress;
   const provenance = process.env.PROVENANCE;
   const baseURI = process.env.BASE_URI || "";
-  const weth = process.env.WETH || ethers.ZeroAddress;
 
   if (!provenance || !/^0x[0-9a-fA-F]{64}$/.test(provenance)) {
     throw new Error(
       "PROVENANCE must be the 32-byte hash of the finished metadata.\n" +
       "  node scripts/provenance.js ../pipeline/output/metadata"
     );
-  }
-
-  if (router !== ethers.ZeroAddress && weth === ethers.ZeroAddress) {
-    throw new Error("SWAP_ROUTER is set but WETH is not; stock election needs both");
   }
 
   const [deployer] = await ethers.getSigners();
@@ -109,8 +101,6 @@ async function main() {
     await whales.getAddress(),
     await registry.getAddress(),
     haulThreshold,
-    router,
-    weth,
   ]);
   await trench.waitForDeployment();
 
@@ -144,8 +134,6 @@ async function main() {
       provenance,
       baseURI: baseURI || null,
       haulThreshold: haulThreshold.toString(),
-      swapRouter: router,
-      weth,
     },
   };
 

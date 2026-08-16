@@ -22,8 +22,8 @@ const FACTS = [
   },
   {
     tag: "Payout",
-    title: "ETH, or your elected stock",
-    body: "Each share is delivered into the whale's own on-chain wallet as ETH, or auto-swapped into the equity its holder elected. If the swap fails, the whale is paid in ETH rather than stranded.",
+    title: "ETH, into the whale's own wallet",
+    body: "The Flap tax arrives as ETH and leaves as ETH. Each share is delivered into the whale's own on-chain wallet — no swap, no router, no second asset to go wrong. Hold the whale, hold the wallet.",
   },
   {
     tag: "Permissionless",

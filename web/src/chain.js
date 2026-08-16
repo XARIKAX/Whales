@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, custom, http } from "viem";
-import { CHAIN, ADDRESSES, PRICE_URL, PRICE_PATH } from "./config.js";
-import { trenchAbi, whalesAbi, erc20Abi } from "./abi.js";
+import { CHAIN, ADDRESSES, PRICE_URL, PRICE_PATH, LOG_LOOKBACK, resolveUri } from "./config.js";
+import { trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi } from "./abi.js";
 
 export const publicClient = createPublicClient({ chain: CHAIN, transport: http() });
 
@@ -83,7 +83,25 @@ export async function readWhales(tokenIds) {
   return results.flat();
 }
 
-/** The whale's own art, straight off the chain. */
+/**
+ * A metadata document, wherever `tokenURI` says it lives.
+ *
+ * The collection is pinned to IPFS, so in practice this is one gateway fetch.
+ * `data:` is handled too because a chain read should not care how the URI was
+ * built, and an on-chain deployment of the same contracts would return one.
+ */
+async function readMetadata(uri) {
+  if (uri.startsWith("data:")) {
+    const encoded = uri.slice(uri.indexOf(",") + 1);
+    return JSON.parse(uri.slice(0, uri.indexOf(",")).includes(";base64") ? atob(encoded) : decodeURIComponent(encoded));
+  }
+
+  const response = await fetch(resolveUri(uri));
+  if (!response.ok) throw new Error(`metadata ${response.status} for ${uri}`);
+  return response.json();
+}
+
+/** The whale's own art and traits, from the URI the contract serves. */
 export async function readArt(tokenId) {
   const uri = await publicClient.readContract({
     address: ADDRESSES.whales,
@@ -91,8 +109,56 @@ export async function readArt(tokenId) {
     functionName: "tokenURI",
     args: [tokenId],
   });
-  const json = JSON.parse(atob(uri.split(",")[1]));
-  return { image: json.image, attributes: json.attributes || [] };
+
+  const json = await readMetadata(uri);
+  // The `image` inside is itself an ipfs:// URI, and it is going into an
+  // <img src> that has no idea what that scheme is.
+  return { image: resolveUri(json.image), attributes: json.attributes || [] };
+}
+
+/** A wallet's $WHALE, for the burn the activate page has to check against. */
+export async function readWhaleBalance(account) {
+  return publicClient.readContract({
+    address: ADDRESSES.whaleToken,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [account],
+  });
+}
+
+/**
+ * Recent hauls, newest first, read from the contract's own logs.
+ *
+ * Bounded to a window rather than all history — see LOG_LOOKBACK. Returns an
+ * empty list rather than throwing when a node refuses the range, because the
+ * ledger is a supporting detail and the page's real numbers come from `ocean`.
+ */
+export async function readHauls(limit = 8) {
+  try {
+    const head = await publicClient.getBlockNumber();
+    const fromBlock = head > LOG_LOOKBACK ? head - LOG_LOOKBACK : 0n;
+
+    const logs = await publicClient.getLogs({
+      address: ADDRESSES.trench,
+      event: trenchAbi.find((entry) => entry.type === "event" && entry.name === "Hauled"),
+      fromBlock,
+      toBlock: head,
+    });
+
+    return logs
+      .slice(-limit)
+      .reverse()
+      .map((log) => ({
+        block: log.blockNumber,
+        keeper: log.args.keeper,
+        pot: log.args.pot,
+        distributed: log.args.distributed,
+        tip: log.args.tip,
+        totalWeight: log.args.totalWeight,
+      }));
+  } catch {
+    return [];
+  }
 }
 
 export async function readNextTierAt(tokenId) {
@@ -121,4 +187,54 @@ export async function readEthPrice() {
   }
 }
 
-export { ADDRESSES, trenchAbi, whalesAbi, erc20Abi };
+/** Where a whale's wallet is, and whether it exists yet. */
+export async function readAccount(tokenId) {
+  const address = await publicClient.readContract({
+    address: ADDRESSES.registry,
+    abi: registryAbi,
+    functionName: "accountOf",
+    args: [BigInt(tokenId)],
+  });
+  const [balance, code] = await Promise.all([
+    publicClient.getBalance({ address }),
+    publicClient.getBytecode({ address }),
+  ]);
+  return { address, balance, deployed: Boolean(code && code !== "0x") };
+}
+
+/**
+ * Move a whale's ETH out of its own wallet and into the holder's.
+ *
+ * `execute` is restricted on chain to `ownerOf(tokenId)`, so this is a call
+ * only the holder can make — the dashboard is not being trusted with anything.
+ *
+ * Two transactions the first time: a whale's wallet address is fixed from the
+ * moment the token exists, and ETH can arrive there before any code does, so
+ * the account has to be created before it can be spent from. After that it is
+ * one. `createAccount` is permissionless and idempotent.
+ */
+export async function withdrawFromWhale({ client, holder, tokenId, whaleAccount, deployed, amount, onStep }) {
+  if (!deployed) {
+    onStep?.("Creating the whale's wallet — confirm the first of two.");
+    const created = await client.writeContract({
+      account: holder,
+      address: ADDRESSES.registry,
+      abi: registryAbi,
+      functionName: "createAccount",
+      args: [BigInt(tokenId)],
+      chain: client.chain,
+    });
+    await publicClient.waitForTransactionReceipt({ hash: created });
+  }
+
+  return client.writeContract({
+    account: holder,
+    address: whaleAccount,
+    abi: whaleAccountAbi,
+    functionName: "execute",
+    args: [holder, amount, "0x"],
+    chain: client.chain,
+  });
+}
+
+export { ADDRESSES, trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi };

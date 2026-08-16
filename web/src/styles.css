@@ -4166,6 +4166,15 @@ input:focus {
   margin-bottom: 2px;
 }
 
+/* The whale's own art, when it has arrived. Pixel work, so it must not be
+   smoothed on the way up to card size. */
+.holding-art img {
+  height: 100%;
+  width: auto;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+
 .holding:not(.fed) .holding-art {
   opacity: 0.4;
   filter: saturate(0.2);
