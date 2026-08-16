@@ -2,6 +2,8 @@ import { createPublicClient, http } from "viem";
 import { CHAIN, ADDRESSES, PRICE_URL, PRICE_PATH, LOG_LOOKBACK, resolveUri } from "./config.js";
 import { trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi } from "./abi.js";
 
+const ZERO = "0x0000000000000000000000000000000000000000";
+
 export const publicClient = createPublicClient({ chain: CHAIN, transport: http() });
 
 /**
@@ -44,7 +46,7 @@ export async function getWalletClient() {
 
 /** Header numbers: pot, threshold, all-time totals. One call. */
 export async function readOcean() {
-  const [block, ocean, minted, activated, burned, maxSupply, mintPrice, supply] =
+  const [block, ocean, minted, activated, burned, maxSupply, mintPrice, whaleToken] =
     await Promise.all([
       // Ages are measured against the chain's clock, not the browser's — the
       // two drift, and on a test chain that has been time-travelled they drift
@@ -56,8 +58,16 @@ export async function readOcean() {
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "totalBurnedForActivation" }),
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "MAX_SUPPLY" }),
       publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "mintPrice" }),
-      publicClient.readContract({ address: ADDRESSES.whaleToken, abi: erc20Abi, functionName: "totalSupply" }),
+      publicClient.readContract({ address: ADDRESSES.whales, abi: whalesAbi, functionName: "whaleToken" }),
     ]);
+
+  // Null until Flap has launched and the token has been wired in. Everything
+  // except activation works in that window, so the pages check rather than
+  // assume.
+  const live = whaleToken && whaleToken !== ZERO;
+  const supply = live
+    ? await publicClient.readContract({ address: whaleToken, abi: erc20Abi, functionName: "totalSupply" })
+    : null;
 
   return {
     ...ocean,
@@ -66,6 +76,7 @@ export async function readOcean() {
     burned,
     maxSupply,
     mintPrice,
+    whaleToken: live ? whaleToken : null,
     supply,
     now: Number(block.timestamp),
     block: block.number,
@@ -137,9 +148,10 @@ export async function readArt(tokenId) {
 }
 
 /** A wallet's $WHALE, for the burn the activate page has to check against. */
-export async function readWhaleBalance(account) {
+export async function readWhaleBalance(account, whaleToken) {
+  if (!whaleToken) return null;
   return publicClient.readContract({
-    address: ADDRESSES.whaleToken,
+    address: whaleToken,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [account],

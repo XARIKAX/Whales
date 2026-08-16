@@ -76,8 +76,10 @@ export default function Actions({ ocean, wallet, onDone }) {
   /** Activation burns $WHALE, so it needs an allowance first. */
   const feed = () =>
     run("Feed", async (client, account) => {
+      if (!ocean?.whaleToken) throw new Error("$WHALE is not live yet, so nothing can be activated.");
+
       const allowance = await publicClient.readContract({
-        address: ADDRESSES.whaleToken,
+        address: ocean.whaleToken,
         abi: erc20Abi,
         functionName: "allowance",
         args: [account, ADDRESSES.whales],
@@ -87,7 +89,7 @@ export default function Actions({ ocean, wallet, onDone }) {
         const approval = await write(
           client,
           account,
-          ADDRESSES.whaleToken,
+          ocean.whaleToken,
           erc20Abi,
           "approve",
           [ADDRESSES.whales, maxUint256]
@@ -206,7 +208,7 @@ export default function Actions({ ocean, wallet, onDone }) {
             onChange={(e) => setTokenId(e.target.value)}
           />
         </div>
-        <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId}>
+        <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId || !ocean?.whaleToken}>
           Feed · burn 1,000,000 $WHALE
         </button>
         <button className="btn btn-ghost on-dark" onClick={deliver} disabled={Boolean(busy) || !validId}>

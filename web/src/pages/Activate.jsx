@@ -79,7 +79,7 @@ function WhaleRow({ whale, selected, onSelect, disabled }) {
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Activate({ wallet, whales, live, onDone }) {
+export default function Activate({ wallet, whales, ocean, live, onDone }) {
   const account = wallet?.account;
   const [picked, setPicked] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -92,10 +92,11 @@ export default function Activate({ wallet, whales, live, onDone }) {
   const pod = connected ? whales : SAMPLE_WHALES;
   const dormant = pod.filter((w) => !w.fed);
 
-  const balanceWei = useWhaleBalance(account, whales.length);
+  const tokenLive = Boolean(ocean?.whaleToken);
+  const balanceWei = useWhaleBalance(account, ocean?.whaleToken, whales.length);
   const balance = connected ? Math.floor(Number(formatEther(balanceWei ?? 0n))) : 2_400_000;
   const enough = balance >= ACTIVATION_COST;
-  const ready = connected && enough && picked !== null && !busy;
+  const ready = connected && tokenLive && enough && picked !== null && !busy;
 
   /* Two transactions: the allowance the burn needs, then the burn. The first is
      skipped when the wallet has already given one. */
@@ -110,7 +111,7 @@ export default function Activate({ wallet, whales, live, onDone }) {
 
       const [allowance, burn] = await Promise.all([
         publicClient.readContract({
-          address: ADDRESSES.whaleToken,
+          address: ocean.whaleToken,
           abi: erc20Abi,
           functionName: "allowance",
           args: [owner, ADDRESSES.whales],
@@ -124,7 +125,7 @@ export default function Activate({ wallet, whales, live, onDone }) {
 
       if (allowance < burn) {
         setMessage({ kind: "info", text: "Approving the burn — confirm the first of two." });
-        const approval = await write(ADDRESSES.whaleToken, erc20Abi, "approve", [
+        const approval = await write(ocean.whaleToken, erc20Abi, "approve", [
           ADDRESSES.whales,
           maxUint256,
         ]);
@@ -283,7 +284,9 @@ export default function Activate({ wallet, whales, live, onDone }) {
 
               <div className="commit-actions">
                 <button className="btn btn-foam" disabled={!ready} onClick={activate}>
-                  {busy
+                  {!tokenLive
+                    ? "$WHALE is not live yet"
+                    : busy
                     ? "Confirm in your wallet…"
                     : ready
                       ? `Approve and activate #${picked}`

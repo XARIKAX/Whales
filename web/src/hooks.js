@@ -58,22 +58,22 @@ export function useWhales(count) {
 }
 
 /** A wallet's $WHALE, re-read whenever the wallet or the pod changes. */
-export function useWhaleBalance(account, signal) {
+export function useWhaleBalance(account, whaleToken, signal) {
   const [balance, setBalance] = useState(null);
 
   useEffect(() => {
-    if (!CONFIGURED || !account) {
+    if (!CONFIGURED || !account || !whaleToken) {
       setBalance(null);
       return;
     }
     let live = true;
-    readWhaleBalance(account)
+    readWhaleBalance(account, whaleToken)
       .then((value) => live && setBalance(value))
       .catch(() => live && setBalance(null));
     return () => {
       live = false;
     };
-  }, [account, signal]);
+  }, [account, whaleToken, signal]);
 
   return balance;
 }

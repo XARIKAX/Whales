@@ -126,6 +126,7 @@ export default function App() {
         <Activate
           wallet={wallet}
           whales={held}
+          ocean={ocean}
           live={live}
           onDone={() => {
             refresh();

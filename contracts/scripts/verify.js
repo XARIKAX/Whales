@@ -21,8 +21,9 @@ async function main() {
   // Constructor arguments in the order deploy.js passed them. If that order
   // ever changes, this file has to change with it or verification silently
   // stops matching.
+  // $WHALE is not here: it is launched on Flap and verified by whoever
+  // deployed it.
   const targets = [
-    ["WhaleToken", contracts.whaleToken, [parameters.launchRecipient]],
     ["Whales", contracts.whales, [contracts.whaleToken, parameters.provenance, parameters.mintPrice]],
     ["WhaleAccountRegistry", contracts.registry, [contracts.whales]],
     [
