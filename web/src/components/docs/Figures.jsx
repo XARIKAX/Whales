@@ -183,7 +183,7 @@ export function CurveFigure() {
             {label}
           </text>
           {/* The first point sits on the 1.00x gridline, whose own tick says
-              1.00x — two identical labels a few pixels apart read as a
+              1.00x, since two identical labels a few pixels apart read as a
               rendering fault, so that one is left to the axis. */}
           {i > 0 && (
             <text className="chart-val" x={xAt(i)} y={yAt(w) - 16} textAnchor="middle">
@@ -194,7 +194,7 @@ export function CurveFigure() {
       ))}
 
       <text className="chart-axis" x={PLOT.x0} y={PLOT.y1 + 52}>
-        Time fed — the stops are the tiers, evenly spaced, not a linear calendar
+        Time fed. The stops are the tiers, evenly spaced, not a linear calendar
       </text>
     </svg>
   );
@@ -276,7 +276,7 @@ export function SplitFigure() {
 
       <p className="split-sum mono">
         Same pot, same block. The oldest whale takes {((3.33 / TOTAL_WEIGHT) * 100).toFixed(0)}% and
-        the newest {((1 / TOTAL_WEIGHT) * 100).toFixed(0)}% — the only difference between them is how
+        the newest {((1 / TOTAL_WEIGHT) * 100).toFixed(0)}%. The only difference between them is how
         long each has been fed.
       </p>
     </div>
