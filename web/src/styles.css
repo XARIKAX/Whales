@@ -1731,60 +1731,42 @@ p {
 
 /* --- Depth planes ------------------------------------------------------ */
 
-/* Distance is how little a thing moves when the pointer does. */
+/* Each plane is the whole hero, and each drifts at its own rate as the scene
+   scrolls past: near things move most, and that difference is the parallax.
+   `container-type: size` is what lets a sprite ask how tall its plane is, which
+   is how a whale sized in pixels stays inside its band on any window.
+
+   The two measured bands of "free water" that used to keep creatures out of the
+   middle of the hero are gone. They did their job exactly: nothing crossed the
+   message. What they also did was push every whale into the top fifth of the
+   scene and leave the rest of it empty, which reads worse than the problem they
+   solved. All of this paints behind the words regardless. */
 .plane {
   position: absolute;
   inset: 0;
+  container-type: size;
   pointer-events: none;
+  --bob: 4px;
 }
 
 .plane-deep {
-  transform: translate3d(0, calc(var(--sy) * 34px), 0);
+  transform: translate3d(0, calc(var(--sy) * 20px), 0);
 }
 
-.plane-pod {
-  transform: translate3d(0, calc(var(--sy) * 54px), 0);
-}
-
-/* --- The free water ---------------------------------------------------- */
-
-/* The two strips of hero the message is not standing in. Their edges come from
-   JS measuring the message, because the message is 17% to 87% of the hero on a
-   short laptop and 29% to 75% on a phone: any band picked by eye is right at
-   one window size and puts a whale through the headline at the next.
-   `container-type: size` is what lets a sprite ask how much water it has. */
-.band {
-  position: absolute;
-  --bob: 3px;
-  left: 0;
-  right: 0;
-  container-type: size;
-  pointer-events: none;
-}
-
-.band-top {
-  top: 0;
-  height: max(0px, calc(var(--free-top, 20%) - 14px));
-  transform: translate3d(0, calc(var(--sy) * 34px), 0);
-}
-
-.band-bottom {
-  top: calc(var(--free-bottom, 84%) + 14px);
-  bottom: 0;
-  transform: translate3d(0, calc(var(--sy) * 26px), 0);
+.plane-high {
+  transform: translate3d(0, calc(var(--sy) * 38px), 0);
 }
 
 .plane-mid {
-  transform: translate3d(0, calc(var(--sy) * 68px), 0);
+  transform: translate3d(0, calc(var(--sy) * 62px), 0);
 }
 
-/* The near plane sits over the message. */
-.plane-near {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  transform: translate3d(0, calc(var(--sy) * 132px), 0);
+.plane-low {
+  transform: translate3d(0, calc(var(--sy) * 96px), 0);
+}
+
+.plane-reef {
+  transform: translate3d(0, calc(var(--sy) * 124px), 0);
 }
 
 /* --- Kelp -------------------------------------------------------------- */
@@ -3503,7 +3485,9 @@ input:focus {
     width: 46vw;
     opacity: 0.36;
   }
-  .plane-near .swimmer {
+  /* The nearest whale is the largest thing in the scene and the least useful
+     on a narrow screen, where it is most of the frame. */
+  .plane-low .swimmer {
     display: none;
   }
   .claims {
@@ -3611,7 +3595,6 @@ input:focus {
     opacity: 0;
   }
   .plane,
-  .plane-near,
   .kelp,
   .hero-water,
   .ceiling,
