@@ -4418,3 +4418,915 @@ input:focus {
       #020a14 100%
     );
 }
+
+
+/* ==========================================================================
+   DOCS
+   --------------------------------------------------------------------------
+   A reference page, not a pitch. The landing page persuades; this one has to
+   survive being read twice and searched for one fact, so the rules change:
+   a measure that stays near 68 characters, a rail that says where you are,
+   and figures that carry the explanation instead of paragraphs describing a
+   mechanism in words.
+
+   Nothing new is invented that the rest of the site had not already earned —
+   the plates, the glass, the gold-for-treasure rule and the type scale are
+   the ones already in this file.
+   ========================================================================== */
+
+.docs .sheet-head .lede {
+  max-width: 62ch;
+}
+
+/* A reference page earns none of the landing page's runway. The head states the
+   whole system in four sentences and then gets out of the way — there is no
+   ambient lane between it and the contents, because a reader who followed a
+   link called "read the docs" is here to read, not to be introduced. */
+.docs .sheet-head {
+  padding-bottom: clamp(24px, 3vw, 40px);
+}
+
+.doc-meta {
+  margin: 26px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--on-dark-faint);
+}
+
+/* --- The two-column body ------------------------------------------------- */
+
+.docs-body-wrap {
+  padding-top: 0;
+}
+
+.docs-body {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+/* 68ch, not the full column. Long-form technical prose set to 90 characters is
+   the single fastest way to make a docs page unreadable — the eye loses the
+   line on the return sweep. The figures are allowed past it. */
+.docs-main {
+  min-width: 0;
+}
+
+.docs-main p {
+  max-width: 68ch;
+  color: var(--on-dark-body);
+}
+
+.docs-main p + p {
+  margin-top: 18px;
+}
+
+.docs-main b {
+  color: var(--foam);
+  font-weight: 600;
+}
+
+.docs-main em {
+  font-style: normal;
+  color: var(--foam);
+  box-shadow: inset 0 -0.42em 0 rgba(244, 197, 66, 0.22);
+}
+
+/* --- Contents rail ------------------------------------------------------- */
+
+.toc {
+  position: sticky;
+  top: 116px;
+  align-self: start;
+}
+
+.toc-head {
+  margin: 0 0 16px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--on-dark-faint);
+}
+
+.toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* One hairline down the rail; the active item lights its own segment of it,
+     which is why the border lives on the list and the marker on the link. */
+  border-left: 1px solid rgba(190, 231, 245, 0.14);
+}
+
+.toc-link {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0 9px 16px;
+  font-size: 0.83rem;
+  line-height: 1.3;
+  color: var(--on-dark-dim);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.toc-link::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  background: var(--surface-2);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.toc-link:hover {
+  color: var(--foam);
+}
+
+.toc-link.on {
+  color: var(--foam);
+}
+
+.toc-link.on::before {
+  opacity: 1;
+}
+
+.toc-n {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--on-dark-faint);
+}
+
+.toc-link.on .toc-n {
+  color: var(--surface-2);
+}
+
+/* --- Sections ------------------------------------------------------------ */
+
+.doc-section {
+  padding-block: clamp(38px, 4.6vw, 62px);
+  scroll-margin-top: 104px;
+}
+
+.doc-section + .doc-section {
+  border-top: 1px solid rgba(190, 231, 245, 0.1);
+}
+
+.doc-n {
+  margin: 0 0 12px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--surface-2);
+  opacity: 0.7;
+}
+
+.doc-section h2.display {
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  margin-bottom: 24px;
+}
+
+/* The first paragraph of a section carries the whole answer. Somebody who
+   reads only these has still understood the system. */
+.doc-lede {
+  font-size: clamp(1.02rem, 1.4vw, 1.16rem);
+  line-height: 1.6;
+  color: var(--on-dark) !important;
+}
+
+.doc-section .trust {
+  max-width: 72ch;
+}
+
+/* --- Figure frame -------------------------------------------------------- */
+
+.fig {
+  margin: 34px 0 0;
+  padding: clamp(20px, 2.6vw, 30px);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(190, 231, 245, 0.07), rgba(8, 49, 82, 0.22));
+  border: 1px solid rgba(190, 231, 245, 0.13);
+  box-shadow: inset 0 1px 0 rgba(190, 231, 245, 0.2);
+}
+
+.fig-cap {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(190, 231, 245, 0.1);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--on-dark-dim);
+}
+
+.fig-n {
+  flex: none;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--surface-2);
+}
+
+/* --- Fig 1: the loop ----------------------------------------------------- */
+/* Boxes and arrows are a layout, so they are elements. The same diagram drawn
+   inside a viewBox could not stack on a phone: it would either scroll sideways
+   or shrink its own labels to six points. */
+
+.flow {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.flow-node {
+  position: relative;
+  padding: 20px 18px;
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(190, 231, 245, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.13);
+}
+
+/* The arrow between stages. Drawn on the gap rather than inside a node, so it
+   can turn ninety degrees at the breakpoint without moving anything else. */
+.flow-node + .flow-node::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(190, 231, 245, 0.15), rgba(190, 231, 245, 0.5));
+}
+
+.flow-node + .flow-node::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid rgba(190, 231, 245, 0.6);
+  border-right: 1px solid rgba(190, 231, 245, 0.6);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.flow-step {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--on-dark-faint);
+}
+
+.flow-node h4 {
+  margin: 8px 0 0;
+  font-size: 1.12rem;
+  color: var(--foam);
+}
+
+/* Gold is treasure everywhere else on this site; here it marks the number that
+   is the point of each stage. */
+.flow-value {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  background: rgba(244, 197, 66, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(244, 197, 66, 0.24);
+}
+
+.flow-node p {
+  margin: 12px 0 0 !important;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--on-dark-body);
+}
+
+/* --- Fig 2: the two states ----------------------------------------------- */
+
+.statefig {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.state {
+  padding: 22px 20px;
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(190, 231, 245, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.12);
+}
+
+.state.on {
+  background: rgba(244, 197, 66, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(244, 197, 66, 0.26);
+}
+
+.state-tag {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-dark-faint);
+}
+
+.state.on .state-tag {
+  color: var(--gold);
+}
+
+.state-w {
+  /* `.figure` is inline-flex, which turns this <p> into an inline box — the
+     label above it then ran onto the same line as the number. */
+  display: flex;
+  margin: 10px 0 0;
+  font-size: 2.1rem;
+  color: rgba(245, 251, 254, 0.5);
+}
+
+.state.on .state-w {
+  color: var(--gold);
+}
+
+.state-note {
+  margin: 12px 0 0 !important;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.state-arrows {
+  display: grid;
+  gap: 14px;
+  min-width: 168px;
+}
+
+.state-arrow {
+  position: relative;
+  display: block;
+  padding-bottom: 8px;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--on-dark-dim);
+}
+
+.state-arrow::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  height: 1px;
+}
+
+.state-arrow.to::before {
+  background: linear-gradient(90deg, rgba(244, 197, 66, 0.2), var(--gold));
+}
+
+.state-arrow.back::before {
+  background: linear-gradient(270deg, rgba(190, 231, 245, 0.16), rgba(190, 231, 245, 0.55));
+}
+
+.state-arrow::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+.state-arrow.to::after {
+  right: 0;
+  color: var(--gold);
+  transform: rotate(45deg);
+}
+
+.state-arrow.back::after {
+  left: 0;
+  color: rgba(190, 231, 245, 0.75);
+  transform: rotate(-135deg);
+}
+
+/* --- Fig 3: the loyalty curve -------------------------------------------- */
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-tick {
+  font-family: var(--mono);
+  font-size: 12px;
+  fill: rgba(245, 251, 254, 0.5);
+}
+
+.chart-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  fill: var(--gold);
+}
+
+.chart-axis {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: rgba(245, 251, 254, 0.36);
+}
+
+/* The curve and the bars are the same figure at two widths; the swap happens
+   at the point the stepped chart stops fitting. */
+.only-narrow {
+  display: none;
+}
+
+.tiers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+}
+
+.tiers li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  gap: 12px;
+  align-items: center;
+}
+
+.tier-when {
+  font-size: 11px;
+  color: var(--on-dark-dim);
+}
+
+.tier-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(190, 231, 245, 0.09);
+}
+
+.tier-fill {
+  display: block;
+  height: 100%;
+  /* The first tier is the floor, not zero — a bar of no width would say a whale
+     at 1.00x earns nothing, which is the opposite of what it means. */
+  width: calc(8% + var(--v) * 92%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(244, 197, 66, 0.45), var(--gold));
+}
+
+.tier-w {
+  font-size: 12px;
+  color: var(--gold);
+  text-align: right;
+}
+
+/* --- Fig 4: the split ---------------------------------------------------- */
+
+.split-bar {
+  display: flex;
+  height: 34px;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.16);
+}
+
+.split-bar-pool {
+  flex: var(--v);
+  background: linear-gradient(180deg, rgba(63, 169, 217, 0.55), rgba(14, 122, 184, 0.3));
+}
+
+/* Half a percent is a sliver. It gets a minimum width so it is visible at all,
+   and the caption carries the real figure — a bar that lies about a proportion
+   to be seen is worse than one that says so. */
+.split-bar-tip {
+  flex: var(--v);
+  min-width: 8px;
+  background: var(--gold);
+}
+
+.split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--on-dark-dim);
+}
+
+.split-legend b {
+  color: var(--foam);
+}
+
+.split-tip-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.split-tip-key i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+
+.split-rows {
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.split-rows li {
+  display: grid;
+  grid-template-columns: 62px 54px minmax(0, 1fr) 108px 132px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(190, 231, 245, 0.04);
+}
+
+.split-id {
+  font-size: 12px;
+  color: var(--foam);
+}
+
+.split-weight {
+  font-size: 12px;
+  color: var(--surface-2);
+}
+
+.split-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(190, 231, 245, 0.09);
+  overflow: hidden;
+}
+
+.split-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--v) * 100%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(244, 197, 66, 0.5), var(--gold));
+}
+
+.split-cut {
+  font-size: 1.05rem;
+  color: var(--gold);
+  justify-self: end;
+}
+
+.split-note {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--on-dark-faint);
+  text-align: right;
+}
+
+.split-sum {
+  margin: 20px 0 0 !important;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-dim);
+  max-width: none !important;
+}
+
+/* --- Fig 5: the ownership chain ------------------------------------------ */
+
+.chain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.chain-node {
+  padding: 20px 18px;
+  border-radius: 14px 4px 14px 14px;
+  background: rgba(190, 231, 245, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.12);
+}
+
+.chain-node.accent {
+  background: rgba(63, 169, 217, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(143, 212, 238, 0.3);
+}
+
+.chain-node.gold {
+  background: rgba(244, 197, 66, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(244, 197, 66, 0.26);
+}
+
+.chain-tag {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-dark-faint);
+}
+
+.chain-node.gold .chain-tag {
+  color: var(--gold);
+}
+
+.chain-title {
+  margin: 10px 0 0 !important;
+  font-size: 0.95rem;
+  color: var(--foam) !important;
+}
+
+.chain-note {
+  margin: 10px 0 0 !important;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.chain-link {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-width: 58px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-dim);
+}
+
+.chain-link::after {
+  content: "";
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(190, 231, 245, 0.15), rgba(190, 231, 245, 0.55));
+  box-shadow: 0 0 0 0 transparent;
+}
+
+/* --- Facts on this page -------------------------------------------------- */
+
+.doc-facts {
+  margin-top: 32px;
+  /* Explicitly three, not auto-fit. At this column width auto-fit resolved to
+     two, and the third card sat alone on its own row looking like a card that
+     had failed to load rather than the third of three. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.doc-fact {
+  padding: 24px 22px;
+}
+
+.fact-v {
+  margin: 0 !important;
+  font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+  color: var(--foam) !important;
+  /* The three values are different lengths (1000, 2–3, 1,000,000,000) and the
+     longest has to fit the narrowest card without breaking the line. */
+  overflow-wrap: anywhere;
+}
+
+.fact-note {
+  margin: 12px 0 0 !important;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* --- The gallery --------------------------------------------------------- */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 32px 0 0;
+}
+
+.gal {
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(190, 231, 245, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.13);
+  transition: transform 240ms var(--ease), box-shadow 240ms ease;
+}
+
+.gal:hover {
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.3), 0 20px 40px rgba(2, 16, 30, 0.45);
+}
+
+.gal img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The art is rendered with a soft finish, not raw pixels — nearest-neighbour
+     upscaling would put hard aliased steps on a curve that was drawn smooth. */
+  background: rgba(4, 24, 43, 0.4);
+}
+
+.gal figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px 13px;
+  font-size: 0.8rem;
+  color: var(--on-dark-body);
+}
+
+.gal figcaption b {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--surface-2);
+}
+
+/* --- What nobody can do -------------------------------------------------- */
+
+.powers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.power {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 13px;
+  padding: 15px 17px;
+  border-radius: 8px;
+  background: rgba(190, 231, 245, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.09);
+}
+
+.power-x {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(244, 197, 66, 0.75);
+}
+
+.power-what {
+  margin: 0 !important;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--foam) !important;
+  /* Struck through, because the list is of things that cannot happen. */
+  text-decoration: line-through;
+  text-decoration-color: rgba(244, 197, 66, 0.45);
+  text-decoration-thickness: 1px;
+}
+
+.power-why {
+  margin: 6px 0 0 !important;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--on-dark-dim) !important;
+}
+
+/* --- Questions ----------------------------------------------------------- */
+
+.qa {
+  display: grid;
+  gap: 4px;
+  margin-top: 26px;
+}
+
+.q {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(190, 231, 245, 0.1);
+}
+
+.q h3 {
+  margin: 0 0 10px;
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  color: var(--foam);
+  text-transform: none;
+  font-family: var(--body);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.q p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.doc-end {
+  margin-top: 44px;
+}
+
+.doc-end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* --- Narrower ------------------------------------------------------------ */
+
+@media (max-width: 1040px) {
+  /* The rail is the first thing to go: a sticky column of links is worth its
+     width on a wide screen and worth nothing on a narrow one. */
+  .docs-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .toc {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  /* Four across becomes two across, and the arrows turn with the layout. */
+  .flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flow-node + .flow-node::before,
+  .flow-node + .flow-node::after {
+    display: none;
+  }
+
+  .statefig,
+  .chain {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .state-arrows {
+    grid-auto-flow: column;
+    min-width: 0;
+  }
+
+  .chain-link {
+    min-height: 34px;
+  }
+
+  .chain-link::after {
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(190, 231, 245, 0.15), rgba(190, 231, 245, 0.55));
+  }
+
+  .split-rows li {
+    grid-template-columns: 58px 50px minmax(0, 1fr) 96px;
+  }
+
+  .split-note {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  /* A 920-unit viewBox this narrow puts the tick labels under four points. */
+  .only-wide {
+    display: none;
+  }
+
+  .only-narrow {
+    display: block;
+  }
+
+  .doc-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .split-rows li {
+    grid-template-columns: 52px minmax(0, 1fr) 88px;
+  }
+
+  .split-weight {
+    display: none;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gal:hover {
+    transform: none;
+  }
+}

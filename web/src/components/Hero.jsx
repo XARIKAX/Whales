@@ -4,6 +4,7 @@ import Marine, { Leviathan, useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
 import { eth, usd, multiplier } from "../format.js";
 import { DOCS_URL } from "../config.js";
+import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
 import { onDive } from "../dive.js";
 
@@ -352,9 +353,17 @@ export default function Hero({ featured, price, wallet, live }) {
                 ? `${wallet.account.slice(0, 6)}…${wallet.account.slice(-4)}`
                 : "Connect wallet"}
             </button>
-            <a className="btn btn-ghost" href={DOCS_URL}>
-              Read the docs
-            </a>
+            {/* Internal by default, so the click is a route change rather than a
+                reload; only an externally hosted VITE_DOCS_URL leaves the site. */}
+            {DOCS_URL.startsWith("/") ? (
+              <Link className="btn btn-ghost" to={DOCS_URL}>
+                Read the docs
+              </Link>
+            ) : (
+              <a className="btn btn-ghost" href={DOCS_URL} target="_blank" rel="noreferrer">
+                Read the docs
+              </a>
+            )}
           </div>
 
           <Readout featured={featured} price={price} live={live} />
