@@ -54,10 +54,17 @@ import, and compile for `shanghai`.
 Every metadata file currently reads `ipfs://__REPLACE_WITH_CID__/0042.png`.
 Two CIDs, in this order:
 
+The 1000 PNGs are not in git — they are 133MB and are regenerated instead. The
+ten contact sheets under `pipeline/output/sheets/` are committed as the check on
+that: a fresh run reproduces all ten byte for byte. Verified — a clean
+`python3 generate.py` here matched every sheet's md5 and reproduced provenance
+`0x7f19…d709` exactly. So step (a) below starts by rebuilding them.
+
 ```bash
-# a. pin pipeline/output/images/ (1000 PNGs) → gives you the image CID
+# a. regenerate the renders, then pin pipeline/output/images/ → image CID
+cd pipeline && pip install pillow numpy && python3 generate.py
 # b. regenerate metadata pointing at it
-cd pipeline && python3 generate.py --cid <image-CID>
+python3 generate.py --cid <image-CID>
 # c. pin pipeline/output/metadata/ (1000 JSON) → gives you BASE_URI
 # d. recompute the provenance hash over the final metadata
 cd ../contracts && node scripts/provenance.js ../pipeline/output/metadata
@@ -80,7 +87,9 @@ PRIVATE_KEY         funded deployer — local shell only, never in Vercel
 LAUNCH_RECIPIENT    receives the 1B $WHALE for the Flap launch
 PROVENANCE          0x… from step 2 — required, the deploy refuses without it
 BASE_URI            ipfs://<metadata-CID>/  (can also be set after)
-MINT_PRICE          default 0.02
+MINT_PRICE_USD      dollar price per whale — default 1
+ETH_USD             the rate it is converted at; required off a dev chain
+MINT_PRICE          explicit ETH amount, skips the conversion
 HAUL_THRESHOLD      default 0.1
 SWAP_ROUTER / WETH  both, or neither
 ```
@@ -111,12 +120,17 @@ VITE_CHAIN_ID  VITE_RPC_URL  VITE_WHALE_TOKEN  VITE_WHALES  VITE_TRENCH  VITE_RE
 
 ## Decisions someone has to make
 
-**Mint policy.** `Whales.mint()` caps at 10 per transaction but has **no
-per-wallet limit** — one address can take all 1000 across 100 transactions.
-There is no allowlist and no pause. Meanwhile the site's step 01 reads "All
-1000 whales minted. Pick one up on secondary," which implies you mint them
-yourself rather than running a public sale. Decide which. If it's a public
-sale, add the constraints you want before deploy — that is a contract change.
+**Mint policy — decided.** Public sale at **$1 a whale, 10 per transaction, no
+per-wallet limit**. That is what `Whales.mint()` already does; no contract
+change was needed, and `whales.test.js` now asserts the policy so a per-wallet
+cap has to be added deliberately rather than drifting in. There is no allowlist
+and no pause, so one address can take all 1000 across 100 transactions — that is
+the accepted trade, not an oversight.
+
+The $1 is fixed in native tokens at deployment (see step 3), so it drifts with
+ETH afterwards. `Whales.mint()` is live and public from the block it deploys, so
+if you intend to take any of the supply yourself, do it immediately — there is
+no pause and no priority.
 
 **Flap integration.** The Trench takes ETH from any sender, so integration is
 just pointing the launch tax at its address. Confirm Flap's launch contract
@@ -146,12 +160,18 @@ deserve the most attention:
    revert, an activated whale becomes untransferable. It is currently pure
    arithmetic, but it is the highest-consequence path in the system.
 
-**Gas-test at real scale.** Local testing ran with at most 40 activated whales.
-Specifically:
+**Gas at real scale — measured.** Run on the Hardhat EVM with all 1000 minted
+and all 1000 activated:
 
-- `Trench.deliverMany()` — the keeper batches 50. Confirm that fits the block
-  gas limit on Robinhood Chain with account creation included.
-- `Trench.deliverable()` and `Whales.staleWhales()` both loop over all 1000
-  token ids. They are `view`, so they cost nothing to call, but they can exceed
-  an RPC node's `eth_call` gas cap. The dashboard already hit exactly this and
-  had to chunk `whaleStates` into hundreds. Chunk these too if needed.
+| Call | Gas |
+| --- | --- |
+| `deliverMany(50)`, cold — creates 50 token-bound accounts | 6,242,772 |
+| `deliverMany(50)`, warm — accounts already exist | 2,169,578 |
+| `deliverable()` — `eth_call`, loops all 1000 | 7,468,245 |
+| `staleWhales()` — `eth_call`, loops all 1000 | 5,726,263 |
+| `whaleStates(100)` — the dashboard's chunk | 2,180,875 |
+
+The keeper's batch of 50 is fine as it stands, and neither view call is near a
+normal `eth_call` cap. Robinhood Chain is an Arbitrum Orbit chain, which prices
+L1 calldata separately from EVM gas, so re-measure against the real RPC before
+relying on the margin.
