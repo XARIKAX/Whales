@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { readArt } from "../chain.js";
 
-/** Art is immutable once revealed, so it is worth caching for the session. */
+/** Art is immutable once frozen, so it is worth caching for the session. */
 const cache = new Map();
 const inflight = new Map();
 

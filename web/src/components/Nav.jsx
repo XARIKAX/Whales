@@ -10,6 +10,7 @@ const SECTIONS = [
 
 /** Pages. Always reachable, from anywhere. */
 const PAGES = [
+  ["Docs", "/docs"],
   ["Activate", "/activate"],
   ["Portfolio", "/portfolio"],
 ];

@@ -1,6 +1,6 @@
 // Puts a local deployment into a lifelike state so the keeper and the website
-// can be exercised against a real chain: minted out, rarity revealed, a pod of
-// whales fed at a spread of loyalty tiers, and a pot waiting to be hauled.
+// can be exercised against a real chain: minted out, metadata pointed at a
+// stand-in CID, a pod fed at a spread of loyalty tiers, and a pot to haul.
 //
 //   npx hardhat run scripts/seed-local.js --network localhost
 const fs = require("fs");
@@ -40,10 +40,9 @@ async function main() {
   }
   process.stdout.write("\n");
 
-  // 2. Reveal rarity, which is only possible now that it has minted out.
-  await (await whales.commitSeed()).wait();
-  await network.provider.send("hardhat_mine", ["0x2"]);
-  await (await whales.revealSeed()).wait();
+  // 2. Point the collection at metadata so tokenURI resolves locally. The real
+  //    deploy uses the pinned CID; this is only so the dashboard has art.
+  await (await whales.setBaseURI("ipfs://bafyLOCALTEST/")).wait();
 
   // 3. Feed a pod, oldest first, so the loyalty curve is visible on the site.
   //    Ages are laid down by activating in waves and rewinding the clock
@@ -82,24 +81,15 @@ async function main() {
   ).wait();
 
   const ocean = await trench.ocean();
-  const tiers = [0, 0, 0, 0, 0];
-  for (let id = 1; id <= maxSupply; id++) tiers[Number(await whales.tierOf(id))]++;
 
   console.log({
     minted: (await whales.totalMinted()).toString(),
-    revealed: await whales.revealed(),
+    tokenURI1: await whales.tokenURI(1),
     activated: (await whales.totalActivated()).toString(),
     burned: ethers.formatEther(await whales.totalBurnedForActivation()) + " WHALE",
     pot: ethers.formatEther(ocean.pot) + " ETH",
     readyToHaul: ocean.readyToHaul,
     totalWeight: (Number(ocean.totalWeight) / 10_000).toFixed(2) + "x",
-    tiers: {
-      surfaceSwimmer: tiers[0],
-      reefCruiser: tiers[1],
-      twilightDiver: tiers[2],
-      abyssDweller: tiers[3],
-      leviathan: tiers[4],
-    },
   });
 }
 

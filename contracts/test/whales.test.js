@@ -30,6 +30,20 @@ describe("Whales — minting", function () {
       .to.be.revertedWithCustomError(whales, "BadQuantity");
   });
 
+  // The mint policy is deliberate, not an oversight: ten a transaction, and no
+  // ceiling on how many transactions one wallet sends. Asserted here so that
+  // adding a per-wallet cap later has to be a decision rather than a drift.
+  it("caps a transaction at ten but never caps a wallet", async function () {
+    const { whales, alice } = await loadFixture(deployOcean);
+
+    expect(await whales.MAX_PER_MINT()).to.equal(10);
+
+    for (let i = 0; i < 12; i++) await mintTo(whales, alice, 10);
+
+    expect(await whales.balanceOf(alice.address)).to.equal(120);
+    expect(await whales.totalMinted()).to.equal(120);
+  });
+
   it("stops at 1000 and never mints another", async function () {
     const { whales, alice } = await loadFixture(deployOcean);
 
