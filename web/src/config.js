@@ -96,9 +96,7 @@ export const PRICE_PATH = env.VITE_PRICE_PATH || "ethereum.usd";
 export const LINKS = {
   x: env.VITE_X_URL || "https://x.com/WhaleNftDotFun",
   telegram: env.VITE_TELEGRAM_URL || "https://t.me/WhaleNftDotFun",
-  opensea:
-    env.VITE_OPENSEA_URL ||
-    "https://opensea.io/collection/0x4f7c5d1f9307f9c925495702de1f315fe5dfc1dc",
+  opensea: env.VITE_OPENSEA_URL || "https://opensea.io/collection/whalescollective",
   docs: env.VITE_DOCS_URL || "",
 };
 

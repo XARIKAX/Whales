@@ -3,7 +3,7 @@ import WhaleArt from "./WhaleArt.jsx";
 import Marine, { Leviathan, useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
 import { eth, usd, multiplier } from "../format.js";
-import { DOCS_URL, WHALE_TOKEN } from "../config.js";
+import { DOCS_URL, LINKS, WHALE_TOKEN } from "../config.js";
 import { checksummed, shortAddress } from "../address.js";
 import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
@@ -381,6 +381,11 @@ export default function Hero({ ocean, featured, price, wallet, live }) {
                 {shortAddress(token)}
                 <span className="addr-icon" aria-hidden="true" />
               </button>
+            )}
+            {LINKS.opensea && (
+              <a className="btn btn-ghost" href={LINKS.opensea} target="_blank" rel="noreferrer">
+                OpenSea ↗
+              </a>
             )}
           </div>
 
