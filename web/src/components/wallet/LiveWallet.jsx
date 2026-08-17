@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WagmiProvider, useAccount } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, darkTheme, useConnectModal } from "@rainbow-me/rainbowkit";
+import {
+  RainbowKitProvider,
+  darkTheme,
+  useAccountModal,
+  useConnectModal,
+} from "@rainbow-me/rainbowkit";
 import { getAccount, watchAccount } from "@wagmi/core";
 
 import { wagmiConfig } from "../../wagmi.js";
@@ -101,6 +106,7 @@ const theme = {
 function Bridge({ request, onValue }) {
   const { address, chainId, status } = useAccount();
   const { openConnectModal, connectModalOpen } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
   const [error, setError] = useState(null);
 
   /* A press of Connect can land before this subtree exists, while it is
@@ -154,7 +160,15 @@ function Bridge({ request, onValue }) {
       connect,
       client,
       error,
-      connecting: status === "connecting" || status === "reconnecting" || connectModalOpen,
+      /* An address settles the question. A modal left open behind a wallet that
+         has already connected used to keep the pill saying "Connecting" over
+         the top of a working session, with no way to press it. */
+      connecting:
+        !address && (status === "connecting" || status === "reconnecting" || connectModalOpen),
+      /* Disconnecting, switching account and copying the address all live in
+         RainbowKit's own sheet. The pill opens it once there is something to
+         open it for. */
+      openAccount: openAccountModal ?? null,
       chainId: chainId ?? null,
       wrongNetwork: Boolean(address) && chainId != null && chainId !== CHAIN.id,
       /* There is always a way in now — an extension, a QR code or a deep link.
@@ -163,7 +177,7 @@ function Bridge({ request, onValue }) {
       available: true,
       ready: true,
     }),
-    [address, chainId, status, connectModalOpen, connect, client, error]
+    [address, chainId, status, connectModalOpen, openAccountModal, connect, client, error]
   );
 
   useEffect(() => {

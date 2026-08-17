@@ -70,9 +70,21 @@ function Socials() {
  * explain.
  */
 function Connect({ wallet }) {
-  const { account, connecting, wrongNetwork } = wallet;
+  const { account, connecting, wrongNetwork, openAccount } = wallet;
 
-  const state = connecting ? "connecting" : wrongNetwork ? "wrong" : account ? "on" : "idle";
+  /* An address outranks everything else. Reading `connecting` first meant a
+     connect modal that had been dismissed, or reopened behind an already
+     connected wallet, left the pill saying "Connecting" on top of a working
+     session — with `disabled` making it unpressable, so there was no way back
+     out of it and no way to disconnect. */
+  const state = account
+    ? wrongNetwork
+      ? "wrong"
+      : "on"
+    : connecting
+      ? "connecting"
+      : "idle";
+
   const label = {
     connecting: "Connecting",
     wrong: `Switch to ${CHAIN.name}`,
@@ -80,12 +92,25 @@ function Connect({ wallet }) {
     idle: "Connect",
   }[state];
 
+  /* Connected, the pill opens the wallet sheet — disconnect, switch account,
+     copy address. Idle, it connects. */
+  const press = () => {
+    if (account) openAccount?.();
+    else if (!connecting) wallet.connect();
+  };
+
   return (
     <button
       className={`nav-wallet mono is-${state}`}
-      onClick={() => !account && !connecting && wallet.connect()}
-      disabled={connecting}
-      title={wrongNetwork ? `This wallet is on another chain` : account || "Connect a wallet"}
+      onClick={press}
+      disabled={connecting && !account}
+      title={
+        wrongNetwork
+          ? `This wallet is on another chain`
+          : account
+            ? `${account} — open wallet`
+            : "Connect a wallet"
+      }
     >
       <span className="nav-dot" aria-hidden="true" />
       {label}
