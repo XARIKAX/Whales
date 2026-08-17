@@ -29,6 +29,17 @@ export const ADDRESSES = {
   registry: env.VITE_REGISTRY,
 };
 
+/**
+ * $WHALE's address, for display only. Nothing that moves money trusts this:
+ * activation burns whatever token the Whales contract has wired in on chain,
+ * and the hero prefers that same chain-read address the moment a read lands.
+ * The constant exists so the CA is on the page before the first RPC round
+ * trip — and still there when the RPC is down, which is exactly when people
+ * double-check addresses.
+ */
+export const WHALE_TOKEN =
+  env.VITE_WHALE_TOKEN || "0xce4e84e0775539382ba39de0b9ca6840a13d7777";
+
 /** Whether the dashboard has enough configuration to read the chain. */
 export const CONFIGURED = Object.values(ADDRESSES).every((a) => /^0x[0-9a-fA-F]{40}$/.test(a || ""));
 
@@ -73,10 +84,19 @@ export const LOG_LOOKBACK = BigInt(env.VITE_LOG_LOOKBACK || 500_000);
 export const PRICE_URL = env.VITE_PRICE_URL || "";
 export const PRICE_PATH = env.VITE_PRICE_PATH || "ethereum.usd";
 
-/** Outbound links. Anything unset is simply not rendered, never a dead link. */
+/**
+ * Outbound links. Anything unset is simply not rendered, never a dead link.
+ *
+ * X and Telegram carry real defaults rather than sitting empty until somebody
+ * sets an environment variable: they are this project's own accounts, not
+ * deployment configuration, and a launch where the community links depend on a
+ * Vercel setting being remembered is a launch with no community links. The env
+ * vars stay so a fork can point them somewhere else.
+ */
 export const LINKS = {
-  x: env.VITE_X_URL || "",
-  opensea: env.VITE_OPENSEA_URL || "",
+  x: env.VITE_X_URL || "https://x.com/WhaleNftDotFun",
+  telegram: env.VITE_TELEGRAM_URL || "https://t.me/WhaleNftDotFun",
+  opensea: env.VITE_OPENSEA_URL || "https://opensea.io/collection/whalescollective",
   docs: env.VITE_DOCS_URL || "",
 };
 

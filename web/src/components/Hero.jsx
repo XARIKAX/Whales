@@ -3,10 +3,13 @@ import WhaleArt from "./WhaleArt.jsx";
 import Marine, { Leviathan, useOnScreen } from "./Marine.jsx";
 import Kelp from "./Kelp.jsx";
 import { eth, usd, multiplier } from "../format.js";
-import { DOCS_URL } from "../config.js";
+import { DOCS_URL, LINKS, WHALE_TOKEN } from "../config.js";
+import { checksummed, shortAddress } from "../address.js";
 import { Link } from "../router.jsx";
 import Reveal from "./Reveal.jsx";
 import { onDive } from "../dive.js";
+import { copy } from "./docs/reading.js";
+import { toast } from "./docs/Chrome.jsx";
 
 /* --- Bubbles ------------------------------------------------------------ */
 
@@ -227,13 +230,18 @@ function Readout({ featured, price, live }) {
 
 /* --- Hero --------------------------------------------------------------- */
 
-export default function Hero({ featured, price, wallet, live }) {
+export default function Hero({ ocean, featured, price, wallet, live }) {
   const stage = useRef(null);
   const bubbles = useMemo(() => BUBBLES, []);
   /* Scrolled past the hero, the whole scene parks. Nothing below it is worth
      paying twenty-six fish and six light shafts a frame for. */
   const near = useOnScreen(stage, "200px");
   useDrift(stage);
+
+  const token = ocean?.whaleToken || WHALE_TOKEN;
+  const copyToken = async () => {
+    toast((await copy(await checksummed(token))) ? "$WHALE address copied" : "Could not copy");
+  };
 
   return (
     <section className={`hero${near ? "" : " parked"}`} id="top" ref={stage}>
@@ -356,6 +364,27 @@ export default function Hero({ featured, price, wallet, live }) {
             ) : (
               <a className="btn btn-ghost" href={DOCS_URL} target="_blank" rel="noreferrer">
                 Read the docs
+              </a>
+            )}
+            {/* The CA, because it is the first thing a buyer looks for on a
+                launch page. The chain-read address wins over the configured one
+                the moment a read lands — display never disagrees with what
+                activation actually burns. */}
+            {token && (
+              <button
+                type="button"
+                className="btn btn-ghost hero-ca"
+                onClick={copyToken}
+                title="Copy the $WHALE contract address"
+              >
+                <span className="hero-ca-tag">$WHALE</span>
+                {shortAddress(token)}
+                <span className="addr-icon" aria-hidden="true" />
+              </button>
+            )}
+            {LINKS.opensea && (
+              <a className="btn btn-ghost" href={LINKS.opensea} target="_blank" rel="noreferrer">
+                OpenSea ↗
               </a>
             )}
           </div>

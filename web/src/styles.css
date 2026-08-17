@@ -2075,6 +2075,23 @@ p {
   justify-content: center;
 }
 
+/* The $WHALE contract address, one press from the clipboard. Letter-spacing
+   comes down from the button default because an address is read as a string
+   of glyphs, not a word — tracked-out hex is harder to compare, not easier. */
+.hero-ca {
+  letter-spacing: 0.05em;
+}
+
+.hero-ca .hero-ca-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  opacity: 0.62;
+}
+
+.hero-ca:hover .addr-icon {
+  opacity: 1;
+}
+
 /* --- Readout ----------------------------------------------------------- */
 
 /* The instrument rail: one horizontal plane that gives the centred composition
@@ -8100,5 +8117,52 @@ input:focus {
   .ocean-foot {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* --- Socials in the nav pill --------------------------------------------- */
+
+/* Sits between the page links and Connect, and takes the pill's ink so it
+   inverts with everything else below the thermocline. Quieter than a nav link
+   at rest — these are for the people already looking for them, not a third
+   thing competing with Connect. */
+.nav-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  color: var(--ink-dim);
+  transition: color 200ms ease, background 200ms ease;
+}
+
+.nav-pill.deep .nav-social {
+  color: var(--on-dark-dim);
+}
+
+.nav-social:hover {
+  color: var(--navy);
+  background: rgba(8, 31, 51, 0.08);
+}
+
+.nav-pill.deep .nav-social:hover {
+  color: var(--foam);
+  background: rgba(190, 231, 245, 0.14);
+}
+
+.nav-social:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Measured, not guessed. With the Mint link the pill fits down to 980px and
+   starts scrolling at 900; the icons are ~60px of that, so they go at 1000 and
+   the pill keeps a clean edge everywhere it can. Below there the footer carries
+   both links, which is where anybody looking for them would check anyway. */
+@media (max-width: 1000px) {
+  .nav-social {
+    display: none;
   }
 }

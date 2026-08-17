@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { WagmiProvider, useAccount } from "wagmi";
+import { WagmiProvider, useAccount, useDisconnect } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, darkTheme, useConnectModal } from "@rainbow-me/rainbowkit";
+import {
+  RainbowKitProvider,
+  darkTheme,
+  useAccountModal,
+  useChainModal,
+  useConnectModal,
+} from "@rainbow-me/rainbowkit";
 import { getAccount, watchAccount } from "@wagmi/core";
 
 import { wagmiConfig } from "../../wagmi.js";
@@ -101,6 +107,31 @@ const theme = {
 function Bridge({ request, onValue }) {
   const { address, chainId, status } = useAccount();
   const { openConnectModal, connectModalOpen } = useConnectModal();
+  /**
+   * Three ways out of a connected session, in descending order of niceness —
+   * and the first two are allowed to be missing.
+   *
+   * RainbowKit withholds `openAccountModal` unless the wallet's *current* chain
+   * is one of wagmi's configured chains:
+   *
+   *     openAccountModal: isCurrentChainSupported && status === "connected"
+   *       ? openAccountModal : undefined
+   *
+   * Which is exactly backwards for the case that needs it most. A wallet parked
+   * on the wrong network is the one situation where a reader most wants to
+   * disconnect and start again, and it is the one situation where the sheet
+   * that offers Disconnect is not handed over. The pill was then a button that
+   * visibly did nothing.
+   *
+   * So the bridge publishes all three and lets the pill fall down the list:
+   * the account sheet if there is one, the chain switcher if the wallet is
+   * merely on the wrong network, and a plain `disconnect()` — which wagmi
+   * always provides — as the floor. There is no state in which pressing it
+   * does nothing.
+   */
+  const { openAccountModal } = useAccountModal();
+  const { openChainModal } = useChainModal();
+  const { disconnect } = useDisconnect();
   const [error, setError] = useState(null);
 
   /* A press of Connect can land before this subtree exists, while it is
@@ -154,7 +185,17 @@ function Bridge({ request, onValue }) {
       connect,
       client,
       error,
-      connecting: status === "connecting" || status === "reconnecting" || connectModalOpen,
+      /* An address settles the question. A modal left open behind a wallet that
+         has already connected used to keep the pill saying "Connecting" over
+         the top of a working session, with no way to press it. */
+      connecting:
+        !address && (status === "connecting" || status === "reconnecting" || connectModalOpen),
+      /* Disconnecting, switching account and copying the address all live in
+         RainbowKit's own sheet. The pill opens it once there is something to
+         open it for, and falls through to the two below when there is not. */
+      openAccount: openAccountModal ?? null,
+      switchNetwork: openChainModal ?? null,
+      disconnect: address ? disconnect : null,
       chainId: chainId ?? null,
       wrongNetwork: Boolean(address) && chainId != null && chainId !== CHAIN.id,
       /* There is always a way in now — an extension, a QR code or a deep link.
@@ -163,7 +204,18 @@ function Bridge({ request, onValue }) {
       available: true,
       ready: true,
     }),
-    [address, chainId, status, connectModalOpen, connect, client, error]
+    [
+      address,
+      chainId,
+      status,
+      connectModalOpen,
+      openAccountModal,
+      openChainModal,
+      disconnect,
+      connect,
+      client,
+      error,
+    ]
   );
 
   useEffect(() => {

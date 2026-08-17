@@ -4,6 +4,7 @@ import Reveal from "./Reveal.jsx";
 import Seabed from "./Seabed.jsx";
 import { copy } from "./docs/reading.js";
 import { toast } from "./docs/Chrome.jsx";
+import { checksummed } from "../address.js";
 
 const CONTRACTS = [
   ["Whales NFT", "whales"],
@@ -23,36 +24,6 @@ const LANTERNS = Array.from({ length: 14 }, (_, i) => {
 });
 
 /**
- * EIP-55 casing, computed rather than trusted.
- *
- * The addresses arrive from an env file that somebody typed, and a lower-cased
- * address pasted into a block explorer works while a *wrongly* mixed-cased one
- * is rejected as a bad checksum. Deriving the casing here means the row a
- * reader copies is always the canonical form, whatever was in `.env`.
- *
- * Keccak is already in the bundle for viem, so this costs nothing new.
- */
-function checksummed(address, keccak) {
-  const raw = address.slice(2).toLowerCase();
-  const hash = keccak(raw);
-  let out = "0x";
-  for (let i = 0; i < raw.length; i += 1) {
-    out += parseInt(hash[i], 16) >= 8 ? raw[i].toUpperCase() : raw[i];
-  }
-  return out;
-}
-
-/* Lazily bound: importing viem's hashing at module scope would pull it into the
-   first chunk for the sake of a footer. */
-let keccakHex = null;
-async function loadKeccak() {
-  if (keccakHex) return keccakHex;
-  const { keccak256, toHex } = await import("viem");
-  keccakHex = (ascii) => keccak256(toHex(ascii)).slice(2);
-  return keccakHex;
-}
-
-/**
  * One contract, as a row you can act on.
  *
  * Three affordances, because an address on a page is only useful if you can do
@@ -65,9 +36,7 @@ function ContractRow({ label, value }) {
 
   const take = async () => {
     if (!value) return;
-    const keccak = await loadKeccak().catch(() => null);
-    const text = keccak ? checksummed(value, keccak) : value;
-    toast((await copy(text)) ? "Address copied" : "Could not copy");
+    toast((await copy(await checksummed(value))) ? "Address copied" : "Could not copy");
   };
 
   return (
@@ -101,6 +70,7 @@ export default function Footer() {
      instructions to ourselves sitting in the live footer. */
   const elsewhere = [
     LINKS.x && ["X / Twitter", LINKS.x],
+    LINKS.telegram && ["Telegram", LINKS.telegram],
     LINKS.opensea && ["OpenSea", LINKS.opensea],
   ].filter(Boolean);
 
