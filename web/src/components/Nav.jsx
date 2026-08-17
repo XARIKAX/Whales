@@ -70,7 +70,7 @@ function Socials() {
  * explain.
  */
 function Connect({ wallet }) {
-  const { account, connecting, wrongNetwork, openAccount } = wallet;
+  const { account, connecting, wrongNetwork, openAccount, switchNetwork, disconnect } = wallet;
 
   /* An address outranks everything else. Reading `connecting` first meant a
      connect modal that had been dismissed, or reopened behind an already
@@ -92,11 +92,27 @@ function Connect({ wallet }) {
     idle: "Connect",
   }[state];
 
-  /* Connected, the pill opens the wallet sheet — disconnect, switch account,
-     copy address. Idle, it connects. */
+  /*
+   * Idle, the pill connects. Connected, it has to lead somewhere every time,
+   * and the obvious one-liner — `openAccount?.()` — did not: RainbowKit hands
+   * that hook back as `undefined` whenever the wallet's chain is not one wagmi
+   * was configured with, which is precisely when somebody wants out. The
+   * optional call then swallowed the press and the button looked dead.
+   *
+   * Three fallbacks, worst case a disconnect, so there is no combination of
+   * chain and connector that leaves this inert. On the wrong network the chain
+   * switcher comes first, because switching is what that state is asking for
+   * and disconnecting is the heavier answer to it.
+   */
   const press = () => {
-    if (account) openAccount?.();
-    else if (!connecting) wallet.connect();
+    if (!account) {
+      if (!connecting) wallet.connect();
+      return;
+    }
+    const step = wrongNetwork
+      ? switchNetwork || openAccount || disconnect
+      : openAccount || switchNetwork || disconnect;
+    step?.();
   };
 
   return (
@@ -106,7 +122,7 @@ function Connect({ wallet }) {
       disabled={connecting && !account}
       title={
         wrongNetwork
-          ? `This wallet is on another chain`
+          ? `This wallet is on another chain — switch to ${CHAIN.name}`
           : account
             ? `${account} — open wallet`
             : "Connect a wallet"

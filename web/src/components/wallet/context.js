@@ -16,6 +16,10 @@ export const WalletContext = createContext({
   },
   error: null,
   connecting: false,
+  /* Nothing to open, switch or disconnect until a wallet is attached. */
+  openAccount: null,
+  switchNetwork: null,
+  disconnect: null,
   chainId: null,
   wrongNetwork: false,
   available: true,

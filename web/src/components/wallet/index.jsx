@@ -93,8 +93,10 @@ export default function WalletProvider({ route, children }) {
          the pill's connecting state is for. Anything else and a slow connection
          looks like a dead button. */
       connecting: request > 0,
-      /* Nothing to open until the real stack is up. */
+      /* Nothing to open, switch or disconnect until the real stack is up. */
       openAccount: null,
+      switchNetwork: null,
+      disconnect: null,
       chainId: null,
       wrongNetwork: false,
       available: true,
