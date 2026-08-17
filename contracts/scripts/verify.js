@@ -24,7 +24,7 @@ async function main() {
   // $WHALE is not here: it is launched on Flap and verified by whoever
   // deployed it.
   const targets = [
-    ["Whales", contracts.whales, [contracts.whaleToken, parameters.provenance, parameters.mintPrice]],
+    ["Whales", contracts.whales, [parameters.provenance, parameters.mintPrice]],
     ["WhaleAccountRegistry", contracts.registry, [contracts.whales]],
     [
       "Trench",
