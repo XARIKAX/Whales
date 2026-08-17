@@ -292,14 +292,17 @@ export default function Activate({ wallet, whales, ocean, live, onDone }) {
               </ol>
 
               <div className="dock-actions">
+                {/* No "$WHALE is not live yet" state: the token is wired into
+                    the contract permanently, so the only way tokenLive reads
+                    false now is a slow or failed RPC — a false alarm that made
+                    launch day look unlaunched. The guard stays in `ready`; the
+                    words go. */}
                 <button className="btn btn-foam" disabled={!ready} onClick={activate}>
-                  {!tokenLive
-                    ? "$WHALE is not live yet"
-                    : busy
-                      ? "Confirm in your wallet…"
-                      : ready
-                        ? `Approve and activate #${pad(picked)}`
-                        : "Activate"}
+                  {busy
+                    ? "Confirm in your wallet…"
+                    : ready
+                      ? `Approve and activate #${pad(picked)}`
+                      : "Activate"}
                 </button>
                 <Link className="btn btn-ghost on-dark" to="/portfolio">
                   See your position

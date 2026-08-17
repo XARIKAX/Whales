@@ -76,7 +76,7 @@ export default function Actions({ ocean, wallet, onDone }) {
   /** Activation burns $WHALE, so it needs an allowance first. */
   const feed = () =>
     run("Feed", async (client, account) => {
-      if (!ocean?.whaleToken) throw new Error("$WHALE is not live yet, so nothing can be activated.");
+      if (!ocean?.whaleToken) throw new Error("Could not read the $WHALE token from the chain. Try again in a moment.");
 
       const allowance = await publicClient.readContract({
         address: ocean.whaleToken,
