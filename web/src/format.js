@@ -9,12 +9,22 @@ export function eth(wei, places = 4) {
   return value.toLocaleString(undefined, { maximumFractionDigits: places });
 }
 
+/*
+ * Dollars, as a dollar sign and a number.
+ *
+ * The locale is pinned rather than taken from the reader. Left to the browser,
+ * every locale that is not American disambiguates the currency for itself and
+ * renders "US$1,860" — which is correct, and is not what a dollar figure on
+ * this page is meant to look like. `narrowSymbol` on top, because a handful of
+ * locales reach for the long form even when the country is not in question.
+ */
 export function usd(wei, price) {
   if (!price || wei === undefined || wei === null) return null;
   const value = Number(formatEther(wei)) * price;
-  return value.toLocaleString(undefined, {
+  return value.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: value < 100 ? 2 : 0,
   });
 }

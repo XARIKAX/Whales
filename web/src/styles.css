@@ -8070,10 +8070,19 @@ input:focus {
 /* Gold, because rule two of this page is that gold is treasure and this is the
    only figure on it that is money that has already reached somebody. The glow
    is a text-shadow behind an opaque clipped fill, so it reads as a halo rather
-   than washing out the glyphs. */
+   than washing out the glyphs.
+
+   The padding is load-bearing. A clipped background only paints as far as the
+   box it is sized to, and Anton on a 0.84 line height puts the top of the
+   glyphs above that box: the caps and the dollar sign lost their crowns and the
+   figure read as cropped. The padding grows the paint area, the negative margin
+   takes the growth straight back out of the layout, and the baseline this sits
+   on with the unit beside it does not move. */
 .headline-figure b {
   font-size: clamp(3rem, 9vw, 7rem);
   line-height: 0.84;
+  padding-block: 0.2em 0.1em;
+  margin-block: -0.2em -0.1em;
   font-variant-numeric: tabular-nums;
   color: var(--gold);
   background: linear-gradient(174deg, #fff3d2 2%, var(--gold) 46%, #d69a1c 98%);
