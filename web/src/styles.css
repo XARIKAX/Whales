@@ -7872,10 +7872,11 @@ input:focus {
   outline-offset: 2px;
 }
 
-/* The pill is already carrying seven items. On a phone the section links are
-   gone but the page links are not, and two icons are the difference between a
-   pill that fits and one that scrolls — the footer carries both links too. */
-@media (max-width: 700px) {
+/* Measured, not guessed. With the Mint link the pill fits down to 980px and
+   starts scrolling at 900; the icons are ~60px of that, so they go at 1000 and
+   the pill keeps a clean edge everywhere it can. Below there the footer carries
+   both links, which is where anybody looking for them would check anyway. */
+@media (max-width: 1000px) {
   .nav-social {
     display: none;
   }
