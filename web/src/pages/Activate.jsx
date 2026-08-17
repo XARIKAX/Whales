@@ -141,7 +141,7 @@ export default function Activate({ wallet, whales, ocean, live, onDone }) {
       ]);
 
       if (allowance < burn) {
-        setMessage({ kind: "info", text: "Approving the burn — confirm the first of two." });
+        setMessage({ kind: "info", text: "Approving the burn. Confirm the first of two." });
         const approval = await write(ocean.whaleToken, erc20Abi, "approve", [
           ADDRESSES.whales,
           maxUint256,

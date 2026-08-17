@@ -247,7 +247,7 @@ export async function readAccount(tokenId) {
  */
 export async function withdrawFromWhale({ client, holder, tokenId, whaleAccount, deployed, amount, onStep }) {
   if (!deployed) {
-    onStep?.("Creating the whale's wallet — confirm the first of two.");
+    onStep?.("Creating the whale's wallet. Confirm the first of two.");
     const created = await client.writeContract({
       account: holder,
       address: ADDRESSES.registry,
