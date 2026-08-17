@@ -2485,24 +2485,19 @@ section > .wrap {
 /* A staircase rather than a row. Each step sits lower than the one before it,
    so the section performs the descent the copy is describing instead of just
    listing it. */
+/* One row, four equal boxes, all the same height and all on the same line.
+   They used to descend in a staircase so the section performed the dive the
+   copy describes, which was a nice idea and a bad row: four boxes at four
+   heights read as a layout that has come apart, and the last one sat a hundred
+   pixels below the first for no reason a reader could name.
+   `stretch` is what makes them equal: without it each box is only as tall as
+   its own sentence, and step two is a third the height of step one. */
 .steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-top: 40px;
-  align-items: start;
-}
-
-.steps > *:nth-child(2) {
-  margin-top: clamp(14px, 2.6vw, 38px);
-}
-
-.steps > *:nth-child(3) {
-  margin-top: clamp(28px, 5.2vw, 76px);
-}
-
-.steps > *:nth-child(4) {
-  margin-top: clamp(42px, 7.8vw, 114px);
+  align-items: stretch;
 }
 
 /* Submerged glass. Pale cards on dark water read as paper stuck to a window;
@@ -2544,22 +2539,36 @@ section > .wrap {
   box-shadow: 10px 8px 0 -2px rgba(190, 231, 245, 0.3), 20px 2px 0 -3px rgba(190, 231, 245, 0.2);
 }
 
+/* Stencilled, and out of the way.
+   It was a filled numeral four rems tall with a twenty-six pixel glow behind
+   it, which at that size is not a number, it is a blue smudge with a number
+   somewhere inside it. Outlined it stays crisp at any scale, it stops
+   out-shouting the word underneath it, and a stencil on a plate is the right
+   language for a card that already has rivets in its corners. */
 .step-num {
-  color: var(--surface-2);
-  text-shadow: 0 0 26px rgba(127, 212, 255, 0.4);
+  position: absolute;
+  top: clamp(16px, 1.8vw, 22px);
+  right: clamp(18px, 2vw, 26px);
+  font-family: var(--display);
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(143, 212, 238, 0.62);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 
-.step-num {
-  font-family: var(--display);
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
-  line-height: 0.85;
-  color: var(--accent);
-  margin-bottom: 18px;
-  font-variant-numeric: tabular-nums;
+/* Content starts below the numeral's line, so a long title has nowhere to run
+   into it. */
+.step {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding-top: clamp(52px, 5vw, 68px);
 }
 
 .step h3 {
-  margin: 0 0 10px;
+  margin: 0;
   color: var(--foam);
 }
 
