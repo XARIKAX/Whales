@@ -2075,6 +2075,23 @@ p {
   justify-content: center;
 }
 
+/* The $WHALE contract address, one press from the clipboard. Letter-spacing
+   comes down from the button default because an address is read as a string
+   of glyphs, not a word — tracked-out hex is harder to compare, not easier. */
+.hero-ca {
+  letter-spacing: 0.05em;
+}
+
+.hero-ca .hero-ca-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  opacity: 0.62;
+}
+
+.hero-ca:hover .addr-icon {
+  opacity: 1;
+}
+
 /* --- Readout ----------------------------------------------------------- */
 
 /* The instrument rail: one horizontal plane that gives the centred composition

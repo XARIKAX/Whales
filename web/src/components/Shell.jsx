@@ -3,6 +3,7 @@ import Footer from "./Footer.jsx";
 import Atmosphere from "./Atmosphere.jsx";
 import { DiveGauge } from "./Depth.jsx";
 import Cursor from "./Cursor.jsx";
+import { Toast } from "./docs/Chrome.jsx";
 
 /**
  * The place every page stands in.
@@ -31,6 +32,11 @@ export default function Shell({ deep, lit, live, wallet, route, children }) {
       {children}
 
       <Footer />
+      {/* The copy-confirmation rail. It lives here rather than on the docs
+          page because things that copy — the hero's CA chip, the footer's
+          address rows — exist on every page, and a toast with no host is
+          silence. */}
+      <Toast />
     </div>
   );
 }

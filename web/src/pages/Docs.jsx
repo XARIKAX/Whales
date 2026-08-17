@@ -5,7 +5,7 @@ import { CONFIGURED, LINKS } from "../config.js";
 import { useOcean } from "../hooks.js";
 
 import { useReading } from "../components/docs/reading.js";
-import { Contents, MiniHeader, PrevNext, ProgressLine, Toast } from "../components/docs/Chrome.jsx";
+import { Contents, MiniHeader, PrevNext, ProgressLine } from "../components/docs/Chrome.jsx";
 import { Guide, Heading, Note, Questions } from "../components/docs/Bits.jsx";
 import Search from "../components/docs/Search.jsx";
 import Loop from "../components/docs/Loop.jsx";
@@ -139,8 +139,9 @@ export default function Docs() {
 
   return (
     <main className="sheet docs" id="top">
+      {/* The Toast host lives in the Shell now — copying happens on every
+          page, not just this one. */}
       <ProgressLine />
-      <Toast />
       <MiniHeader sections={SECTIONS} active={active} show={active > 0} />
 
       {/* --- Head ---------------------------------------------------------- */}
