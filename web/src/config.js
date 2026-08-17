@@ -66,9 +66,18 @@ export const LOG_LOOKBACK = BigInt(env.VITE_LOG_LOOKBACK || 500_000);
 export const PRICE_URL = env.VITE_PRICE_URL || "";
 export const PRICE_PATH = env.VITE_PRICE_PATH || "ethereum.usd";
 
-/** Outbound links. Anything unset is simply not rendered, never a dead link. */
+/**
+ * Outbound links. Anything unset is simply not rendered, never a dead link.
+ *
+ * X and Telegram carry real defaults rather than sitting empty until somebody
+ * sets an environment variable: they are this project's own accounts, not
+ * deployment configuration, and a launch where the community links depend on a
+ * Vercel setting being remembered is a launch with no community links. The env
+ * vars stay so a fork can point them somewhere else.
+ */
 export const LINKS = {
-  x: env.VITE_X_URL || "",
+  x: env.VITE_X_URL || "https://x.com/WhaleNftDotFun",
+  telegram: env.VITE_TELEGRAM_URL || "https://t.me/WhaleNftDotFun",
   opensea: env.VITE_OPENSEA_URL || "",
   docs: env.VITE_DOCS_URL || "",
 };

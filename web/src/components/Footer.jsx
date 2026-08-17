@@ -102,6 +102,7 @@ export default function Footer() {
      instructions to ourselves sitting in the live footer. */
   const elsewhere = [
     LINKS.x && ["X / Twitter", LINKS.x],
+    LINKS.telegram && ["Telegram", LINKS.telegram],
     LINKS.opensea && ["OpenSea", LINKS.opensea],
   ].filter(Boolean);
 

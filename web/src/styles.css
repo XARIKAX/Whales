@@ -7113,3 +7113,50 @@ input:focus {
   background: rgba(190, 231, 245, 0.04);
   box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.1);
 }
+
+
+/* --- Socials in the nav pill --------------------------------------------- */
+
+/* Sits between the page links and Connect, and takes the pill's ink so it
+   inverts with everything else below the thermocline. Quieter than a nav link
+   at rest — these are for the people already looking for them, not a third
+   thing competing with Connect. */
+.nav-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  color: var(--ink-dim);
+  transition: color 200ms ease, background 200ms ease;
+}
+
+.nav-pill.deep .nav-social {
+  color: var(--on-dark-dim);
+}
+
+.nav-social:hover {
+  color: var(--navy);
+  background: rgba(8, 31, 51, 0.08);
+}
+
+.nav-pill.deep .nav-social:hover {
+  color: var(--foam);
+  background: rgba(190, 231, 245, 0.14);
+}
+
+.nav-social:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* The pill is already carrying seven items. On a phone the section links are
+   gone but the page links are not, and two icons are the difference between a
+   pill that fits and one that scrolls — the footer carries both links too. */
+@media (max-width: 700px) {
+  .nav-social {
+    display: none;
+  }
+}
