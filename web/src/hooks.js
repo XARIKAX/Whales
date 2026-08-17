@@ -118,7 +118,14 @@ export function useEthPrice() {
 
   useEffect(() => {
     let live = true;
-    const load = () => readEthPrice().then((value) => live && setPrice(value));
+    /* A poll that fails leaves the last good price alone. Writing the null
+       back blanked every dollar figure on the page until the next minute came
+       round, which reads as the numbers breaking rather than as one request
+       timing out. */
+    const load = () =>
+      readEthPrice().then((value) => {
+        if (live && value) setPrice(value);
+      });
     load();
     const id = setInterval(load, 60_000);
     return () => {

@@ -76,12 +76,19 @@ export function resolveUri(uri) {
 export const LOG_LOOKBACK = BigInt(env.VITE_LOG_LOOKBACK || 500_000);
 
 /**
- * Price feed for the dollar figures. Any endpoint returning JSON works — set
- * VITE_PRICE_PATH to the dotted path of the number inside the response. When
- * unset, or when the request fails, the dashboard shows ETH only rather than
- * inventing a number.
+ * Price feed for the dollar figures. Any endpoint returning JSON works: set
+ * VITE_PRICE_PATH to the dotted path of the number inside the response.
+ *
+ * The default is the endpoint the default path was always written for. Leaving
+ * the URL empty meant every dollar figure on the site was silently switched
+ * off unless somebody remembered to set an environment variable, which is a
+ * poor way to lose the headline reading on the stats panel. It still degrades
+ * the same way it always did: an unreachable or malformed feed shows ETH only,
+ * never an invented number.
  */
-export const PRICE_URL = env.VITE_PRICE_URL || "";
+export const PRICE_URL =
+  env.VITE_PRICE_URL ||
+  "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd";
 export const PRICE_PATH = env.VITE_PRICE_PATH || "ethereum.usd";
 
 /**

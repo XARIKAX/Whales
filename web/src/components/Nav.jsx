@@ -122,9 +122,9 @@ function Connect({ wallet }) {
       disabled={connecting && !account}
       title={
         wrongNetwork
-          ? `This wallet is on another chain — switch to ${CHAIN.name}`
+          ? `This wallet is on another chain. Switch to ${CHAIN.name}`
           : account
-            ? `${account} — open wallet`
+            ? `${account}. Open wallet`
             : "Connect a wallet"
       }
     >

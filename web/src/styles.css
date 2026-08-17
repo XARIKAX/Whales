@@ -7857,21 +7857,44 @@ input:focus {
    poor argument. Everything in it was already on chain and simply not being
    asked for. It is a section now, with one reading leading at the size of the
    claim it makes and ten supporting it, because a page that shouts eleven
-   numbers at once shouts nothing. */
+   numbers at once shouts nothing.
+
+   It is drawn as an instrument panel. Four gauges with pointers that sweep to
+   their reading the first time the panel is looked at, a sonar dish turning
+   beside the headline, light coming down through the water and a lamp that
+   walks the bottom rail once a minute. All of it is transform and opacity on
+   small elements, and all of it stops when the section leaves the screen:
+   which is why the ambient layer is a real element rather than a pseudo on the
+   section: `.parked` can only reach things it can select. */
 
 .ocean {
   position: relative;
+  isolation: isolate;
   z-index: 1;
-  padding-block: clamp(44px, 5vw, 78px);
-  background: linear-gradient(180deg, rgba(11, 48, 78, 0.9), rgba(4, 22, 39, 0.94));
+  padding-block: clamp(48px, 5.4vw, 84px);
+  /* The nav is fixed and the Stats link is an anchor, so without this the jump
+     lands with the eyebrow and the live pill underneath the pill. */
+  scroll-margin-top: 92px;
+  background:
+    radial-gradient(ellipse 900px 420px at 50% 12%, rgba(63, 169, 217, 0.2), transparent 68%),
+    radial-gradient(ellipse 700px 300px at 50% 100%, rgba(2, 12, 22, 0.5), transparent 70%),
+    linear-gradient(180deg, rgba(11, 48, 78, 0.9), rgba(4, 22, 39, 0.94));
   border-block: 1px solid rgba(190, 231, 245, 0.16);
   box-shadow:
     inset 0 1px 0 rgba(190, 231, 245, 0.3),
     0 30px 70px rgba(2, 12, 22, 0.4);
   color: var(--on-dark);
+  overflow: hidden;
 }
 
-/* The same sounder grid the old band had, engraved rather than drawn. */
+/* The sounder grid the old band had, engraved rather than drawn, and two
+   shafts of surface light leaning across it.
+
+   The shafts were moving elements to begin with and are gradients now, because
+   measured against this section they were the two largest composited layers on
+   it and, at the opacity light actually has down here, nobody could see them
+   move. Painted into the pseudo they inherit its fade, which is the shape a
+   shaft of light has anyway: bright near the surface, gone before the floor. */
 .ocean::before {
   content: "";
   position: absolute;
@@ -7879,14 +7902,100 @@ input:focus {
   pointer-events: none;
   opacity: 0.5;
   background-image:
+    linear-gradient(
+      101deg,
+      transparent 7%,
+      rgba(143, 212, 238, 0.15) 13%,
+      rgba(190, 231, 245, 0.06) 17%,
+      transparent 23%
+    ),
+    linear-gradient(96deg, transparent 57%, rgba(143, 212, 238, 0.11) 63%, transparent 70%),
     repeating-linear-gradient(90deg, rgba(190, 231, 245, 0.05) 0 1px, transparent 1px 64px),
     repeating-linear-gradient(180deg, rgba(190, 231, 245, 0.04) 0 1px, transparent 1px 64px);
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 72%);
 }
 
+/* A hull seam along the bottom edge: rivets on a rule, so the band closes the
+   way every plate on this page closes. */
+.ocean::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 13px;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 26px,
+      rgba(190, 231, 245, 0.28) 26px 27px,
+      transparent 27px 28px
+    ),
+    linear-gradient(180deg, transparent, rgba(2, 12, 22, 0.55));
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* --- What moves --------------------------------------------------------- */
+
+/* `display: contents` rather than a box, and that is a measurement rather than
+   a preference. As a real element spanning the section this generated one
+   composited layer the size of the whole band, which had to be blended over
+   six stacked background gradients on every scrolled frame. Generating no box
+   at all, the bubbles composite as the small layers they actually are, and
+   `.ocean` still clips and parks them exactly the same. */
+.ocean-deep {
+  display: contents;
+}
+
+/* Two shafts of surface light leaning through the band. Wide, but only two,
+   and each is a single painted layer that is translated rather than repainted,
+   which is the difference between this and the full-screen wash that used to
+   cost the page ten frames a second. */
+/* Five bubbles crossing the whole band. Nine pixels at the largest, so the fill
+   cost is nothing, and nothing under twenty-nine seconds, so nobody catches one
+   starting. */
+.obub {
+  position: absolute;
+  bottom: -14px;
+  width: var(--d, 6px);
+  height: var(--d, 6px);
+  border-radius: 50%;
+  border: 1px solid rgba(190, 231, 245, 0.3);
+  background: radial-gradient(
+    circle at 34% 28%,
+    rgba(245, 251, 254, 0.55),
+    rgba(143, 212, 238, 0.04) 62%
+  );
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: obub-rise var(--dur, 34s) linear infinite;
+  animation-delay: var(--wait, 0s);
+}
+
+@keyframes obub-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.7);
+    opacity: 0;
+  }
+  9% {
+    opacity: 0.5;
+  }
+  82% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate3d(16px, calc(var(--rise, 800px) * -1), 0) scale(1);
+    opacity: 0;
+  }
+}
+
 .ocean .wrap {
   position: relative;
   z-index: 1;
+}
+
+.ocean h2.display {
+  margin-top: 10px;
+  max-width: 16ch;
 }
 
 .live-pill {
@@ -7912,7 +8021,12 @@ input:focus {
 /* --- The claim ----------------------------------------------------------- */
 
 .headline-stat {
-  margin-top: 22px;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+  margin-top: 26px;
   padding: clamp(24px, 3.2vw, 42px);
   border: 1px solid rgba(143, 212, 238, 0.34);
   border-radius: 22px 6px 22px 22px;
@@ -7921,9 +8035,28 @@ input:focus {
     radial-gradient(circle at calc(100% - 17px) 17px, rgba(190, 231, 245, 0.4) 0 1.5px, transparent 2.4px),
     radial-gradient(circle at 17px calc(100% - 17px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px),
     radial-gradient(circle at calc(100% - 17px) calc(100% - 17px), rgba(190, 231, 245, 0.26) 0 1.5px, transparent 2.4px),
+    radial-gradient(ellipse 60% 90% at 22% 58%, rgba(244, 197, 66, 0.12), transparent 70%),
     linear-gradient(180deg, rgba(20, 74, 116, 0.55), rgba(6, 34, 58, 0.55));
   background-repeat: no-repeat;
   box-shadow: 0 0 60px -22px rgba(127, 212, 255, 0.7);
+}
+
+/* A chart scale stamped along the top inner edge, so the biggest number on the
+   page is sitting on an instrument rather than floating on a card. */
+.headline-stat::before {
+  content: "";
+  position: absolute;
+  inset: 10px 10px auto 10px;
+  height: 7px;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(190, 231, 245, 0.34) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(90deg, rgba(190, 231, 245, 0.5) 0 1px, transparent 1px 55px);
+  mask-image: linear-gradient(90deg, #000 0 62%, transparent 92%);
+}
+
+.headline-read {
+  min-width: 0;
 }
 
 .headline-figure {
@@ -7934,22 +8067,30 @@ input:focus {
   margin: 10px 0 14px;
 }
 
+/* Gold, because rule two of this page is that gold is treasure and this is the
+   only figure on it that is money that has already reached somebody. The glow
+   is a text-shadow behind an opaque clipped fill, so it reads as a halo rather
+   than washing out the glyphs. */
 .headline-figure b {
   font-size: clamp(3rem, 9vw, 7rem);
   line-height: 0.84;
-  color: var(--foam);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 60px rgba(127, 212, 255, 0.4);
+  color: var(--gold);
+  background: linear-gradient(174deg, #fff3d2 2%, var(--gold) 46%, #d69a1c 98%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 64px rgba(244, 197, 66, 0.45);
 }
 
 .headline-unit {
   font-size: clamp(1.2rem, 2.6vw, 2.1rem);
-  color: rgba(190, 231, 245, 0.44);
+  color: rgba(244, 197, 66, 0.5);
 }
 
 .headline-note {
   margin: 0;
-  max-width: 72ch;
+  max-width: 52ch;
   color: var(--on-dark-body);
 }
 
@@ -7958,7 +8099,155 @@ input:focus {
   color: var(--foam);
 }
 
-/* --- The four ------------------------------------------------------------ */
+/* --- The dish ------------------------------------------------------------ */
+
+/* A porthole with a sonar screen in it. The sweep turns clockwise once every
+   twelve seconds and the contacts light as it reaches them and fade behind it,
+   which is one rotation and six opacity loops: no layout, no paint, nothing
+   that the compositor cannot do on its own. */
+.dish {
+  position: relative;
+  width: clamp(150px, 17vw, 214px);
+  aspect-ratio: 1;
+  flex: none;
+  border-radius: 50%;
+  background:
+    linear-gradient(150deg, rgba(190, 231, 245, 0.2), rgba(8, 31, 51, 0.5) 55%),
+    linear-gradient(180deg, rgba(20, 74, 116, 0.7), rgba(4, 22, 39, 0.8));
+  box-shadow:
+    inset 0 1px 0 rgba(190, 231, 245, 0.35),
+    inset 0 0 0 1px rgba(190, 231, 245, 0.22),
+    0 18px 36px rgba(2, 12, 22, 0.45);
+}
+
+.dish-glass {
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, rgba(9, 60, 94, 0.95), rgba(3, 20, 36, 0.95));
+  box-shadow:
+    inset 0 0 0 1px rgba(143, 212, 238, 0.34),
+    inset 0 0 24px rgba(2, 12, 22, 0.7);
+}
+
+.dish-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(143, 212, 238, 0.24);
+}
+
+.dish-ring:nth-child(1) {
+  width: 33%;
+  height: 33%;
+  margin: -16.5% 0 0 -16.5%;
+}
+
+.dish-ring:nth-child(2) {
+  width: 62%;
+  height: 62%;
+  margin: -31% 0 0 -31%;
+}
+
+.dish-ring:nth-child(3) {
+  width: 90%;
+  height: 90%;
+  margin: -45% 0 0 -45%;
+}
+
+.dish-cross {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(143, 212, 238, 0.2) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(180deg, transparent calc(50% - 0.5px), rgba(143, 212, 238, 0.2) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+
+/* Bright at the leading edge, trailing away behind it. The discontinuity at
+   360deg is the sweep line itself. */
+.dish-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(143, 212, 238, 0) 0deg 288deg,
+    rgba(143, 212, 238, 0.18) 348deg,
+    rgba(190, 231, 245, 0.62) 360deg
+  );
+  will-change: transform;
+  animation: dish-sweep var(--tempo-2) linear infinite;
+}
+
+@keyframes dish-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A contact at a bearing lights when the sweep line reaches it: `--wait` is
+   that bearing as a fraction of a turn, so the delays are the geometry. */
+.dish-blip {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--foam);
+  box-shadow: 0 0 9px rgba(190, 231, 245, 0.9);
+  opacity: 0;
+  animation: dish-blip var(--tempo-2) ease-out infinite;
+  animation-delay: calc(var(--wait, 0) * var(--tempo-2));
+}
+
+@keyframes dish-blip {
+  0% {
+    opacity: 0.95;
+    transform: scale(1.35);
+  }
+  22% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  55%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.dish-bolt {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgba(245, 251, 254, 0.75), rgba(8, 31, 51, 0.7));
+  box-shadow: 0 1px 0 rgba(2, 12, 22, 0.6);
+}
+
+.dish-stamp {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  color: rgba(190, 231, 245, 0.5);
+  background: rgba(4, 22, 39, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(190, 231, 245, 0.2);
+}
+
+.dish.on .dish-stamp {
+  color: var(--surface-2);
+}
+
+/* --- The four gauges ----------------------------------------------------- */
 
 .stat-grid {
   display: grid;
@@ -7967,12 +8256,15 @@ input:focus {
   margin-top: 14px;
 }
 
-/* Same deck plate as everything else that holds a number on this site. */
+/* Same deck plate as everything else that holds a number on this site. The
+   rows are declared rather than implied so the four plates read as one console:
+   the labels line up, the four faces line up, and the footing rule sits on the
+   same line across all of them however long the body copy runs. */
 .stat {
   position: relative;
   display: grid;
-  align-content: start;
-  gap: 11px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 10px;
   padding: clamp(20px, 2.2vw, 26px);
   border: 1px solid rgba(190, 231, 245, 0.14);
   border-radius: 18px 5px 18px 18px;
@@ -7981,8 +8273,24 @@ input:focus {
     radial-gradient(circle at calc(100% - 15px) 15px, rgba(190, 231, 245, 0.34) 0 1.5px, transparent 2.4px),
     radial-gradient(circle at 15px calc(100% - 15px), rgba(190, 231, 245, 0.22) 0 1.5px, transparent 2.4px),
     radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(190, 231, 245, 0.22) 0 1.5px, transparent 2.4px),
+    radial-gradient(ellipse 78% 44% at 50% 30%, rgba(63, 169, 217, 0.16), transparent 72%),
     linear-gradient(180deg, rgba(190, 231, 245, 0.075), rgba(8, 49, 82, 0.3));
   background-repeat: no-repeat;
+  transition:
+    border-color var(--settle) ease,
+    transform var(--settle) var(--ease);
+}
+
+/* A plate you can lean on. Nothing here is a control, so the lift is small and
+   the only thing that really changes is that the needle's arc goes white, which
+   is the answer to "which of these am I reading". */
+.stat:hover {
+  border-color: rgba(143, 212, 238, 0.42);
+  transform: translateY(-2px);
+}
+
+.stat:hover .ometer-fill {
+  stroke: var(--foam);
 }
 
 .stat::after {
@@ -8010,11 +8318,103 @@ input:focus {
   color: rgba(190, 231, 245, 0.58);
 }
 
-.stat-figure {
-  margin: 0;
-  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+.ometer {
+  position: relative;
+  width: 100%;
+  max-width: 264px;
+  margin: 2px auto 0;
+}
+
+.ometer-face {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ometer-track {
+  fill: none;
+  stroke: rgba(190, 231, 245, 0.12);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+
+/* `pathLength="100"` normalises the arc, so the reading is the dash offset and
+   nothing has to know the radius. It rests empty and fills on reveal.
+
+   The gap is twice the dash rather than equal to it, which looks like a detail
+   and is not: with a matched gap the next dash in the pattern begins exactly at
+   the far end of the arc, and a round cap on it painted a lit dot at full scale
+   on a gauge reading zero. */
+.ometer-fill {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+  stroke-dasharray: 100 200;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 1500ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
+}
+
+.reveal.in .ometer-fill {
+  stroke-dashoffset: calc(100 - var(--v, 0) * 100);
+}
+
+.ometer-marks line {
+  stroke: rgba(190, 231, 245, 0.2);
+  stroke-width: 1.1;
+}
+
+.ometer-marks line.major {
+  stroke: rgba(190, 231, 245, 0.44);
+  stroke-width: 1.5;
+}
+
+.ometer-hand {
+  transform: rotate(-90deg);
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transition: transform 1500ms cubic-bezier(0.22, 1, 0.36, 1) 140ms;
+}
+
+.reveal.in .ometer-hand {
+  transform: rotate(calc(var(--v, 0) * 180deg - 90deg));
+}
+
+.ometer-bead {
+  fill: var(--foam);
+}
+
+.ometer-point {
+  fill: rgba(245, 251, 254, 0.85);
+}
+
+/* The reading sits in the mouth of the face, which is only free because the
+   pointer rides the rim. Its foot lands on the centre line of the arc, so the
+   number is inside the semicircle rather than hanging out of the bottom of it. */
+.ometer-read {
+  position: absolute;
+  inset: auto 11% 9% 11%;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.ometer-value {
+  font-size: clamp(1.5rem, 2.7vw, 2.15rem);
+  line-height: 0.9;
   color: var(--foam);
-  text-shadow: 0 0 26px rgba(127, 212, 255, 0.3);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 26px rgba(127, 212, 255, 0.4);
+}
+
+.ometer-unit {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(190, 231, 245, 0.5);
 }
 
 .stat-body {
@@ -8024,21 +8424,20 @@ input:focus {
   color: var(--on-dark-body);
 }
 
-.stat-meter {
-  margin-top: 2px;
-}
-
 .stat-foot {
   margin: 0;
+  padding-top: 9px;
+  border-top: 1px solid rgba(190, 231, 245, 0.12);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: rgba(190, 231, 245, 0.46);
+  color: rgba(190, 231, 245, 0.5);
 }
 
 /* --- The rail ------------------------------------------------------------ */
 
 /* Five figures that each need one line and no argument. */
 .orail {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
@@ -8049,16 +8448,76 @@ input:focus {
   overflow: hidden;
 }
 
+/* An inspection lamp walking the length of the rail. It is a pseudo-element
+   rather than a child because the rail is a stagger container, and a child
+   would take a reveal delay and a slot in the sequence it has no business in. */
+.orail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 170px;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(190, 231, 245, 0.085) 46%,
+    rgba(190, 231, 245, 0.02) 68%,
+    transparent
+  );
+  will-change: transform;
+  animation: orail-scan var(--tempo-8) linear infinite;
+}
+
+@keyframes orail-scan {
+  from {
+    transform: translate3d(-180px, 0, 0);
+  }
+  to {
+    transform: translate3d(100vw, 0, 0);
+  }
+}
+
+/* The label row is held at two lines everywhere, so the five figures sit on one
+   line across the rail whether their label wrapped or not. */
 .oline {
+  position: relative;
   display: grid;
+  grid-template-rows: minmax(25px, auto) auto auto;
   align-content: start;
   gap: 8px;
-  padding: 18px clamp(14px, 1.6vw, 20px);
+  padding: 18px clamp(14px, 1.6vw, 20px) 22px;
   background: rgba(6, 34, 58, 0.72);
+  transition: background var(--settle) ease;
+}
+
+.oline:hover {
+  background: rgba(12, 58, 94, 0.85);
+}
+
+.oline:hover .oline-label {
+  color: rgba(190, 231, 245, 0.78);
+}
+
+/* A chart scale along the foot of every cell. */
+.oline::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 5px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(190, 231, 245, 0.22) 0 1px,
+    transparent 1px 9px
+  );
+  opacity: 0.55;
 }
 
 .oline-label {
   font-size: 9px;
+  line-height: 1.35;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(190, 231, 245, 0.5);
@@ -8107,6 +8566,27 @@ input:focus {
   .orail {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  /* Five readings into three columns leaves a hole in the second row, and the
+     hole is not empty: it shows the hairline colour the rail is separated with,
+     so it reads as a sixth panel that failed to load. The last reading takes
+     the slack instead. */
+  .oline:last-child {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 860px) {
+  /* The dish is the one thing here that is atmosphere rather than evidence, so
+     it is what goes when the card has to choose. */
+  .headline-stat {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dish {
+    display: none;
+  }
+  .headline-note {
+    max-width: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -8114,9 +8594,43 @@ input:focus {
   .orail {
     grid-template-columns: 1fr;
   }
+  /* One column has no slack to take. Left alone, the span would conjure an
+     implicit second column and halve the rail. */
+  .oline:last-child {
+    grid-column: auto;
+  }
   .ocean-foot {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* Nothing here is load-bearing, so all of it goes at a word from the system.
+   The gauges keep their readings: those are transitions to a value, and a
+   pointer that jumps straight to the number is still a pointer at the number. */
+@media (prefers-reduced-motion: reduce) {
+  .obub,
+  .dish-sweep,
+  .dish-blip,
+  .orail::after {
+    animation: none;
+  }
+  .obub,
+  .orail::after {
+    display: none;
+  }
+  .dish-blip {
+    opacity: 0.4;
+  }
+  .ometer-fill,
+  .ometer-hand {
+    transition: none;
+  }
+  .stat {
+    transition: border-color var(--settle) ease;
+  }
+  .stat:hover {
+    transform: none;
   }
 }
 
