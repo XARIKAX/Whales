@@ -4,13 +4,14 @@ const reduced = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* Overshoots ~2% just before the end, then settles — numbers arrive with
-   mass rather than easing politely into place. */
-const easeOvershoot = (t) => {
-  const c = 1.70158 * 0.6;
-  const p = t - 1;
-  return p * p * ((c + 1) * p + c) + 1;
-};
+/* Numbers arrive with mass rather than easing politely into place, but they
+   arrive from below.
+   This used to overshoot two percent before settling, which is a lovely motion
+   for an open-ended figure and a lie for a capped one: on a counter reading
+   "1,000 / 1,000" the overshoot renders 1,037 of 1,000 for a few frames, and a
+   supply that goes over its own maximum is the one number on this page nobody
+   would forgive. Fast out, slow in, and never past the value. */
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
 /**
  * Counts a figure up when it first scrolls into view, then tracks the live
@@ -46,7 +47,7 @@ export default function CountUp({ value, format, duration = 800, className = "" 
         const from = 0;
         const tick = (now) => {
           const t = Math.min(1, (now - start) / duration);
-          setDisplay(from + (value - from) * easeOvershoot(t));
+          setDisplay(from + (value - from) * easeOut(t));
           if (t < 1) frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);

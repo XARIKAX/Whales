@@ -6,7 +6,7 @@ import { fromChain, heldBy } from "./whales.js";
 
 import Shell from "./components/Shell.jsx";
 import Hero from "./components/Hero.jsx";
-import StatsStrip from "./components/StatsStrip.jsx";
+import Ocean from "./components/Ocean.jsx";
 import Steps from "./components/Steps.jsx";
 import Trench from "./components/Trench.jsx";
 import Pod from "./components/Pod.jsx";
@@ -30,7 +30,7 @@ function Landing({ ocean, whales, featured, price, wallet, live, error, unreacha
       <Hero ocean={ocean} featured={featured} price={price} wallet={wallet} live={live} />
 
       <Waterline />
-      <StatsStrip ocean={live ? ocean : null} price={price} />
+      <Ocean ocean={live ? ocean : null} price={price} live={live} />
 
       {!CONFIGURED && (
         <section style={{ paddingBlock: 0, marginTop: 48 }}>
