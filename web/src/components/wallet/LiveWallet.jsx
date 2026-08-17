@@ -134,6 +134,19 @@ function Bridge({ request, onValue }) {
   const { disconnect } = useDisconnect();
   const [error, setError] = useState(null);
 
+  /* wagmi reports "reconnecting" while it revives a session stored from a
+     previous visit, and a stale WalletConnect session can leave it there
+     indefinitely — the pill then said "Connecting" from the moment the page
+     opened and never settled. Honour the state for the few seconds a real
+     revival takes, then stop calling it connecting: a reconnect that has not
+     landed by then is not going to, and the pill should offer a way in rather
+     than report a wait that never ends. */
+  const [reviving, setReviving] = useState(true);
+  useEffect(() => {
+    const patience = setTimeout(() => setReviving(false), 8_000);
+    return () => clearTimeout(patience);
+  }, []);
+
   /* A press of Connect can land before this subtree exists, while it is
      loading, or after it has mounted. The request token covers all three: it
      changes on every press, so this fires whichever side of the boot the press
@@ -150,7 +163,14 @@ function Bridge({ request, onValue }) {
   const connect = useCallback(async () => {
     setError(null);
     if (getAccount(wagmiConfig).address) return;
-    openConnectModal?.();
+
+    /* RainbowKit withholds the connect modal while wagmi is mid-reconnect, and
+       a wedged session can hold it there. With no modal to open, the only move
+       that leads anywhere is clearing the dead session — wagmi flips to
+       disconnected, RainbowKit hands the modal back, and the next press opens
+       it. Without this, a press in that state did nothing at all. */
+    if (openConnectModal) openConnectModal();
+    else disconnect();
 
     await new Promise((resolve) => {
       const stop = watchAccount(wagmiConfig, {
@@ -168,7 +188,7 @@ function Bridge({ request, onValue }) {
         resolve();
       }, 120_000);
     });
-  }, [openConnectModal]);
+  }, [openConnectModal, disconnect]);
 
   const client = useCallback(async () => {
     try {
@@ -189,7 +209,8 @@ function Bridge({ request, onValue }) {
          has already connected used to keep the pill saying "Connecting" over
          the top of a working session, with no way to press it. */
       connecting:
-        !address && (status === "connecting" || status === "reconnecting" || connectModalOpen),
+        !address &&
+        (status === "connecting" || (status === "reconnecting" && reviving) || connectModalOpen),
       /* Disconnecting, switching account and copying the address all live in
          RainbowKit's own sheet. The pill opens it once there is something to
          open it for, and falls through to the two below when there is not. */
@@ -208,6 +229,7 @@ function Bridge({ request, onValue }) {
       address,
       chainId,
       status,
+      reviving,
       connectModalOpen,
       openAccountModal,
       openChainModal,

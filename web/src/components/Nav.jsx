@@ -104,9 +104,14 @@ function Connect({ wallet }) {
    * switcher comes first, because switching is what that state is asking for
    * and disconnecting is the heavier answer to it.
    */
+  /* Pressing while "Connecting" retries rather than being swallowed. The
+     disabled attribute this button used to carry turned any stuck connecting
+     state — a hung reconnect, a modal dismissed mid-load — into a pill that
+     could never be pressed again. connect() is idempotent: it reopens the
+     modal if one is wanted and does nothing if a wallet is mid-handshake. */
   const press = () => {
     if (!account) {
-      if (!connecting) wallet.connect();
+      wallet.connect();
       return;
     }
     const step = wrongNetwork
@@ -119,7 +124,6 @@ function Connect({ wallet }) {
     <button
       className={`nav-wallet mono is-${state}`}
       onClick={press}
-      disabled={connecting && !account}
       title={
         wrongNetwork
           ? `This wallet is on another chain. Switch to ${CHAIN.name}`
