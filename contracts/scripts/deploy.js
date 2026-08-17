@@ -3,15 +3,15 @@
 //   npx hardhat run scripts/deploy.js --network robinhood
 //
 // Configuration comes from the environment so nothing is baked into the repo:
-//   LAUNCH_RECIPIENT  address that receives the 1B $WHALE for the Flap launch
+//   WHALE_TOKEN       the $WHALE launched on Flap. Optional: leave it unset
+//                     when the token does not exist yet and wire it later with
+//                     scripts/set-whale-token.js. Never deployed from here.
 //   PROVENANCE        0x… hash from scripts/provenance.js — required
 //   BASE_URI          ipfs://<CID>/ for the metadata (optional, settable later)
 //   MINT_PRICE_USD    dollar price per whale         (default 1)
 //   ETH_USD           ETH price used to convert it   — required off a dev chain
 //   MINT_PRICE        explicit ETH price, skips the conversion above
 //   HAUL_THRESHOLD    minimum pot before a haul      (default 0.1)
-//   SWAP_ROUTER       AMM for stock election         (default: disabled)
-//   WETH              wrapped native token, required when SWAP_ROUTER is set
 const fs = require("fs");
 const path = require("path");
 const { ethers, network } = require("hardhat");
@@ -57,10 +57,15 @@ async function main() {
   const price = resolveMintPrice();
   const mintPrice = price.wei;
   const haulThreshold = ethers.parseEther(process.env.HAUL_THRESHOLD || "0.1");
-  const router = process.env.SWAP_ROUTER || ethers.ZeroAddress;
   const provenance = process.env.PROVENANCE;
   const baseURI = process.env.BASE_URI || "";
-  const weth = process.env.WETH || ethers.ZeroAddress;
+  const whaleToken = process.env.WHALE_TOKEN || "";
+
+  // $WHALE is launched on Flap, usually after this runs. Minting works without
+  // it; activation does not, and it can be wired in exactly once afterwards.
+  if (whaleToken && !ethers.isAddress(whaleToken)) {
+    throw new Error(`WHALE_TOKEN is not an address: ${whaleToken}`);
+  }
 
   if (!provenance || !/^0x[0-9a-fA-F]{64}$/.test(provenance)) {
     throw new Error(
@@ -69,12 +74,7 @@ async function main() {
     );
   }
 
-  if (router !== ethers.ZeroAddress && weth === ethers.ZeroAddress) {
-    throw new Error("SWAP_ROUTER is set but WETH is not; stock election needs both");
-  }
-
   const [deployer] = await ethers.getSigners();
-  const launchRecipient = process.env.LAUNCH_RECIPIENT || deployer.address;
 
   console.log(`deploying to ${network.name} from ${deployer.address}`);
   console.log(
@@ -84,14 +84,7 @@ async function main() {
       : `mint price ${ethers.formatEther(mintPrice)} ETH`
   );
 
-  const token = await ethers.deployContract("WhaleToken", [launchRecipient]);
-  await token.waitForDeployment();
-
-  const whales = await ethers.deployContract("Whales", [
-    await token.getAddress(),
-    provenance,
-    mintPrice,
-  ]);
+  const whales = await ethers.deployContract("Whales", [provenance, mintPrice]);
   await whales.waitForDeployment();
 
   if (baseURI) {
@@ -109,19 +102,30 @@ async function main() {
     await whales.getAddress(),
     await registry.getAddress(),
     haulThreshold,
-    router,
-    weth,
   ]);
   await trench.waitForDeployment();
 
   // The one and only privileged call in the system. It closes the circular
   // reference between Whales and the Trench, and burns the deployer role in
   // the same transaction.
-  const wiring = await whales.setTrench(await trench.getAddress());
-  await wiring.wait();
+  await (await whales.setTrench(await trench.getAddress())).wait();
 
-  if ((await whales.deployer()) !== ethers.ZeroAddress) {
-    throw new Error("deployer role survived setTrench — refusing to report success");
+  // The token half, when it already exists. Wiring both retires the deployer
+  // role automatically, which is the state the system is meant to end in.
+  if (whaleToken) {
+    if ((await ethers.provider.getCode(whaleToken)) === "0x") {
+      throw new Error(`no contract at WHALE_TOKEN ${whaleToken} on ${network.name}`);
+    }
+    await (await whales.setWhaleToken(whaleToken)).wait();
+  }
+
+  const roleAlive = (await whales.deployer()) !== ethers.ZeroAddress;
+
+  if (whaleToken && roleAlive) {
+    throw new Error("deployer role survived both wires — refusing to report success");
+  }
+  if (!whaleToken && !roleAlive) {
+    throw new Error("deployer role died before the token was wired — activation is now impossible");
   }
 
   const deployment = {
@@ -129,23 +133,21 @@ async function main() {
     chainId: Number((await ethers.provider.getNetwork()).chainId),
     deployedAt: new Date().toISOString(),
     contracts: {
-      whaleToken: await token.getAddress(),
+      whaleToken,
       whales: await whales.getAddress(),
       registry: await registry.getAddress(),
       trench: await trench.getAddress(),
     },
     parameters: {
-      launchRecipient,
       mintPrice: mintPrice.toString(),
       mintPriceUsd: price.usd,
       ethUsdAtDeploy: price.ethUsd,
       maxPerMint: 10,
       perWalletLimit: null,
       provenance,
+      whaleTokenWired: Boolean(whaleToken),
       baseURI: baseURI || null,
       haulThreshold: haulThreshold.toString(),
-      swapRouter: router,
-      weth,
     },
   };
 
@@ -154,7 +156,20 @@ async function main() {
   fs.writeFileSync(path.join(outDir, `${network.name}.json`), JSON.stringify(deployment, null, 2));
 
   console.log(JSON.stringify(deployment, null, 2));
-  console.log("\nNext: point the Flap launch tax recipient at the Trench:");
+
+  if (whaleToken) {
+    console.log(`\n$WHALE wired: ${whaleToken}. The deployer role is gone.`);
+  } else {
+    console.log(
+      "\nNOT FINISHED. $WHALE is not wired, so no whale can be activated yet, and\n" +
+      "the deployer role is still alive on Whales because it has one job left.\n" +
+      "Once Flap has launched the token:\n\n" +
+      `  WHALE_TOKEN=0x… npx hardhat run scripts/set-whale-token.js --network ${network.name}\n\n` +
+      "Minting works in the meantime."
+    );
+  }
+
+  console.log("\nSend the Flap launch tax to the Trench:");
   console.log(`  ${deployment.contracts.trench}`);
 }
 

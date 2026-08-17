@@ -4,16 +4,12 @@ import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
 import { Link } from "../router.jsx";
 import { publicClient, ADDRESSES, whalesAbi } from "../chain.js";
-import { CAST, MINT } from "../placeholder.js";
+import { MINT } from "../placeholder.js";
+import { GALLERY, artFor } from "../cast.js";
 import { usd } from "../format.js";
 import { LINKS } from "../config.js";
 
 const MAX_PER_TX = 10;
-
-/** Eight of the twelve, led by the ones with the most going on. */
-const GALLERY = ["0100", "0137", "0900", "0700", "0613", "0400", "0042", "0500"]
-  .map((id) => CAST.find(([c]) => c === id))
-  .filter(Boolean);
 
 /* --- What a whale is ------------------------------------------------------ */
 
@@ -122,7 +118,7 @@ export default function Mint({ ocean, wallet, price, live, onDone }) {
                 <div className="tile-art">
                   <div className="portrait">
                     <img
-                      src={`/whales/${id}.webp`}
+                      src={artFor(id)}
                       alt={`Whale #${id}, ${name}`}
                       width="360"
                       height="360"

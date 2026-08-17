@@ -1,5 +1,6 @@
 import { Link } from "../router.jsx";
 import { address } from "../format.js";
+import { CHAIN } from "../config.js";
 
 /** Sections of the landing page. Only reachable from the landing page. */
 const SECTIONS = [
@@ -16,6 +17,41 @@ const PAGES = [
   ["Activate", "/activate"],
   ["Portfolio", "/portfolio"],
 ];
+
+/**
+ * Every state the connect button can be in, drawn rather than implied.
+ *
+ * There are five, and the two that used to look identical are the two that
+ * matter: a request sitting unanswered behind the browser window, and a wallet
+ * connected to the wrong chain. Both used to read as "connected" — the first
+ * because nothing changed when you clicked, the second because an address is an
+ * address. Now one ripples and the other goes gold, which is the only warning a
+ * reader gets before a transaction fails for a reason the error will not
+ * explain.
+ */
+function Connect({ wallet }) {
+  const { account, connecting, wrongNetwork } = wallet;
+
+  const state = connecting ? "connecting" : wrongNetwork ? "wrong" : account ? "on" : "idle";
+  const label = {
+    connecting: "Connecting",
+    wrong: `Switch to ${CHAIN.name}`,
+    on: account && address(account),
+    idle: "Connect",
+  }[state];
+
+  return (
+    <button
+      className={`nav-wallet mono is-${state}`}
+      onClick={() => !account && !connecting && wallet.connect()}
+      disabled={connecting}
+      title={wrongNetwork ? `This wallet is on another chain` : account || "Connect a wallet"}
+    >
+      <span className="nav-dot" aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
 
 /**
  * The pill. It inverts below the thermocline so it stays legible as the water
@@ -47,16 +83,12 @@ export default function Nav({ deep, live, route = "/", wallet }) {
           </Link>
         ))}
 
-        {wallet && (
-          <button
-            className="nav-wallet mono"
-            onClick={() => !account && wallet.connect()}
-            title={account || "Connect a wallet"}
-          >
-            <span className={`nav-dot${account ? " on" : ""}`} aria-hidden="true" />
-            {account ? address(account) : "Connect"}
-          </button>
-        )}
+        {/* Where the docs page hangs its breadcrumb. The shell draws the nav for
+            every page and has no business knowing one of them has sections, so
+            the page portals into this instead of the nav importing it. */}
+        <span className="nav-trail" id="nav-trail" />
+
+        {wallet && <Connect wallet={wallet} />}
       </div>
     </nav>
   );

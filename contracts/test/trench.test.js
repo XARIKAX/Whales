@@ -56,6 +56,45 @@ describe("Trench — taking money in", function () {
     // The only functions that move ETH out.
     expect(names).to.include.members(["haul", "deliver", "deliverMany"]);
   });
+
+  // The dashboard offers a withdraw button off the back of these two fields,
+  // so they have to be right before the account exists as well as after.
+  it("reports what is sitting in each whale's own wallet", async function () {
+    const ctx = await loadFixture(deployOcean);
+    const { trench, registry, alice } = ctx;
+    const id = await activateNew(ctx, alice);
+    const account = await registry.accountOf(id);
+
+    const before = (await trench.whaleStates([id]))[0];
+    expect(before.accountBalance).to.equal(0);
+    expect(before.accountDeployed).to.equal(false);
+
+    // ETH can land at the address before the account is deployed; it is not
+    // lost, and the view has to say so.
+    await alice.sendTransaction({ to: account, value: ethers.parseEther("1.5") });
+    const funded = (await trench.whaleStates([id]))[0];
+    expect(funded.accountBalance).to.equal(ethers.parseEther("1.5"));
+    expect(funded.accountDeployed).to.equal(false);
+
+    await registry.createAccount(id);
+    const live = (await trench.whaleStates([id]))[0];
+    expect(live.accountBalance).to.equal(ethers.parseEther("1.5"));
+    expect(live.accountDeployed).to.equal(true);
+  });
+
+  // The Trench takes ETH from the Flap tax and pays ETH out. It holds no
+  // router, calls no AMM, and gives a holder no way to name a different asset —
+  // so a delivery has exactly one outcome and no dependency outside this repo.
+  it("pays in ETH and nothing else", async function () {
+    const { trench } = await loadFixture(deployOcean);
+    const names = trench.interface.fragments
+      .filter((f) => f.type === "function")
+      .map((f) => f.name);
+
+    for (const forbidden of ["electStock", "stockElection", "router", "weth", "SWAP_GAS_LIMIT"]) {
+      expect(names, `Trench must not expose ${forbidden}`).to.not.include(forbidden);
+    }
+  });
 });
 
 describe("Trench — the haul", function () {
@@ -226,7 +265,7 @@ describe("Trench — delivery into the whale's own wallet", function () {
 
     await expect(trench.connect(keeper).deliver(id))
       .to.emit(trench, "Delivered")
-      .withArgs(id, account, owed, ethers.ZeroAddress);
+      .withArgs(id, account, owed);
 
     expect(await ethers.provider.getBalance(account)).to.equal(owed);
     expect(await registry.isDeployed(id)).to.equal(true);

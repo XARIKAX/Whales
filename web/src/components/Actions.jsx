@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { maxUint256, isAddress, zeroAddress } from "viem";
-import { publicClient, ADDRESSES, trenchAbi, whalesAbi, erc20Abi } from "../chain.js";
+import { maxUint256 } from "viem";
+import {
+  publicClient,
+  ADDRESSES,
+  trenchAbi,
+  whalesAbi,
+  erc20Abi,
+  readAccount,
+  withdrawFromWhale,
+} from "../chain.js";
 import { eth } from "../format.js";
 
 const ACTIVATION_BURN = 1_000_000n * 10n ** 18n;
@@ -14,7 +22,6 @@ export default function Actions({ ocean, wallet, onDone }) {
   const [message, setMessage] = useState(null);
   const [connecting, setConnecting] = useState(false);
   const [tokenId, setTokenId] = useState("");
-  const [stock, setStock] = useState("");
   const [quantity, setQuantity] = useState("1");
 
   async function run(label, build) {
@@ -69,8 +76,10 @@ export default function Actions({ ocean, wallet, onDone }) {
   /** Activation burns $WHALE, so it needs an allowance first. */
   const feed = () =>
     run("Feed", async (client, account) => {
+      if (!ocean?.whaleToken) throw new Error("$WHALE is not live yet, so nothing can be activated.");
+
       const allowance = await publicClient.readContract({
-        address: ADDRESSES.whaleToken,
+        address: ocean.whaleToken,
         abi: erc20Abi,
         functionName: "allowance",
         args: [account, ADDRESSES.whales],
@@ -80,7 +89,7 @@ export default function Actions({ ocean, wallet, onDone }) {
         const approval = await write(
           client,
           account,
-          ADDRESSES.whaleToken,
+          ocean.whaleToken,
           erc20Abi,
           "approve",
           [ADDRESSES.whales, maxUint256]
@@ -96,17 +105,28 @@ export default function Actions({ ocean, wallet, onDone }) {
       write(client, account, ADDRESSES.trench, trenchAbi, "deliver", [BigInt(tokenId)])
     );
 
-  const elect = () =>
-    run("Elect", (client, account) =>
-      write(client, account, ADDRESSES.trench, trenchAbi, "electStock", [
-        BigInt(tokenId),
-        stock.trim() === "" ? zeroAddress : stock.trim(),
-      ])
-    );
+  /* Deliver moves a whale's share into the whale's own wallet. This is the step
+     after: the holder moving it out of that wallet and into their own. Only
+     `ownerOf` can do it, on chain — the button is a convenience, not a key. */
+  const withdraw = () =>
+    run("Withdraw", async (client, account) => {
+      const whaleAccount = await readAccount(tokenId);
+      if (whaleAccount.balance === 0n) {
+        throw new Error(`Whale #${tokenId}'s wallet is empty. Deliver first, or it is already out.`);
+      }
+      return withdrawFromWhale({
+        client,
+        holder: account,
+        tokenId,
+        whaleAccount: whaleAccount.address,
+        deployed: whaleAccount.deployed,
+        amount: whaleAccount.balance,
+        onStep: (text) => setMessage({ kind: "info", text }),
+      });
+    });
 
   const tip = ocean ? (ocean.pot * 50n) / 10_000n : 0n;
   const validId = /^\d+$/.test(tokenId) && BigInt(tokenId) > 0n;
-  const validStock = stock.trim() === "" || isAddress(stock.trim());
 
   const validQuantity = /^\d+$/.test(quantity) && Number(quantity) >= 1 && Number(quantity) <= 10;
   const soldOut = ocean ? ocean.minted >= ocean.maxSupply : false;
@@ -116,7 +136,7 @@ export default function Actions({ ocean, wallet, onDone }) {
     return (
       <p className="notice">
         No browser wallet detected. Everything above is read straight from the chain without one.
-        Connect a wallet to mint a whale, feed it, haul the Trench, or elect a stock.
+        Connect a wallet to mint a whale, feed it, haul the Trench, or withdraw a whale’s ETH.
       </p>
     );
   }
@@ -188,30 +208,14 @@ export default function Actions({ ocean, wallet, onDone }) {
             onChange={(e) => setTokenId(e.target.value)}
           />
         </div>
-        <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId}>
+        <button className="btn btn-navy" onClick={feed} disabled={Boolean(busy) || !validId || !ocean?.whaleToken}>
           Feed · burn 1,000,000 $WHALE
         </button>
         <button className="btn btn-ghost on-dark" onClick={deliver} disabled={Boolean(busy) || !validId}>
           Deliver
         </button>
-      </div>
-
-      <div className="row">
-        <div className="field" style={{ flex: 1, minWidth: 220 }}>
-          <label htmlFor="stock">Pay this whale in (token address, blank for ETH)</label>
-          <input
-            id="stock"
-            placeholder="0x… tokenised equity"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-          />
-        </div>
-        <button
-          className="btn btn-ghost on-dark"
-          onClick={elect}
-          disabled={Boolean(busy) || !validId || !validStock}
-        >
-          Elect
+        <button className="btn btn-ghost on-dark" onClick={withdraw} disabled={Boolean(busy) || !validId}>
+          Withdraw to my wallet
         </button>
       </div>
 

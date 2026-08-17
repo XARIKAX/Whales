@@ -1,0 +1,32 @@
+{
+ "name": "WHALES #0650",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0650.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Common"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Slate"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Steel"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Sleepy"
+  },
+  {
+   "trait_type": "Mouth",
+   "value": "Punk Cigarette"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Sailor Cap"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

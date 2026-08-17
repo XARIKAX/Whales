@@ -23,6 +23,11 @@
   # served as itself, so assets and fonts are untouched.
   #
   # The equivalent rule for Vercel is the "rewrites" block in vercel.json.
+  # /docs is prerendered into its own file so it is readable with scripting
+  # off. It has to be matched before the catch-all below, or the reader gets
+  # the empty app shell instead.
+  RewriteRule ^docs/?$ docs.html [L]
+
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]

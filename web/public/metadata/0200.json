@@ -1,0 +1,36 @@
+{
+ "name": "WHALES #0200",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0200.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Legendary"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Slate"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Steel"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Classic"
+  },
+  {
+   "trait_type": "Headwear",
+   "value": "Captain's Hat"
+  },
+  {
+   "trait_type": "Extra",
+   "value": "Scars"
+  },
+  {
+   "trait_type": "Legendary",
+   "value": "Old Ironside"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

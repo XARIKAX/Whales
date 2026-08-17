@@ -1,11 +1,18 @@
-import { useEffect, useState } from "react";
 import Reveal from "../components/Reveal.jsx";
 import { Link } from "../router.jsx";
 import { ACTIVATION_COST } from "../placeholder.js";
-import { LINKS } from "../config.js";
+import { CONFIGURED, LINKS } from "../config.js";
+import { useOcean } from "../hooks.js";
+
+import { useReading } from "../components/docs/reading.js";
+import { Contents, MiniHeader, PrevNext, ProgressLine, Toast } from "../components/docs/Chrome.jsx";
+import { Guide, Heading, Note, Questions } from "../components/docs/Bits.jsx";
+import Search from "../components/docs/Search.jsx";
+import Loop from "../components/docs/Loop.jsx";
+import { HaulWidget, LoyaltyWidget, ProvenanceWidget } from "../components/docs/Widgets.jsx";
 import {
   Figure,
-  LoopFigure,
+  STAGES,
   StateFigure,
   CurveFigure,
   CurveBars,
@@ -22,84 +29,23 @@ const SECTIONS = [
   ["loyalty", "Loyalty"],
   ["haul", "The haul"],
   ["wallet", "The whale's wallet"],
-  ["stock", "Paid in stock"],
   ["art", "The art"],
   ["powers", "What nobody can do"],
   ["questions", "Questions"],
 ];
 
-/**
- * The rail marks where you are.
- *
- * It watches the sections rather than the scroll offset, so it stays right
- * through a resize, an anchor jump and a section that is taller than the
- * window. The chosen line is the last heading to have crossed a third of the
- * way down the viewport — the point the eye actually reads from, not the top
- * edge, where a heading is still on its way in.
- */
-function useCurrentSection() {
-  const [current, setCurrent] = useState(SECTIONS[0][0]);
-
-  useEffect(() => {
-    const nodes = SECTIONS.map(([id]) => document.getElementById(id)).filter(Boolean);
-    if (nodes.length === 0) return;
-
-    let frame = 0;
-    const measure = () => {
-      frame = 0;
-      const line = window.innerHeight / 3;
-      let active = nodes[0].id;
-      for (const node of nodes) {
-        if (node.getBoundingClientRect().top <= line) active = node.id;
-      }
-      setCurrent(active);
-    };
-
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(measure);
-    };
-
-    measure();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
-  return current;
-}
-
-function Contents() {
-  const current = useCurrentSection();
-
-  return (
-    <aside className="toc" aria-label="Contents">
-      <p className="toc-head mono">Contents</p>
-      <ol>
-        {SECTIONS.map(([id, label], i) => (
-          <li key={id}>
-            <a className={`toc-link${current === id ? " on" : ""}`} href={`#${id}`}>
-              <span className="toc-n mono">{String(i + 1).padStart(2, "0")}</span>
-              {label}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </aside>
-  );
-}
+const IDS = SECTIONS.map(([id]) => id);
 
 /* --- Small pieces --------------------------------------------------------- */
 
-function Section({ id, n, title, children }) {
+function Section({ id, n, title, guide, children }) {
   return (
     <section className="doc-section" id={id}>
+      {guide && <Guide trait={guide} />}
       <Reveal>
-        <p className="doc-n mono">{String(n).padStart(2, "0")}</p>
-        <h2 className="display">{title}</h2>
+        <Heading id={id} n={n}>
+          {title}
+        </Heading>
       </Reveal>
       {children}
     </section>
@@ -151,34 +97,52 @@ const POWERS = [
   ["Take your whale's earnings", "They land in a wallet only your whale's owner controls."],
 ];
 
+/* The third field marks an answer that is a property of the contracts rather
+   than a statement about how the project is being run — the audit answer is
+   true, but nothing on chain can vouch for it, so it does not get the tick. */
 const QUESTIONS = [
   [
     "Do I have to do anything to get paid?",
     "Activate once, then no. Anyone can trigger a haul and anyone can deliver, and a bot does both, but it has no special access, so if it stops, any wallet on earth can do the same job for the same tip.",
+    true,
   ],
   [
     "Do rare whales earn more?",
     "No. Traits are cosmetic. A one-of-one and the plainest whale in the collection earn exactly the same at the same loyalty tier. Time fed is the only thing that changes a payout.",
+    true,
   ],
   [
     "What happens if I sell?",
     "The whale goes to sleep in the same transaction. Anything already delivered to its wallet goes with it, so price that in. The buyer burns their own million to wake it, and the loyalty clock starts again at 1.00x.",
+    true,
   ],
   [
     "Where does the burned $WHALE go?",
     "Nowhere. It is destroyed, and total supply drops by that much permanently. It does not go to a treasury and it does not come back.",
+    true,
   ],
   [
     "Is any of this audited?",
     "Not yet. The contracts are written and tested, but they have never been audited and have never been deployed to a live network. Treat everything here as unaudited code until that changes.",
+    false,
   ],
 ];
 
 /* --- Page ----------------------------------------------------------------- */
 
 export default function Docs() {
+  const active = useReading(IDS);
+  /* The same hook the landing page reads. It returns nothing at all before the
+     contracts are deployed, which is what puts the chips on the page. */
+  const { data: ocean, error } = useOcean();
+  const live = CONFIGURED && !error ? ocean : null;
+
   return (
     <main className="sheet docs" id="top">
+      <ProgressLine />
+      <Toast />
+      <MiniHeader sections={SECTIONS} active={active} show={active > 0} />
+
       {/* --- Head ---------------------------------------------------------- */}
       <section className="deep sheet-head">
         <div className="wrap">
@@ -193,6 +157,7 @@ export default function Docs() {
               That is the whole system. The rest of this page is the detail.
             </p>
             <p className="doc-meta mono">Six minutes · Everything here is checkable on chain</p>
+            <Search sections={SECTIONS} />
           </Reveal>
         </div>
       </section>
@@ -200,7 +165,7 @@ export default function Docs() {
       {/* --- Body ---------------------------------------------------------- */}
       <section className="deep docs-body-wrap">
         <div className="wrap docs-body">
-          <Contents />
+          <Contents sections={SECTIONS} active={active} />
 
           <div className="docs-main">
             {/* 01 --------------------------------------------------------- */}
@@ -214,7 +179,7 @@ export default function Docs() {
 
               <Reveal>
                 <Figure n={1} title="Where a trade's tax goes, from the trade to your whale's wallet.">
-                  <LoopFigure />
+                  <Loop stages={STAGES} />
                 </Figure>
               </Reveal>
 
@@ -282,7 +247,7 @@ export default function Docs() {
             </Section>
 
             {/* 04 --------------------------------------------------------- */}
-            <Section id="loyalty" n={4} title="Loyalty">
+            <Section id="loyalty" n={4} title="Loyalty" guide="crown">
               <Reveal>
                 <p className="doc-lede">
                   Every whale wakes at 1.00x. Stay fed and it climbs to a hard cap of 3.33x after a
@@ -305,6 +270,8 @@ export default function Docs() {
                 </Figure>
               </Reveal>
 
+              <LoyaltyWidget />
+
               <Reveal>
                 <p>
                   Weight holds flat between tiers and jumps when one is crossed. Promotion is
@@ -316,7 +283,7 @@ export default function Docs() {
             </Section>
 
             {/* 05 --------------------------------------------------------- */}
-            <Section id="haul" n={5} title="The haul">
+            <Section id="haul" n={5} title="The haul" guide="cigar">
               <Reveal>
                 <p className="doc-lede">
                   When the pot passes its threshold, the haul is open to anybody. Whoever calls it
@@ -330,6 +297,8 @@ export default function Docs() {
                   <SplitFigure />
                 </Figure>
               </Reveal>
+
+              <HaulWidget ocean={live} />
 
               <Reveal>
                 <p>
@@ -346,9 +315,14 @@ export default function Docs() {
               </Reveal>
 
               <p className="trust">
-                The keeper bot presses these buttons on a schedule, but it holds no privileged role.
-                It earns the same 0.5% tip any wallet earns for the same call. If it disappears, the
-                system does not stop; the tip just goes to whoever notices first.
+                The{" "}
+                <Note term="keeper">
+                  A bot anyone could run. It watches the pot and calls haul and deliver when they are
+                  worth calling, and earns the same tip any wallet would for the same call.
+                </Note>{" "}
+                bot presses these buttons on a schedule, but it holds no privileged role. It earns
+                the same 0.5% tip any wallet earns for the same call. If it disappears, the system
+                does not stop; the tip just goes to whoever notices first.
               </p>
             </Section>
 
@@ -375,6 +349,13 @@ export default function Docs() {
                   pointed at a different whale.
                 </p>
                 <p>
+                  Getting it out is one call, and only the whale's current owner can make it. Your
+                  position page lists what is sitting in each of your whales' wallets and puts a
+                  withdraw button on any that has a balance; the first withdraw for a given whale
+                  takes two transactions, because the wallet has to be created before it can be
+                  spent from, and one every time after.
+                </p>
+                <p>
                   The practical consequence is worth reading twice: a whale that has been earning for
                   a year and has never been emptied is carrying its earnings <em>with it</em> when
                   you sell. Check the balance before you list one, and check it before you buy one.
@@ -383,24 +364,7 @@ export default function Docs() {
             </Section>
 
             {/* 07 --------------------------------------------------------- */}
-            <Section id="stock" n={7} title="Paid in stock">
-              <Reveal>
-                <p className="doc-lede">
-                  Optional, off by default. A whale's owner can name a token, and that whale's share
-                  of every haul is swapped into it on the way in instead of arriving as ETH.
-                </p>
-                <p>
-                  There is no allowlist: you can elect anything that trades. Two guards make that
-                  safe for everyone else rather than just for you: if the swap fails for any reason
-                  the whale is paid in ETH rather than left with nothing, and the swap runs under a
-                  hard gas ceiling, so one deliberately hostile token cannot take down the batch that
-                  is paying everybody else.
-                </p>
-              </Reveal>
-            </Section>
-
-            {/* 08 --------------------------------------------------------- */}
-            <Section id="art" n={8} title="The art">
+            <Section id="art" n={7} title="The art" guide="monocle">
               <Reveal>
                 <p className="doc-lede">
                   A thousand whales, ten of them one-of-ones. Traits are cosmetic and nothing more:
@@ -430,10 +394,24 @@ export default function Docs() {
               <Reveal>
                 <p>
                   The images live on IPFS, and two separate things stop them being swapped after
-                  launch. The contract carries a <b>provenance hash</b>, a fingerprint of all 1000
-                  pieces of metadata, in order, fixed at deployment. And <b>freezing</b> the metadata
-                  is a one-way door: it locks the pointer and destroys the role that could set it, so
-                  afterwards no address in the system can change what a whale looks like.
+                  launch. The contract carries a{" "}
+                  <b>
+                    <Note term="provenance hash">
+                      One keccak hash over all 1000 metadata files in token order, written into the
+                      contract at deployment and immutable after it. Change any trait on any whale
+                      and it stops matching.
+                    </Note>
+                  </b>
+                  , a fingerprint of all 1000 pieces of metadata, in order, fixed at deployment. And{" "}
+                  <b>
+                    <Note term="freezing">
+                      `freezeMetadata()`. It locks the base URI and sets the curator address to zero
+                      in the same call, so the role that could change the art stops existing.
+                    </Note>
+                  </b>{" "}
+                  the metadata is a one-way door: it locks the pointer and destroys the role that
+                  could set it, so afterwards no address in the system can change what a whale looks
+                  like.
                 </p>
                 <p>
                   The whole collection is generated from a single seed, so anyone can regenerate all
@@ -441,10 +419,12 @@ export default function Docs() {
                   one on chain.
                 </p>
               </Reveal>
+
+              <ProvenanceWidget />
             </Section>
 
-            {/* 09 --------------------------------------------------------- */}
-            <Section id="powers" n={9} title="What nobody can do">
+            {/* 08 --------------------------------------------------------- */}
+            <Section id="powers" n={8} title="What nobody can do" guide="plain">
               <Reveal>
                 <p className="doc-lede">
                   The system has exactly one privileged action. It runs during deployment, it wires
@@ -468,22 +448,19 @@ export default function Docs() {
               </Reveal>
 
               <p className="trust">
+                <Shield />
                 None of this is a promise about our intentions. Every line of it is a missing
-                function, and a missing function cannot be talked into existing. Read the contracts
+                function, and a missing function cannot be talked into existing.{" "}
+                <a className="trust-link" href="#contracts">
+                  Read the contracts
+                </a>{" "}
                 and check.
               </p>
             </Section>
 
-            {/* 10 --------------------------------------------------------- */}
-            <Section id="questions" n={10} title="Questions">
-              <Reveal className="qa" stagger step={50}>
-                {QUESTIONS.map(([q, a]) => (
-                  <div className="q" key={q}>
-                    <h3 className="display">{q}</h3>
-                    <p>{a}</p>
-                  </div>
-                ))}
-              </Reveal>
+            {/* 09 --------------------------------------------------------- */}
+            <Section id="questions" n={9} title="Questions">
+              <Questions items={QUESTIONS} />
 
               <Reveal className="doc-end">
                 <p className="doc-lede">That is the whole of it. The next step is a whale.</p>
@@ -507,9 +484,28 @@ export default function Docs() {
                 </div>
               </Reveal>
             </Section>
+
+            <PrevNext sections={SECTIONS} active={active} />
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+/**
+ * The mark on the trust line.
+ *
+ * Drawn on the same 12-unit grid as the rest of the diagram language rather
+ * than set as a glyph, so it keeps its edges at any size and takes the gold
+ * from the box it sits in.
+ */
+function Shield() {
+  return (
+    <svg className="trust-shield" viewBox="0 0 12 14" width="12" height="14" aria-hidden="true">
+      <path d="M6 0L0 2v5c0 3 2.6 5.6 6 7 3.4-1.4 6-4 6-7V2L6 0z" fill="currentColor" opacity="0.22" />
+      <path d="M6 1.2L1.2 2.8v4.3c0 2.4 2 4.6 4.8 5.7 2.8-1.1 4.8-3.3 4.8-5.7V2.8L6 1.2z" fill="none" stroke="currentColor" strokeWidth="1" />
+      <path d="M3.6 6.8l1.8 1.8 3-3.4" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
   );
 }

@@ -1,0 +1,28 @@
+{
+ "name": "WHALES #0900",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0900.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Legendary"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Charcoal"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Midnight Black"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Laser"
+  },
+  {
+   "trait_type": "Legendary",
+   "value": "Laser Leviathan"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

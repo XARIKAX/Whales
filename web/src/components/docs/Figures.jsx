@@ -1,26 +1,27 @@
 /**
- * The diagrams.
+ * The figures.
  *
- * One rule decides the medium: **geometry is SVG, boxes-and-arrows are HTML.**
- * A curve or a proportional bar is a drawing and belongs in a viewBox. A row of
- * labelled stages is a layout, and a layout drawn in SVG cannot reflow — it
- * either scrolls sideways on a phone or shrinks its own type to six points. The
- * flow diagrams here are real elements, so they stack into a column on a narrow
- * screen and keep every word at reading size.
+ * They share one drawing language, and it is worth stating because consistency
+ * is the only thing that makes a page of diagrams read as a system rather than
+ * as six illustrations by six people:
  *
- * Nothing is imported to draw them. A chart library would be larger than this
- * entire page for five figures that never change.
+ *   - a faint pixel grid behind every figure, the same 8px module as the loop
+ *   - entities are flat plates with a dark outline and one cut corner, drawn
+ *     the way the sprites are drawn
+ *   - connections are 1px rules with a mono label sitting on them
+ *   - **gold is value in motion, and nothing else** — a box is never gold, an
+ *     arrow carrying money always is
+ *
+ * Medium follows the same rule it always did: geometry is SVG, boxes-and-arrows
+ * are HTML. A layout inside a viewBox cannot reflow, and every one of these has
+ * to survive a 390px screen without shrinking its own labels.
  */
 
 /* --- Frame ---------------------------------------------------------------- */
 
-/**
- * Every figure sits in the same frame with a numbered caption, so a reader can
- * refer to "figure 3" and a scanner can find it.
- */
-export function Figure({ n, title, children, wide = false }) {
+export function Figure({ n, title, children }) {
   return (
-    <figure className={`fig${wide ? " fig-wide" : ""}`}>
+    <figure className="fig">
       <div className="fig-body">{children}</div>
       <figcaption className="fig-cap">
         <span className="fig-n mono">Fig. {n}</span>
@@ -30,9 +31,10 @@ export function Figure({ n, title, children, wide = false }) {
   );
 }
 
-/* --- 1. The loop ---------------------------------------------------------- */
+/* --- The loop's four stages ----------------------------------------------- */
 
-const LOOP = [
+/** Shared with `Loop.jsx`, which animates them, and with its static fallback. */
+export const STAGES = [
   {
     k: "Trade",
     v: "2% / 3%",
@@ -55,27 +57,12 @@ const LOOP = [
   },
 ];
 
-export function LoopFigure() {
-  return (
-    <div className="flow flow-4">
-      {LOOP.map((s, i) => (
-        <div className="flow-node" key={s.k}>
-          <span className="flow-step mono">{String(i + 1).padStart(2, "0")}</span>
-          <h4 className="display">{s.k}</h4>
-          <span className="flow-value mono">{s.v}</span>
-          <p>{s.body}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /* --- 2. Activation state -------------------------------------------------- */
 
 export function StateFigure() {
   return (
     <div className="statefig">
-      <div className="state">
+      <div className="node state">
         <span className="state-tag mono">Dormant</span>
         <p className="state-w figure">
           0.00<span className="unit">weight</span>
@@ -95,7 +82,7 @@ export function StateFigure() {
         </span>
       </div>
 
-      <div className="state on">
+      <div className="node state on">
         <span className="state-tag mono">Awake</span>
         <p className="state-w figure">
           1.00<span className="unit">→ 3.33x</span>
@@ -111,7 +98,6 @@ export function StateFigure() {
 
 /* --- 3. The loyalty curve ------------------------------------------------- */
 
-/** The real schedule out of `Whales.sol`. */
 const TIERS = [
   ["Day 0", 1.0],
   ["7d", 1.25],
@@ -154,8 +140,6 @@ export function CurveFigure() {
         </linearGradient>
       </defs>
 
-      {/* Gridlines at each whole multiplier, so the height of the curve is
-          readable without tracing back to the axis. */}
       {[1, 1.5, 2, 2.5, 3, 3.33].map((w) => (
         <g key={w}>
           <line
@@ -201,13 +185,9 @@ export function CurveFigure() {
 }
 
 /**
- * The same eight tiers, laid out for a phone.
- *
- * A stepped curve needs width: at 360px the labels collapse into each other,
- * and making the figure scroll sideways hides half the data behind a gesture
- * nothing on the page advertises. Turned on its side the identical numbers fit
- * a narrow column with room to spare, so the small screen gets a chart built
- * for it rather than a wide one it has to be dragged through.
+ * The same eight tiers, laid out for a phone. A stepped curve needs width; at
+ * 360px the labels collapse into each other, and making the figure scroll
+ * sideways hides half the data behind a gesture nothing on the page advertises.
  */
 export function CurveBars() {
   return (
@@ -283,38 +263,48 @@ export function SplitFigure() {
   );
 }
 
-/* --- 5. Ownership chain --------------------------------------------------- */
+/* --- 5. The ownership chain ----------------------------------------------- */
 
+/**
+ * Redrawn in the shared language. The change that matters is not the plates:
+ * it is the gold rule coming in from underneath, because the old drawing showed
+ * who owns what and left where the money enters to the paragraph. Ownership
+ * runs left to right in foam; value arrives from the Trench in gold. One look
+ * now answers both questions.
+ */
 export function WalletFigure() {
   return (
     <div className="chain">
-      <div className="chain-node">
+      <div className="node chain-node">
         <span className="chain-tag mono">You</span>
         <p className="chain-title mono">0x7a3f…9c21</p>
         <p className="chain-note">Your everyday wallet. It holds the NFT.</p>
       </div>
 
-      <span className="chain-link" aria-hidden="true">
+      <span className="wire" aria-hidden="true">
         <span className="mono">holds</span>
       </span>
 
-      <div className="chain-node accent">
+      <div className="node chain-node accent">
         <span className="chain-tag mono">The whale</span>
         <p className="chain-title mono">WHALES #0042</p>
         <p className="chain-note">An ordinary ERC-721. Sell it anywhere you would sell any NFT.</p>
       </div>
 
-      <span className="chain-link" aria-hidden="true">
+      <span className="wire" aria-hidden="true">
         <span className="mono">owns</span>
       </span>
 
-      <div className="chain-node gold">
+      <div className="node chain-node gold">
         <span className="chain-tag mono">Its wallet</span>
         <p className="chain-title mono">0x4d1e…88b0</p>
         <p className="chain-note">
           Where the whale's earnings land. Its address is fixed by the token id and can never be
           reassigned.
         </p>
+        <span className="feed" aria-hidden="true">
+          <span className="mono">every haul</span>
+        </span>
       </div>
     </div>
   );

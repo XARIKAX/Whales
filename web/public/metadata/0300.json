@@ -1,0 +1,28 @@
+{
+ "name": "WHALES #0300",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0300.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Legendary"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Arctic Haze"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Arctic"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Classic"
+  },
+  {
+   "trait_type": "Legendary",
+   "value": "The Ghost"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

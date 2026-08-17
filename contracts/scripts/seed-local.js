@@ -18,8 +18,23 @@ async function main() {
   const deployment = JSON.parse(fs.readFileSync(file, "utf8"));
   const [deployer, ...holders] = await ethers.getSigners();
 
-  const token = await ethers.getContractAt("WhaleToken", deployment.contracts.whaleToken);
   const whales = await ethers.getContractAt("Whales", deployment.contracts.whales);
+
+  // On a real chain $WHALE comes from Flap and is wired in separately. Locally
+  // there is no Flap, so stand one up and wire it exactly the way the real
+  // second step does.
+  let token;
+  if ((await whales.whaleToken()) === ethers.ZeroAddress) {
+    token = await ethers.deployContract("MockWhaleToken", [deployer.address]);
+    await token.waitForDeployment();
+    await (await whales.setWhaleToken(await token.getAddress())).wait();
+    deployment.contracts.whaleToken = await token.getAddress();
+    fs.writeFileSync(file, JSON.stringify(deployment, null, 2));
+    console.log(`stand-in $WHALE wired at ${await token.getAddress()}`);
+  } else {
+    token = await ethers.getContractAt("MockWhaleToken", await whales.whaleToken());
+  }
+
   const trench = await ethers.getContractAt("Trench", deployment.contracts.trench);
 
   if ((await whales.totalMinted()) !== 0n) {
@@ -40,9 +55,16 @@ async function main() {
   }
   process.stdout.write("\n");
 
-  // 2. Point the collection at metadata so tokenURI resolves locally. The real
-  //    deploy uses the pinned CID; this is only so the dashboard has art.
-  await (await whales.setBaseURI("ipfs://bafyLOCALTEST/")).wait();
+  // 2. Point the collection at metadata so tokenURI resolves locally.
+  //
+  //    An ipfs:// base only resolves once the collection is pinned, so a local
+  //    run shows a wall of whales with no art — which is exactly the case the
+  //    dashboard most needs to be exercised against. Serve pipeline/output over
+  //    HTTP with CORS enabled and point SEED_BASE_URI at its metadata/ folder,
+  //    and the site loads the real 1000 images.
+  const baseURI = process.env.SEED_BASE_URI || "ipfs://bafyLOCALTEST/";
+  await (await whales.setBaseURI(baseURI)).wait();
+  console.log(`base URI ${baseURI}`);
 
   // 3. Feed a pod, oldest first, so the loyalty curve is visible on the site.
   //    Ages are laid down by activating in waves and rewinding the clock

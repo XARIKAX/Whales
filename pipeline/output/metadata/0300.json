@@ -4,6 +4,10 @@
  "image": "ipfs://__REPLACE_WITH_CID__/0300.png",
  "attributes": [
   {
+   "trait_type": "Tier",
+   "value": "Legendary"
+  },
+  {
    "trait_type": "Background",
    "value": "Arctic Haze"
   },

@@ -1,0 +1,32 @@
+{
+ "name": "WHALES #0500",
+ "description": "1000 whales. Every fee in the ocean.",
+ "image": "https://whalenft.fun/whales/0500.png",
+ "attributes": [
+  {
+   "trait_type": "Tier",
+   "value": "Legendary"
+  },
+  {
+   "trait_type": "Background",
+   "value": "Charcoal"
+  },
+  {
+   "trait_type": "Body",
+   "value": "Deep Sea"
+  },
+  {
+   "trait_type": "Eyes",
+   "value": "Abyss Glow"
+  },
+  {
+   "trait_type": "Extra",
+   "value": "Bioluminescence"
+  },
+  {
+   "trait_type": "Legendary",
+   "value": "The Siren"
+  }
+ ],
+ "external_url": "https://whalenft.fun/portfolio"
+}

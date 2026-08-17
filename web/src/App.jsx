@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useOcean, useWhales, useEthPrice, useDive, useWallet, useHaulSignal } from "./hooks.js";
 import { CONFIGURED, CHAIN } from "./config.js";
 import { useRoute } from "./router.jsx";
-import { fromChain } from "./placeholder.js";
+import { fromChain, heldBy } from "./whales.js";
 
 import Shell from "./components/Shell.jsx";
 import Hero from "./components/Hero.jsx";
@@ -96,15 +96,28 @@ export default function App() {
     return fed.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), fed[0]);
   }, [whales]);
 
-  /* The wallet pages draw one shape whether the rows came from the chain or
-     from the sample, so the translation happens once, here. */
-  const held = useMemo(() => fromChain(whales), [whales]);
+  /* The wallet pages are about one wallet, so they get the rows that wallet
+     holds and nothing else. `whaleStates` already carries the holder, so this
+     costs no extra reads — and with no wallet connected it is empty, which is
+     what puts those pages into their sample state. Ages are measured against
+     the chain's clock rather than the browser's; on a test chain that has been
+     time-travelled the two are weeks apart. */
+  const held = useMemo(
+    () => fromChain(heldBy(whales, wallet.account), ocean?.now),
+    [whales, wallet.account, ocean?.now]
+  );
 
   // The story stands on its own; the numbers layer in. Before the contracts
   // are live — or if the RPC is unreachable — the page is still the whole
   // pitch rather than an error card between a header and a footer.
   const unreachable = Boolean(error) && error !== "not-configured";
   const live = CONFIGURED && !unreachable;
+
+  /* One refresh for every page that can change the chain. */
+  const onRefresh = () => {
+    refresh();
+    refreshWhales();
+  };
 
   return (
     <Shell deep={deep} lit={lit} live={live} wallet={wallet} route={route}>
@@ -119,13 +132,28 @@ export default function App() {
       {route === "/docs" && <Docs />}
 
       {route === "/mint" && (
-        <Mint ocean={ocean} wallet={wallet} price={price} live={live} onDone={refresh} />
+        <Mint ocean={ocean} wallet={wallet} price={price} live={live} onDone={onRefresh} />
       )}
 
-      {route === "/activate" && <Activate wallet={wallet} whales={held} live={live} />}
+      {route === "/activate" && (
+        <Activate
+          wallet={wallet}
+          whales={held}
+          ocean={ocean}
+          live={live}
+          onDone={onRefresh}
+        />
+      )}
 
       {route === "/portfolio" && (
-        <Portfolio wallet={wallet} whales={held} price={price} live={live} />
+        <Portfolio
+          wallet={wallet}
+          whales={held}
+          ocean={ocean}
+          price={price}
+          live={live}
+          onRefresh={onRefresh}
+        />
       )}
 
       {route !== "/activate" &&
@@ -141,10 +169,7 @@ export default function App() {
           live={live}
           error={error}
           unreachable={unreachable}
-          onRefresh={() => {
-            refresh();
-            refreshWhales();
-          }}
+          onRefresh={onRefresh}
         />
       )}
     </Shell>

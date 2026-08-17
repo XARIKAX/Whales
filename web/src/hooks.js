@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { POLL_MS, CONFIGURED } from "./config.js";
-import { readOcean, readWhales, readArt, readEthPrice, getWalletClient } from "./chain.js";
+import { POLL_MS, CONFIGURED, CHAIN } from "./config.js";
+import { readOcean, readWhales, readWhaleBalance, readHauls, readEthPrice } from "./chain.js";
 import { onDive } from "./dive.js";
 
 /** Re-reads the chain on an interval so the pot moves without a refresh. */
@@ -57,21 +57,41 @@ export function useWhales(count) {
   return { whales, error, refresh };
 }
 
-/** Fetches a whale's on-chain art once and keeps it. */
-export function useArt(tokenId) {
-  const [art, setArt] = useState(null);
+/** A wallet's $WHALE, re-read whenever the wallet or the pod changes. */
+export function useWhaleBalance(account, whaleToken, signal) {
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
+    if (!CONFIGURED || !account || !whaleToken) {
+      setBalance(null);
+      return;
+    }
     let live = true;
-    readArt(tokenId)
-      .then((value) => live && setArt(value))
-      .catch(() => live && setArt(null));
+    readWhaleBalance(account, whaleToken)
+      .then((value) => live && setBalance(value))
+      .catch(() => live && setBalance(null));
     return () => {
       live = false;
     };
-  }, [tokenId]);
+  }, [account, whaleToken, signal]);
 
-  return art;
+  return balance;
+}
+
+/** Recent hauls from the Trench's own logs. Empty is a normal answer. */
+export function useHauls(haulCount) {
+  const [hauls, setHauls] = useState([]);
+
+  useEffect(() => {
+    if (!CONFIGURED) return;
+    let live = true;
+    readHauls().then((rows) => live && setHauls(rows));
+    return () => {
+      live = false;
+    };
+  }, [haulCount]);
+
+  return hauls;
 }
 
 /**
@@ -186,39 +206,12 @@ export function useDive() {
   return { deep, lit };
 }
 
-/** Wallet connection, kept deliberately thin: one account, one chain. */
-export function useWallet() {
-  const [account, setAccount] = useState(null);
-  const [error, setError] = useState(null);
-  const clientRef = useRef(null);
-
-  const connect = useCallback(async () => {
-    try {
-      const client = await getWalletClient();
-      clientRef.current = client;
-      setAccount(client.account.address);
-      setError(null);
-      return client;
-    } catch (e) {
-      setError(e.shortMessage || e.message);
-      throw e;
-    }
-  }, []);
-
-  const client = useCallback(async () => clientRef.current || connect(), [connect]);
-
-  useEffect(() => {
-    if (!window.ethereum) return;
-    const onAccounts = (accounts) => {
-      clientRef.current = null;
-      setAccount(accounts[0] || null);
-    };
-    window.ethereum.on?.("accountsChanged", onAccounts);
-    window.ethereum.on?.("chainChanged", () => {
-      clientRef.current = null;
-    });
-    return () => window.ethereum.removeListener?.("accountsChanged", onAccounts);
-  }, []);
-
-  return { account, connect, client, error, available: Boolean(window.ethereum) };
-}
+/**
+ * Wallet connection.
+ *
+ * The implementation moved to `components/wallet/` when the stack became
+ * lazily loaded — it has to be a context now, because the object a page reads
+ * differs depending on whether wagmi has arrived yet. Re-exported here so the
+ * dozen call sites that import it from `hooks.js` did not all have to move.
+ */
+export { useWallet } from "./components/wallet/context.js";

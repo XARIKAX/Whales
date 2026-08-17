@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { readArt } from "../chain.js";
+import { CONFIGURED } from "../config.js";
 
 /** Art is immutable once frozen, so it is worth caching for the session. */
 const cache = new Map();
 const inflight = new Map();
 
-// Art reads are one eth_call each and return a whole base64 SVG. Cap how many
-// are in the air at once so a wall of whales does not stampede the RPC.
+// Each whale is an eth_call for its tokenURI and then a gateway fetch for the
+// document it points at. Cap how many are in the air at once so a wall of
+// whales does not stampede either the RPC or the gateway.
 const MAX_CONCURRENT = 6;
 let active = 0;
 const queue = [];
@@ -23,6 +25,11 @@ function pump() {
 }
 
 function fetchArt(tokenId) {
+  // With no addresses configured there is nothing to read; the sample pods on
+  // the wallet pages would otherwise queue a request per tile against a chain
+  // that is not there.
+  if (!CONFIGURED) return Promise.reject(new Error("no deployment configured"));
+
   const key = String(tokenId);
   if (cache.has(key)) return Promise.resolve(cache.get(key));
   if (inflight.has(key)) return inflight.get(key);

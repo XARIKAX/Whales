@@ -4,6 +4,10 @@
  "image": "ipfs://__REPLACE_WITH_CID__/0762.png",
  "attributes": [
   {
+   "trait_type": "Tier",
+   "value": "Common"
+  },
+  {
    "trait_type": "Background",
    "value": "Sage"
   },

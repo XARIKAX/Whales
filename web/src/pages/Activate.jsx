@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { formatEther, maxUint256 } from "viem";
 import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
 import Portrait from "../components/Portrait.jsx";
+import { pad } from "../cast.js";
 import { Link } from "../router.jsx";
 import { SAMPLE_WHALES, ACTIVATION_COST } from "../placeholder.js";
+import { publicClient, ADDRESSES, whalesAbi, erc20Abi } from "../chain.js";
+import { useWhaleBalance } from "../hooks.js";
 import { multiplier } from "../format.js";
-import { formatEther } from "viem";
 
 const eth = (wei, d = 4) =>
   Number(formatEther(wei)).toLocaleString(undefined, { maximumFractionDigits: d });
@@ -20,8 +23,10 @@ const CHAIN = [
   ["Into its own wallet", "as ETH, per whale"],
 ];
 
-/* --- The steps, small, at the bottom, where they belong ------------------ */
+/* --- The steps, small, at the bottom, where they belong ------------------- */
 
+/* They were three tall cards at the top of this page: the whole first screen
+   spent on instructions for a button nobody had reached yet. */
 const STEPS = [
   [`Hold ${ACTIVATION_COST.toLocaleString()} $WHALE`, "in the same wallet as the whale"],
   ["Approve", "lets the contract take the burn"],
@@ -50,14 +55,13 @@ function Tile({ whale, selected, onSelect, disabled }) {
           {awake ? multiplier(whale.weight) : "Dormant"}
         </span>
 
-        {/* Only dormant whales have anything to press, so only they get the
-            hover state that says so. */}
+        {/* Only a tile you can act on says so, and only while you are on it. */}
         {!awake && <span className="tile-hover mono">Select to activate</span>}
       </button>
 
       <div className="tile-body">
         <header className="tile-head">
-          <b className="display">#{whale.id || whale.tokenId}</b>
+          <b className="display">#{pad(whale.tokenId)}</b>
           <span className="tile-tier mono">{whale.tier}</span>
         </header>
 
@@ -92,17 +96,77 @@ function Tile({ whale, selected, onSelect, disabled }) {
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Activate({ wallet, whales, live }) {
+export default function Activate({ wallet, whales, ocean, live, onDone }) {
   const account = wallet?.account;
-  const pod = live && whales?.length ? whales : SAMPLE_WHALES;
-  const dormant = pod.filter((w) => !w.fed);
-  const awake = pod.length - dormant.length;
   const [picked, setPicked] = useState(null);
-  const chosen = pod.find((w) => w.tokenId === picked) || null;
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
 
-  /* Placeholder until there is a chain to read. */
-  const balance = live ? 0 : 2_400_000;
+  /* Connected means real, even when the honest answer is "none". The sample
+     only stands in for a visitor who has not connected yet, so the page can be
+     read before it can be used — never on top of a wallet's actual position. */
+  const connected = Boolean(account) && live;
+  const pod = connected ? whales : SAMPLE_WHALES;
+  const dormant = pod.filter((w) => !w.fed);
+
+  const tokenLive = Boolean(ocean?.whaleToken);
+  const balanceWei = useWhaleBalance(account, ocean?.whaleToken, whales.length);
+  const balance = connected ? Math.floor(Number(formatEther(balanceWei ?? 0n))) : 2_400_000;
   const enough = balance >= ACTIVATION_COST;
+  const ready = connected && tokenLive && enough && picked !== null && !busy;
+
+  /* Two transactions: the allowance the burn needs, then the burn. The first is
+     skipped when the wallet has already given one. */
+  async function activate() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const client = await wallet.client();
+      const owner = client.account.address;
+      const write = (address, abi, functionName, args) =>
+        client.writeContract({ account: owner, address, abi, functionName, args, chain: client.chain });
+
+      const [allowance, burn] = await Promise.all([
+        publicClient.readContract({
+          address: ocean.whaleToken,
+          abi: erc20Abi,
+          functionName: "allowance",
+          args: [owner, ADDRESSES.whales],
+        }),
+        publicClient.readContract({
+          address: ADDRESSES.whales,
+          abi: whalesAbi,
+          functionName: "ACTIVATION_BURN",
+        }),
+      ]);
+
+      if (allowance < burn) {
+        setMessage({ kind: "info", text: "Approving the burn — confirm the first of two." });
+        const approval = await write(ocean.whaleToken, erc20Abi, "approve", [
+          ADDRESSES.whales,
+          maxUint256,
+        ]);
+        await publicClient.waitForTransactionReceipt({ hash: approval });
+      }
+
+      const hash = await write(ADDRESSES.whales, whalesAbi, "activate", [BigInt(picked)]);
+      setMessage({ kind: "info", text: `Sent ${hash.slice(0, 14)}… waiting for the block.` });
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Transaction reverted.");
+
+      setMessage({ kind: "ok", text: `Whale #${picked} is awake, from block ${receipt.blockNumber}.` });
+      setPicked(null);
+      onDone?.();
+    } catch (e) {
+      setMessage({ kind: "error", text: e.shortMessage || e.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const awake = pod.length - dormant.length;
+  const chosen = pod.find((w) => w.tokenId === picked) || null;
   const earned = pod.reduce((sum, w) => sum + Number(formatEther(w.lifetimeEarned)), 0);
 
   return (
@@ -120,7 +184,7 @@ export default function Activate({ wallet, whales, live }) {
             </p>
           </Reveal>
 
-          {/* The state of play, on one line rather than three panels. */}
+          {/* The state of play on one line, rather than three panels of it. */}
           <Reveal className="tally" stagger step={50}>
             <button
               className={`tally-cell tally-wallet${account ? " on" : ""}`}
@@ -159,16 +223,13 @@ export default function Activate({ wallet, whales, live }) {
       </section>
 
       {/* --- The showcase -------------------------------------------------- */}
-      <section className="deep sheet-tight" id="pod">
+      <section className="deep sheet-tight" id="console">
         <div className="wrap">
           <Reveal className="showcase-head" stagger>
             <h2 className="display">
-              Your pod.{" "}
-              <span className="tide on-dark">
-                {dormant.length} asleep.
-              </span>
+              Your pod. <span className="tide on-dark">{dormant.length} asleep.</span>
             </h2>
-            {!live && <span className="tag mono">Sample data</span>}
+            {!connected && <span className="tag mono">Sample data</span>}
           </Reveal>
 
           <Reveal className="showcase" stagger step={50}>
@@ -185,14 +246,15 @@ export default function Activate({ wallet, whales, live }) {
 
           {pod.length === 0 && (
             <p className="picker-empty">
-              Nothing in this wallet yet. All 1000 are minted, so the way in is secondary.
+              No whales in this wallet. Mint one for a dollar, ten a transaction, or pick one up on
+              secondary.
             </p>
           )}
 
           {/* --- The commit ------------------------------------------------ */}
           {/* Docked under the showcase and only ever about one whale, because
               this is the single irreversible action on the site and a form that
-              could mean any of eight things is not one anybody should sign. */}
+              could mean any of six things is not one anybody should sign. */}
           <Reveal className={`dock${chosen ? " open" : ""}`}>
             <div className="dock-face">
               {chosen ? (
@@ -203,7 +265,7 @@ export default function Activate({ wallet, whales, live }) {
 
               <div className="dock-body">
                 <span className="console-label mono">
-                  {chosen ? `Activating #${chosen.id || chosen.tokenId}` : "Nothing selected"}
+                  {chosen ? `Activating #${pad(chosen.tokenId)}` : "Nothing selected"}
                 </span>
                 <p className="dock-line figure">
                   {ACTIVATION_COST.toLocaleString()}
@@ -216,7 +278,7 @@ export default function Activate({ wallet, whales, live }) {
                 </p>
               </div>
 
-              {/* The two transactions, as the rail they actually are. */}
+              {/* The two transactions, drawn as the rail they are. */}
               <ol className="dock-steps mono">
                 <li className={chosen ? "ready" : ""}>
                   <b>1</b> Approve
@@ -230,18 +292,23 @@ export default function Activate({ wallet, whales, live }) {
               </ol>
 
               <div className="dock-actions">
-                <button className="btn btn-foam" disabled={!chosen || !account || !enough}>
-                  {!live
+                <button className="btn btn-foam" disabled={!ready} onClick={activate}>
+                  {!tokenLive
                     ? "$WHALE is not live yet"
-                    : chosen
-                      ? `Approve and activate #${chosen.id || chosen.tokenId}`
-                      : "Activate"}
+                    : busy
+                      ? "Confirm in your wallet…"
+                      : ready
+                        ? `Approve and activate #${pad(picked)}`
+                        : "Activate"}
                 </button>
                 <Link className="btn btn-ghost on-dark" to="/portfolio">
                   See your position
                 </Link>
               </div>
             </div>
+
+            {message && <p className={`notice ${message.kind} dock-message`}>{message.text}</p>}
+            {wallet.error && <p className="notice error dock-message">{wallet.error}</p>}
           </Reveal>
         </div>
       </section>
@@ -268,9 +335,6 @@ export default function Activate({ wallet, whales, live }) {
 
           <Lane plane="sparse" shoal="school" seed={23} />
 
-          {/* The steps, compact, at the bottom. They were three tall cards at
-              the top of this page, which is a lot of room to spend on
-              instructions for a button nobody had reached yet. */}
           <Reveal className="ticks" stagger step={40}>
             {STEPS.map(([title, note], i) => (
               <div className="tick" key={title}>

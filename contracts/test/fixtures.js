@@ -8,37 +8,44 @@ const ACTIVATION_BURN = ethers.parseEther("1000000");
 const BASE_WEIGHT = 10_000n;
 const MAX_WEIGHT = 33_300n;
 
-async function deployOcean({ withRouter = false, routerContract = "MockRouter" } = {}) {
+async function deployOcean() {
   const [deployer, alice, bob, carol, keeper] = await ethers.getSigners();
 
-  const token = await ethers.deployContract("WhaleToken", [deployer.address]);
-  const whales = await ethers.deployContract("Whales", [
-    await token.getAddress(),
-    PROVENANCE,
-    MINT_PRICE,
-  ]);
+  // $WHALE is launched on Flap in production and wired in afterwards, so the
+  // fixture deploys a stand-in and follows the same two-step wiring.
+  const token = await ethers.deployContract("MockWhaleToken", [deployer.address]);
+  const whales = await ethers.deployContract("Whales", [PROVENANCE, MINT_PRICE]);
   const registry = await ethers.deployContract("WhaleAccountRegistry", [await whales.getAddress()]);
-
-  let router = { getAddress: async () => ethers.ZeroAddress };
-  let stock = null;
-  let weth = ethers.ZeroAddress;
-  if (withRouter) {
-    router = await ethers.deployContract(routerContract);
-    stock = await ethers.deployContract("MockStock", ["Tokenised NVDA", "tNVDA"]);
-    weth = "0x0000000000000000000000000000000000000042";
-  }
 
   const trench = await ethers.deployContract("Trench", [
     await whales.getAddress(),
     await registry.getAddress(),
     HAUL_THRESHOLD,
-    await router.getAddress(),
-    weth,
   ]);
 
   await whales.setTrench(await trench.getAddress());
+  await whales.setWhaleToken(await token.getAddress());
 
-  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench, router, stock };
+  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench };
+}
+
+/**
+ * The state a real deployment sits in between deploy day and Flap launch day:
+ * contracts live, token unknown, deployer role still holding its one job.
+ */
+async function deployUnwired() {
+  const [deployer, alice, bob, carol, keeper] = await ethers.getSigners();
+
+  const token = await ethers.deployContract("MockWhaleToken", [deployer.address]);
+  const whales = await ethers.deployContract("Whales", [PROVENANCE, MINT_PRICE]);
+  const registry = await ethers.deployContract("WhaleAccountRegistry", [await whales.getAddress()]);
+  const trench = await ethers.deployContract("Trench", [
+    await whales.getAddress(),
+    await registry.getAddress(),
+    HAUL_THRESHOLD,
+  ]);
+
+  return { deployer, alice, bob, carol, keeper, token, whales, registry, trench };
 }
 
 /** Mints `count` whales to `to` and returns their ids. */
@@ -70,6 +77,7 @@ module.exports = {
   BASE_WEIGHT,
   MAX_WEIGHT,
   deployOcean,
+  deployUnwired,
   mintTo,
   fund,
   activateNew,

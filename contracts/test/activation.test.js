@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture, time } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 const { deployOcean, mintTo, fund, activateNew, ACTIVATION_BURN, BASE_WEIGHT } = require("./fixtures");
 
 describe("Activation — burn to be fed", function () {
@@ -14,12 +15,20 @@ describe("Activation — burn to be fed", function () {
     expect(await whales.weightOf(id)).to.equal(0);
     expect(await trench.totalWeight()).to.equal(0);
 
+    // The burn is a transfer to an address nobody holds the key to, because
+    // $WHALE comes from Flap and cannot be assumed to implement `burnFrom`.
+    // `totalSupply` therefore holds; what falls is circulating supply.
     const supplyBefore = await token.totalSupply();
+    const deadBefore = await token.balanceOf(BURN_ADDRESS);
+    const aliceBefore = await token.balanceOf(alice.address);
+
     await expect(whales.connect(alice).activate(id))
       .to.emit(whales, "Activated")
       .withArgs(id, alice.address, ACTIVATION_BURN);
 
-    expect(await token.totalSupply()).to.equal(supplyBefore - ACTIVATION_BURN);
+    expect(await token.totalSupply()).to.equal(supplyBefore);
+    expect(await token.balanceOf(BURN_ADDRESS)).to.equal(deadBefore + ACTIVATION_BURN);
+    expect(await token.balanceOf(alice.address)).to.equal(aliceBefore - ACTIVATION_BURN);
     expect(await whales.totalBurnedForActivation()).to.equal(ACTIVATION_BURN);
     expect(await whales.activatedAt(id)).to.equal(await time.latest());
     expect(await whales.weightOf(id)).to.equal(BASE_WEIGHT);
@@ -97,7 +106,7 @@ describe("Activation — selling drops a whale off the payroll", function () {
     const { whales, token, alice, bob, carol } = ctx;
 
     const id = await activateNew(ctx, alice);
-    const supplyAfterFirst = await token.totalSupply();
+    const deadAfterFirst = await token.balanceOf(BURN_ADDRESS);
 
     await whales.connect(alice).transferFrom(alice.address, bob.address, id);
     await fund(token, whales, bob);
@@ -107,7 +116,7 @@ describe("Activation — selling drops a whale off the payroll", function () {
     await fund(token, whales, carol);
     await whales.connect(carol).activate(id);
 
-    expect(await token.totalSupply()).to.equal(supplyAfterFirst - ACTIVATION_BURN * 2n);
+    expect(await token.balanceOf(BURN_ADDRESS)).to.equal(deadAfterFirst + ACTIVATION_BURN * 2n);
     expect(await whales.totalBurnedForActivation()).to.equal(ACTIVATION_BURN * 3n);
   });
 
@@ -129,7 +138,7 @@ describe("Activation — the Trench payroll needs no list", function () {
       .to.be.revertedWithCustomError(trench, "OnlyWhales");
   });
 
-  it("wires the Trench exactly once, then destroys the deployer role", async function () {
+  it("has no live deployer role once both wires are done", async function () {
     const { whales, trench, deployer, alice } = await loadFixture(deployOcean);
 
     expect(await whales.deployer()).to.equal(ethers.ZeroAddress);

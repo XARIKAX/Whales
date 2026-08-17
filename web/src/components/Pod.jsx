@@ -1,7 +1,8 @@
 import Reveal from "./Reveal.jsx";
 import { Lane } from "./Marine.jsx";
 import { Link } from "../router.jsx";
-import { CAST } from "../placeholder.js";
+import { MEET } from "../cast.js";
+import { artFor } from "../cast.js";
 
 /**
  * Meet the pod.
@@ -13,9 +14,7 @@ import { CAST } from "../placeholder.js";
  * Deliberately six and not sixty. The full collection is a thousand and a wall
  * of them says "supply"; six says "cast".
  */
-const SHOWN = ["0100", "0137", "0900", "0700", "0613", "0400"];
 
-const PICKED = SHOWN.map((id) => CAST.find(([c]) => c === id)).filter(Boolean);
 
 export default function Pod() {
   return (
@@ -35,12 +34,12 @@ export default function Pod() {
         <Lane plane="drift" shoal="school" seed={53} />
 
         <Reveal className="pod-grid" stagger step={50}>
-          {PICKED.map(([id, name, tier]) => (
+          {MEET.map(([id, name, tier]) => (
             <figure className="tile awake" key={id}>
               <div className="tile-art">
                 <div className="portrait">
                   <img
-                    src={`/whales/${id}.webp`}
+                    src={artFor(id)}
                     alt={`Whale #${id}, ${name}`}
                     width="360"
                     height="360"
