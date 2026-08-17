@@ -8,8 +8,8 @@
  * `fromChain` produces, so the two paths draw through identical components.
  */
 
-const TIERS = ["Common", "Common", "Uncommon", "Uncommon", "Rare", "Legendary"];
-const SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
+import { WALLET, artFor } from "./cast.js";
+import { speciesFor } from "./whales.js";
 
 /** Deterministic, so the sample never reshuffles between renders. */
 function rng(seed) {
@@ -20,9 +20,11 @@ function rng(seed) {
   };
 }
 
-function sample(count, seed) {
+function sample(seed) {
   const r = rng(seed);
-  return Array.from({ length: count }, (_, i) => {
+  /* Real ids from the real collection, so the sample draws real art rather than
+     a swimming sprite standing in for it. */
+  return WALLET.map(([id, name, tier], i) => {
     /* Half and half: a page that only ever shows awake whales never shows what
        it is for. */
     const fed = i % 2 === 0;
@@ -32,9 +34,12 @@ function sample(count, seed) {
        shows a combination the chain could not produce. */
     const weight = fed ? Math.min(33_300, 10_000 + days * 106) : 0;
     return {
-      tokenId: 1 + Math.floor(r() * 999),
-      species: SPECIES[Math.floor(r() * SPECIES.length)],
-      tier: TIERS[Math.floor(r() * TIERS.length)],
+      tokenId: Number(id),
+      id,
+      name,
+      tier,
+      art: artFor(id),
+      species: speciesFor(tier),
       fed,
       weight,
       heldDays: days,
@@ -49,6 +54,15 @@ function sample(count, seed) {
   }).sort((a, b) => Number(b.lifetimeEarned - a.lifetimeEarned));
 }
 
-export const SAMPLE_WHALES = sample(6, 41);
+export const SAMPLE_WHALES = sample(41);
 
 export const ACTIVATION_COST = 1_000_000;
+
+/** The mint, as designed, until there is a contract to read it from. */
+export const MINT = {
+  supply: 1000,
+  minted: 0,
+  /** A dollar a whale, quoted in wei so the panel reads the same either way. */
+  price: 350_000_000_000_000n,
+  priceLabel: "$1 a whale",
+};

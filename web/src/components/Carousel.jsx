@@ -55,7 +55,7 @@ export default function Carousel({ whales }) {
   if (sample.length === 0) return null;
 
   return (
-    <section className="deep" id="pod">
+    <section className="deep" id="roll">
       <div className="wrap">
         <Reveal stagger>
           <p className="eyebrow on-dark">The pod</p>

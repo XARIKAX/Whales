@@ -23,7 +23,7 @@ const FACTS = [
   {
     tag: "Payout",
     title: "ETH, into the whale's own wallet",
-    body: "The Flap tax arrives as ETH and leaves as ETH. Each share is delivered into the whale's own on-chain wallet — no swap, no router, no second asset to go wrong. Hold the whale, hold the wallet.",
+    body: "The Flap tax arrives as ETH and leaves as ETH. Each share is delivered into the whale's own on-chain wallet: no swap, no router, no second asset to go wrong. Hold the whale, hold the wallet.",
   },
   {
     tag: "Permissionless",

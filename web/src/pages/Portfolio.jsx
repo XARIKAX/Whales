@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Portrait from "../components/Portrait.jsx";
+import { pad } from "../cast.js";
 import { formatEther } from "viem";
 import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
@@ -35,7 +37,7 @@ function Reading({ label, value, unit, meter, of }) {
 
 /* --- One whale in the holdings grid -------------------------------------- */
 
-function Holding({ whale, price, wallet, connected, onDone }) {
+function Holding({ whale, price, wallet, connected, onDone, onFocus }) {
   const earned = Number(formatEther(whale.lifetimeEarned));
   const waiting = Number(formatEther(whale.unclaimed));
   const [busy, setBusy] = useState(false);
@@ -69,25 +71,28 @@ function Holding({ whale, price, wallet, connected, onDone }) {
     }
   }
 
-  /* A page about what you own should show the thing you own. The drawn creature
-     stands in until the gateway hands over the real pixels, so the card never
-     has a hole in it. Tier rides along in the same metadata. */
-  const { ref, art, tier } = useWhaleArt(whale.tokenId);
-  const shown = tier || whale.tier;
+  /* A page about what you own should show the thing you own, at the size of
+     the thing rather than as a thumbnail beside its numbers. Every one of the
+     thousand ships with the site, so this is a path and not a chain read; tier
+     rides along in the metadata for anything the sample does not carry. */
+  const { tier } = useWhaleArt(whale.tokenId);
+  const shown = whale.tier || tier;
 
   return (
     <article className={`holding${whale.fed ? " fed" : ""}`}>
-      <div className="holding-art" ref={ref}>
-        {art ? (
-          <img src={art.image} alt={`Whale #${whale.tokenId}`} loading="lazy" />
-        ) : (
-          <Creature kind="whale" species={speciesFor(shown)} height={52} beat={2.2} />
-        )}
-      </div>
+      <button
+        type="button"
+        className="holding-art"
+        onClick={() => onFocus?.(whale.tokenId)}
+        aria-label={`Bring whale ${whale.tokenId} to the top`}
+      >
+        <Portrait whale={whale} size={300} />
+        <span className="tile-hover mono">Show</span>
+      </button>
 
       <header className="holding-head">
-        <h3 className="display">#{whale.tokenId}</h3>
-        <span className="holding-tier mono">{shown || "—"}</span>
+        <h3 className="display">#{pad(whale.tokenId)}</h3>
+        <span className="holding-tier mono">{shown || "Common"}</span>
       </header>
 
       <p className="holding-state mono">
@@ -161,24 +166,101 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
   const supply = ocean ? Number(ocean.maxSupply) : 1000;
   const activated = ocean ? Number(ocean.activated) : 0;
 
+  /* The page leads with one whale at full size, because a wall of thumbnails
+     tells you that you own six things and a portrait tells you what one of them
+     is. The best earner takes the spot; anything in the grid can replace it. */
+  const [focus, setFocus] = useState(null);
+  const featured =
+    pod.find((w) => w.tokenId === focus) ||
+    pod.reduce((best, w) => (w.lifetimeEarned > best.lifetimeEarned ? w : best), pod[0]) ||
+    null;
+
   return (
     <main className="sheet" id="top">
-      <section className="deep sheet-head">
+      <section className="deep sheet-head sheet-tight">
         <div className="wrap">
           <Reveal stagger>
             <p className="eyebrow on-dark">
               Your position
               {account && <span className="addr-pill mono">{address(account)}</span>}
             </p>
-            <h1 className="display sheet-title">
-              Everything you <span className="tide on-dark">hold.</span>
-            </h1>
-            <p className="lede on-dark">
-              Every whale in this wallet, what each has earned, what is still waiting in the Trench,
-              and what is sitting in the whale's own wallet ready for you to withdraw. Read straight
-              from the contracts.
-            </p>
           </Reveal>
+
+          {featured && (
+            <Reveal className="spotlight" stagger step={70}>
+              <Portrait whale={featured} size={520} className="spotlight-art" />
+
+              <div className="spotlight-body">
+                <p className={`spotlight-state mono${featured.fed ? " on" : ""}`}>
+                  <span className={`pick-dot${featured.fed ? " on" : ""}`} aria-hidden="true" />
+                  {featured.fed ? "On the payroll" : "Dormant"}
+                </p>
+
+                <h1 className="display spotlight-name">
+                  {featured.name || `Whale #${featured.tokenId}`}
+                </h1>
+
+                <p className="spotlight-sub mono">
+                  #{pad(featured.tokenId)}
+                  {featured.tier ? ` · ${featured.tier}` : ""}
+                </p>
+
+                {featured.fed ? (
+                  <>
+                    <div className="spotlight-weight">
+                      <div className="spotlight-weight-head mono">
+                        <span>Loyalty weight</span>
+                        <b>{multiplier(featured.weight)}</b>
+                      </div>
+                      <div className="strip-meter">
+                        <span
+                          className="strip-meter-fill"
+                          style={{ "--v": Math.min(1, featured.weight / 33_300) }}
+                        />
+                      </div>
+                      <span className="console-note mono">
+                        climbing to 3.33x · fed {featured.heldDays}d
+                      </span>
+                    </div>
+
+                    <dl className="spotlight-rows">
+                      <div>
+                        <dt className="mono">Earned all time</dt>
+                        <dd className="figure">
+                          {Number(formatEther(featured.lifetimeEarned)).toFixed(4)}
+                          <span className="unit">ETH</span>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="mono">Waiting in the Trench</dt>
+                        <dd className="figure">
+                          {Number(formatEther(featured.unclaimed)).toFixed(4)}
+                          <span className="unit">ETH</span>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="mono">In its own wallet</dt>
+                        <dd className="figure">
+                          {Number(formatEther(featured.accountBalance ?? 0n)).toFixed(4)}
+                          <span className="unit">ETH</span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </>
+                ) : (
+                  <>
+                    <p className="spotlight-note">
+                      This one is asleep. It carries no weight, takes no share of any haul, and goes
+                      on earning nothing until somebody burns a million $WHALE to wake it.
+                    </p>
+                    <Link className="btn btn-foam" to="/activate">
+                      Wake #{pad(featured.tokenId)}
+                    </Link>
+                  </>
+                )}
+              </div>
+            </Reveal>
+          )}
 
           {!account && (
             <Reveal>
@@ -211,7 +293,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             value={<CountUp value={waiting} format={(n) => num(n, 4)} />}
             unit="ETH"
             meter={waiting / Math.max(earned + waiting, 1e-9)}
-            of="anyone can deliver it — no claim form"
+            of="anyone can deliver it, no claim form"
           />
           <Reading
             label="On the payroll"
@@ -249,6 +331,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
           <Reveal className="holdings" stagger step={60}>
             {pod.map((whale) => (
               <Holding
+                onFocus={setFocus}
                 key={whale.tokenId}
                 whale={whale}
                 price={price}
@@ -314,7 +397,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             <div className="market-cell">
               <span className="console-label mono">Mint</span>
               <p className="console-value figure">
-                {ocean ? eth(ocean.mintPrice, 6) : "—"}
+                {ocean ? eth(ocean.mintPrice, 6) : "not read"}
                 <span className="unit">ETH</span>
               </p>
               <span className="console-note mono">ten a transaction, no wallet limit</span>
@@ -322,7 +405,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             <div className="market-cell">
               <span className="console-label mono">Minted</span>
               <p className="console-value figure">
-                {ocean ? Number(ocean.minted).toLocaleString() : "—"}
+                {ocean ? Number(ocean.minted).toLocaleString() : "not read"}
                 <span className="unit">of {supply}</span>
               </p>
               <span className="console-note mono">{activated} awake</span>
@@ -330,7 +413,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             <div className="market-cell">
               <span className="console-label mono">Trench pot</span>
               <p className="console-value figure">
-                {ocean ? eth(ocean.pot) : "—"}
+                {ocean ? eth(ocean.pot) : "not read"}
                 <span className="unit">ETH</span>
               </p>
               <span className="console-note mono">
@@ -340,7 +423,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             <div className="market-cell">
               <span className="console-label mono">Hauled all time</span>
               <p className="console-value figure">
-                {ocean ? eth(ocean.totalDistributed) : "—"}
+                {ocean ? eth(ocean.totalDistributed) : "not read"}
                 <span className="unit">ETH</span>
               </p>
               <span className="console-note mono">
@@ -352,7 +435,7 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
           <p className="trust">
             {connected
               ? "Every figure on this page is read from the contracts. Nothing here is a projection or a promise: yield comes only from trading activity that may never happen."
-              : "The pod above is a sample until you connect a wallet — the collection figures beside it are read from the contracts either way. Nothing here is a projection or a promise: yield comes only from trading activity that may never happen."}
+              : "The pod above is a sample until you connect a wallet. The collection figures beside it are read from the contracts either way. Nothing here is a projection or a promise: yield comes only from trading activity that may never happen."}
           </p>
         </div>
       </section>

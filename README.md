@@ -29,14 +29,21 @@ See [`HANDOVER.md`](HANDOVER.md) for what a developer must do before mainnet.
 
 No owner, no upgrade path, no pause, no admin key.
 
-### `WhaleToken` — $WHALE
+### `$WHALE` — launched on Flap, not here
 
-1,000,000,000 minted once at deployment to the launch address. No mint
-function, no owner. Supply only ever goes down.
+**This repository does not deploy a token.** $WHALE is launched on Flap, which
+happens after these contracts go out, so its address cannot be a constructor
+argument. `Whales` takes it afterwards, in a one-shot `setWhaleToken` call, and
+can never be pointed at a different one.
 
-The tax lives in the Flap launch contract, **not** in the token, so transfers
-are plain ERC20 transfers — no hooks, no blocklist, no rule anyone can change
-later.
+Activation therefore assumes nothing about it beyond ERC20. `burnFrom` is an
+OpenZeppelin extension rather than part of the standard, so the burn is a
+`safeTransferFrom` to `0x…dEaD` — an address nobody holds the key to. That works
+against any launchpad token, where a `burnFrom` that turned out not to exist
+would have left activation permanently broken on a contract with no owner.
+
+`totalSupply` therefore holds steady and *circulating* supply is what falls:
+`totalSupply() - balanceOf(0x…dEaD)`.
 
 ### `Whales` — the NFTs
 
@@ -220,7 +227,6 @@ node scripts/provenance.js ../pipeline/output/metadata   # prints PROVENANCE=0x�
 
 ROBINHOOD_RPC_URL=https://…  \
 PRIVATE_KEY=0x…              \
-LAUNCH_RECIPIENT=0x…         \
 PROVENANCE=0x…               \
 BASE_URI=ipfs://bafy…/       \
 MINT_PRICE_USD=1             \

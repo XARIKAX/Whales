@@ -6,11 +6,13 @@ import { CHAIN, LINKS } from "../config.js";
 const SECTIONS = [
   ["Stats", "#stats"],
   ["How", "#how"],
+  ["Pod", "#pod"],
   ["Trench", "#trench"],
 ];
 
 /** Pages. Always reachable, from anywhere. */
 const PAGES = [
+  ["Mint", "/mint"],
   ["Docs", "/docs"],
   ["Activate", "/activate"],
   ["Portfolio", "/portfolio"],
@@ -114,12 +116,6 @@ export default function Nav({ deep, live, route = "/", wallet }) {
               {label}
             </a>
           ))}
-
-        {home && live && (
-          <a className="nav-link" href="#pod">
-            Pod
-          </a>
-        )}
 
         {PAGES.map(([label, to]) => (
           <Link className={`nav-link${route === to ? " on" : ""}`} to={to} key={to}>
