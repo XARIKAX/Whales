@@ -9,6 +9,7 @@ import Hero from "./components/Hero.jsx";
 import StatsStrip from "./components/StatsStrip.jsx";
 import Steps from "./components/Steps.jsx";
 import Trench from "./components/Trench.jsx";
+import Pod from "./components/Pod.jsx";
 import Carousel from "./components/Carousel.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Celebration from "./components/Celebration.jsx";
@@ -18,6 +19,7 @@ import Overture, { useOverture } from "./components/Overture.jsx";
 
 import Activate from "./pages/Activate.jsx";
 import Docs from "./pages/Docs.jsx";
+import Mint from "./pages/Mint.jsx";
 import Portfolio from "./pages/Portfolio.jsx";
 
 /* --- The landing page ---------------------------------------------------- */
@@ -53,6 +55,7 @@ function Landing({ ocean, whales, featured, price, wallet, live, error, unreacha
       )}
 
       <Steps />
+      <Pod />
       <Trench ocean={live ? ocean : null} live={live} />
 
       {live && (
@@ -115,13 +118,20 @@ export default function App() {
 
       {route === "/docs" && <Docs />}
 
+      {route === "/mint" && (
+        <Mint ocean={ocean} wallet={wallet} price={price} live={live} onDone={refresh} />
+      )}
+
       {route === "/activate" && <Activate wallet={wallet} whales={held} live={live} />}
 
       {route === "/portfolio" && (
         <Portfolio wallet={wallet} whales={held} price={price} live={live} />
       )}
 
-      {route !== "/activate" && route !== "/portfolio" && route !== "/docs" && (
+      {route !== "/activate" &&
+        route !== "/portfolio" &&
+        route !== "/docs" &&
+        route !== "/mint" && (
         <Landing
           ocean={ocean}
           whales={whales}

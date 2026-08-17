@@ -55,11 +55,16 @@ function fetchArt(tokenId) {
  * Returns state rather than reading the cache during render, so a tile that
  * mounts before its art arrives still updates when it does.
  */
-export function useWhaleArt(tokenId, { eager = false } = {}) {
+export function useWhaleArt(tokenId, { eager = false, skip = false } = {}) {
   const [art, setArt] = useState(() => cache.get(String(tokenId)) || null);
   const ref = useRef(null);
 
   useEffect(() => {
+    /* Nothing to fetch when the caller already has the picture, or when there
+       is no chain configured to fetch it from. Without this the sample pod on
+       the wallet pages fired eight `eth_call`s at an RPC that is not there. */
+    if (skip) return;
+
     const cached = cache.get(String(tokenId));
     if (cached) {
       setArt(cached);
@@ -99,7 +104,7 @@ export function useWhaleArt(tokenId, { eager = false } = {}) {
       live = false;
       observer.disconnect();
     };
-  }, [tokenId, eager]);
+  }, [tokenId, eager, skip]);
 
   const tier = art?.attributes?.find((a) => a.trait_type === "Tier")?.value || null;
   return { ref, art, tier };

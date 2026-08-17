@@ -8,10 +8,35 @@
  * change of source and nothing else.
  */
 
-const TIERS = ["Common", "Common", "Uncommon", "Uncommon", "Rare", "Legendary"];
+/**
+ * The twelve whose art is in the repository, so every showcase on the site
+ * draws the real collection rather than a swimming sprite standing in for it.
+ * Ids, names and tiers match the pieces in `public/whales`; the eight named in
+ * the docs are the one-of-ones.
+ */
 const SPECIES = ["humpback", "orca", "beluga", "narwhal", "blue", "sperm"];
 
-/** Deterministic, so the sample never reshuffles between renders. */
+export const CAST = [
+  ["0001", "The Firstborn", "Legendary"],
+  ["0100", "The Don", "Legendary"],
+  ["0200", "Old Ironside", "Legendary"],
+  ["0400", "Deep King", "Legendary"],
+  ["0500", "The Siren", "Legendary"],
+  ["0600", "Goldback", "Legendary"],
+  ["0700", "The Captain", "Legendary"],
+  ["0900", "Laser Leviathan", "Legendary"],
+  ["0042", "Blue", "Rare"],
+  ["0137", "Ironjaw", "Uncommon"],
+  ["0613", "Saltwake", "Uncommon"],
+  ["0002", "Second", "Common"],
+];
+
+const BY_ID = new Map(CAST.map((row) => [row[0], row]));
+
+/** A believable wallet: a couple of good ones, not eight one-of-ones. */
+const WALLET = ["0100", "0042", "0700", "0137", "0613", "0002"];
+
+/** Deterministic pseudo-random, so the sample never reshuffles between renders. */
 function rng(seed) {
   let s = (seed * 2654435761) >>> 0;
   return () => {
@@ -20,9 +45,10 @@ function rng(seed) {
   };
 }
 
-function sample(count, seed) {
+function sample(seed) {
   const r = rng(seed);
-  return Array.from({ length: count }, (_, i) => {
+  return WALLET.map((wanted, i) => {
+    const [id, name, tier] = BY_ID.get(wanted);
     /* Half and half: a page that only ever shows awake whales never shows what
        it is for. */
     const fed = i % 2 === 0;
@@ -32,20 +58,23 @@ function sample(count, seed) {
        shows a combination the chain could not produce. */
     const weight = fed ? Math.min(33_300, 10_000 + days * 106) : 0;
     return {
-      tokenId: 1 + Math.floor(r() * 999),
-      species: SPECIES[Math.floor(r() * SPECIES.length)],
-      tier: TIERS[Math.floor(r() * TIERS.length)],
+      tokenId: Number(id),
+      id,
+      name,
+      tier,
+      art: `/whales/${id}.webp`,
+      species: SPECIES[i % SPECIES.length],
       fed,
       weight,
       heldDays: days,
       /* Wei, as bigints, exactly as the chain would hand them over. */
-      lifetimeEarned: BigInt(Math.floor(fed ? r() * 2.4e18 : 0)),
+      lifetimeEarned: BigInt(Math.floor(fed ? 0.2e18 + r() * 2.2e18 : 0)),
       unclaimed: BigInt(Math.floor(fed ? r() * 1.1e17 : 0)),
     };
-  }).sort((a, b) => Number(b.lifetimeEarned - a.lifetimeEarned));
+  });
 }
 
-export const SAMPLE_WHALES = sample(6, 41);
+export const SAMPLE_WHALES = sample(41);
 
 /** What a wallet with none of them sees. */
 export const SAMPLE_EMPTY = [];
@@ -104,3 +133,13 @@ export function fromChain(rows, now = Math.floor(Date.now() / 1000)) {
     };
   });
 }
+
+
+/** The mint, as designed, until there is a contract to read it from. */
+export const MINT = {
+  supply: 1000,
+  minted: 0,
+  /** One dollar a whale, quoted in wei so the panel reads the same either way. */
+  price: 350_000_000_000_000n,
+  priceLabel: "$1 a whale",
+};
