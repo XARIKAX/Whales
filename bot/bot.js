@@ -71,6 +71,12 @@ const MAX_RANGE = Number(process.env.MAX_RANGE || 5_000); // blocks per getLogs
 const STATE_FILE = path.join(__dirname, "state.json");
 const SITE = process.env.SITE_URL || "https://whalenft.fun";
 const EXPLORER = process.env.EXPLORER_URL || "https://robinhoodchain.blockscout.com";
+const OPENSEA = process.env.OPENSEA_URL || "https://opensea.io/collection/whalescollective";
+/* The per-item page, when the URL shape for this chain is known — set it to
+   everything before the token id (e.g. https://opensea.io/item/<chain>/<contract>)
+   and the id is appended. Unset, sale links go to the collection, which is
+   always right even when it is not precise. */
+const OPENSEA_ITEM = (process.env.OPENSEA_ITEM_BASE || "").replace(/\/$/, "");
 
 const ONCE = process.argv.includes("--once");
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -122,23 +128,32 @@ function saveCursor(lastBlock) {
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TG_CHAT = process.env.TELEGRAM_CHAT_ID;
 
-async function send(text) {
+async function send({ text, photo }) {
   if (DRY_RUN) {
-    log("would post:\n" + text);
+    log("would post:" + (photo ? ` [photo ${photo}]` : "") + "\n" + text);
     return;
   }
-  const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+  const method = photo ? "sendPhoto" : "sendMessage";
+  const payload = photo
+    ? { chat_id: TG_CHAT, photo, caption: text, parse_mode: "HTML" }
+    : {
+        chat_id: TG_CHAT,
+        text,
+        parse_mode: "HTML",
+        link_preview_options: { is_disabled: true },
+      };
+  const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/${method}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      chat_id: TG_CHAT,
-      text,
-      parse_mode: "HTML",
-      link_preview_options: { is_disabled: true },
-    }),
+    body: JSON.stringify(payload),
   });
   const body = await res.json();
-  if (!body.ok) throw new Error(`telegram: ${body.description}`);
+  if (!body.ok) {
+    // A picture Telegram cannot fetch must not cost the announcement: fall
+    // back to the same message as plain text.
+    if (photo) return send({ text });
+    throw new Error(`telegram: ${body.description}`);
+  }
 }
 
 /* Telegram allows ~20 messages a minute into one group. A burst of
@@ -147,8 +162,8 @@ async function send(text) {
 const queue = [];
 let draining = false;
 
-async function post(text) {
-  queue.push(text);
+async function post(text, photo) {
+  queue.push({ text, photo });
   if (draining) return;
   draining = true;
   while (queue.length) {
@@ -274,15 +289,21 @@ async function pass(ctx) {
       for (const l of orders) paid += orderPayment(seaport.parseLog(l).args);
       const dollars = await usd(paid);
       const captain = `${buyer.slice(0, 6)}…${buyer.slice(-4)}`;
+      const shop = OPENSEA_ITEM ? `${OPENSEA_ITEM}/${ids[0]}` : OPENSEA;
+      const links = `${tx(hash)} · <a href="${shop}">OpenSea</a> · <a href="${SITE}">whalenft.fun</a>`;
+
+      // The sold whale's own art rides along — the collection is self-hosted,
+      // so the picture is one predictable URL away. A sweep shows its first
+      // whale rather than a collage nobody is going to build.
+      const portrait = `${SITE}/whales/${pad(ids[0])}.png`;
 
       await post(
         ids.length === 1
           ? `💸🐋 <b>Whale #${pad(ids[0])} just sold for ${eth(paid)} ETH</b>${dollars}!\n` +
-              `New captain: <code>${captain}</code>\n\n` +
-              `${tx(hash)} · <a href="${SITE}">whalenft.fun</a>`
+              `New captain: <code>${captain}</code>\n\n${links}`
           : `💸🐋 <b>${ids.length} whales swept for ${eth(paid)} ETH</b>${dollars}!\n` +
-              `${ids.map((id) => `#${pad(id)}`).join(", ")} → <code>${captain}</code>\n\n` +
-              `${tx(hash)} · <a href="${SITE}">whalenft.fun</a>`
+              `${ids.map((id) => `#${pad(id)}`).join(", ")} → <code>${captain}</code>\n\n${links}`,
+        portrait
       );
     }
 
