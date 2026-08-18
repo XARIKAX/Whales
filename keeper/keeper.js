@@ -7,6 +7,17 @@
 //
 //   RPC_URL=... PRIVATE_KEY=... DEPLOYMENT=../contracts/deployments/robinhood.json node keeper.js
 //
+// On a host that has the repo checked out, the deployment file is the source of
+// the addresses. On one that does not -- Railway, Fly, a container, anything
+// building from a clone -- the file is absent, because `deployments/*.json` is
+// gitignored. So TRENCH and WHALES may be given directly instead:
+//
+//   RPC_URL=... PRIVATE_KEY=... TRENCH=0x... WHALES=0x... node keeper.js
+//
+// Nothing here is secret except the key. The addresses are public and on the
+// explorer; keeping them out of git is about not stamping a specific
+// deployment into the source, not about hiding them.
+//
 // Flags:
 //   --once      run a single pass and exit (for cron)
 //   --dry-run   report what it would do, send nothing
@@ -34,11 +45,38 @@ const DELIVER_BATCH = Number(process.env.DELIVER_BATCH || 50);
 const ONCE = process.argv.includes("--once");
 const DRY_RUN = process.argv.includes("--dry-run");
 
+/**
+ * Where the addresses come from: the environment first, then the deployment
+ * file. Explicit addresses win, so a host can be pointed at a different
+ * deployment without editing anything on disk.
+ *
+ * Both are validated here rather than at the first call. A typo'd address
+ * otherwise surfaces as an empty `deliverable()` and a keeper that looks
+ * healthy while doing nothing at all, which is the worst way for this to fail.
+ */
 function loadDeployment() {
+  const { TRENCH, WHALES } = process.env;
+
+  if (TRENCH || WHALES) {
+    for (const [name, value] of [["TRENCH", TRENCH], ["WHALES", WHALES]]) {
+      if (!value) throw new Error(`${name} is missing; set both TRENCH and WHALES, or neither`);
+      if (!ethers.isAddress(value)) throw new Error(`${name} is not an address: ${value}`);
+    }
+    return {
+      chainId: Number(process.env.CHAIN_ID || 0) || "unknown",
+      contracts: { trench: ethers.getAddress(TRENCH), whales: ethers.getAddress(WHALES) },
+    };
+  }
+
   const file = process.env.DEPLOYMENT
     ? path.resolve(process.env.DEPLOYMENT)
     : path.join(__dirname, "..", "contracts", "deployments", "robinhood.json");
-  if (!fs.existsSync(file)) throw new Error(`no deployment at ${file}; set DEPLOYMENT`);
+  if (!fs.existsSync(file)) {
+    throw new Error(
+      `no deployment at ${file}. Set DEPLOYMENT to point at one, or give TRENCH and\n` +
+      "  WHALES directly — the file is gitignored, so a fresh clone will not have it."
+    );
+  }
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
@@ -104,6 +142,27 @@ async function main() {
   if (!rpc) throw new Error("set RPC_URL");
 
   const provider = new ethers.JsonRpcProvider(rpc);
+
+  /* Checked once, at boot, against the chain the RPC actually serves. A keeper
+     pointed at the wrong network reads zero everywhere and reports a healthy
+     `pot 0.0 / 0.1` forever -- it looks like a quiet ocean rather than a
+     misconfiguration, and nobody finds out until a distribution is missed. */
+  const chainId = Number((await provider.getNetwork()).chainId);
+  if (typeof deployment.chainId === "number" && chainId !== deployment.chainId) {
+    throw new Error(
+      `RPC_URL serves chain ${chainId}, deployment is chain ${deployment.chainId}`
+    );
+  }
+
+  /* Same reasoning: no code at an address means the addresses are wrong, or
+     the RPC is. Either way there is nothing to keep. */
+  for (const [name, address] of Object.entries(deployment.contracts)) {
+    if (!address) continue;
+    if ((await provider.getCode(address)) === "0x") {
+      throw new Error(`no contract at ${name} ${address} on chain ${chainId}`);
+    }
+  }
+
   let signer = null;
   if (!DRY_RUN) {
     if (!process.env.PRIVATE_KEY) throw new Error("set PRIVATE_KEY (or pass --dry-run)");
@@ -112,7 +171,12 @@ async function main() {
     // which lags and hands out the same nonce twice.
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     signer = new ethers.NonceManager(wallet);
-    log(`keeper ${wallet.address} on chain ${deployment.chainId}`);
+    const balance = await provider.getBalance(wallet.address);
+    log(`keeper ${wallet.address} on chain ${chainId}, ${ethers.formatEther(balance)} ETH`);
+    /* Gas is the one thing this cannot earn its way out of: with an empty
+       wallet every pass fails, and the tips that would refill it are exactly
+       what it can no longer collect. */
+    if (balance === 0n) log("WARNING: no ETH for gas — every pass will fail until this is funded");
   } else {
     log("dry run — nothing will be sent");
   }

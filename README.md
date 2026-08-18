@@ -312,6 +312,29 @@ Each pass syncs stale tiers, hauls if the pot is full, then delivers. A failed
 pass isn't fatal — the next one retries, and anyone else can do the same work
 for the same tip.
 
+Addresses come from `contracts/deployments/<network>.json`, or from the
+environment when there is no such file — which is the case on any host building
+from a clone, because that file is gitignored:
+
+```bash
+RPC_URL=… PRIVATE_KEY=… TRENCH=0x… WHALES=0x… CHAIN_ID=4663 node keeper.js
+```
+
+At boot it checks the RPC serves the chain it was told to expect and that there
+is code at every address, then reports its gas balance. All three failures
+otherwise look identical from the outside: a keeper logging `pot 0.0 / 0.1`
+forever, which reads as a quiet ocean rather than a misconfiguration.
+
+**Run it somewhere that stays awake.** A laptop lid closing does not break
+anything — hauls and deliveries are permissionless, so others still happen —
+but loyalty promotions stall, which silently costs exactly the long-term
+holders the curve exists to reward. `keeper/railway.json` deploys it as a
+worker; any always-on host does as well.
+
+Give it a key of its own. The `NonceManager` assigns nonces in sequence rather
+than asking the node each time, so a second wallet sending from the same
+address makes it drop a pass every time.
+
 ### The website
 
 ```bash
