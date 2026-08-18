@@ -1,0 +1,15 @@
+{
+  "name": "@whales/bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Posts activations, burns, hauls and deliveries to Telegram as they land on chain.",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "once": "node bot.js --once",
+    "dry-run": "node bot.js --dry-run"
+  },
+  "dependencies": {
+    "ethers": "^6.13.0"
+  }
+}
