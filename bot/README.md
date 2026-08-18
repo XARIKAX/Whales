@@ -7,6 +7,10 @@ Watches the chain and posts to Telegram, in real time:
 - **🌊 Hauls** — the pot split across the pod, in ETH and dollars, with the
   keeper's tip
 - **📬 Deliveries** — ETH landing in whale wallets, one line per batch
+- **💸 Sales** — a whale sold on OpenSea, with the price and the buyer; a
+  sweep of several in one order is one message. A sale is a Transfer whose
+  transaction also fulfilled a Seaport order — plain wallet-to-wallet moves
+  carry no order and are kept quiet.
 
 It reads the chain and posts messages. It holds no keys and sends no
 transactions.

@@ -21,9 +21,44 @@ const { ethers } = require("ethers");
 
 const WHALES_ABI = [
   "event Activated(uint256 indexed tokenId, address indexed holder, uint256 burned)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
   "function totalActivated() view returns (uint256)",
   "function totalBurnedForActivation() view returns (uint256)",
 ];
+
+/**
+ * Seaport's receipt, for telling a sale from a wallet shuffle.
+ *
+ * Every OpenSea sale settles through Seaport, which emits OrderFulfilled with
+ * the items and the money in one log. A plain transfer has no such log. So:
+ * a Transfer of one of our whales whose transaction also carries an
+ * OrderFulfilled is a sale, priced by the currency items in that order — and
+ * a Transfer without one is somebody moving a whale between their own
+ * wallets, which is nobody's news.
+ *
+ * Matched by event shape rather than by contract address, so it keeps working
+ * whichever Seaport version OpenSea points this chain at.
+ */
+const seaport = new ethers.Interface([
+  "event OrderFulfilled(bytes32 orderHash, address indexed offerer, address indexed zone, address recipient, (uint8 itemType, address token, uint256 identifier, uint256 amount)[] offer, (uint8 itemType, address token, uint256 identifier, uint256 amount, address recipient)[] consideration)",
+]);
+const ORDER_FULFILLED = seaport.getEvent("OrderFulfilled").topicHash;
+
+/** ETH (or 18-decimal wrapped ETH) paid in one fulfilled order. */
+function orderPayment(order) {
+  const currency = (items) =>
+    items.reduce(
+      (sum, item) => sum + (item.itemType === 0n || item.itemType === 1n ? item.amount : 0n),
+      0n
+    );
+  // A listing carries the money in the consideration; an accepted offer
+  // carries it in the offer — but its consideration still carries the *fees*,
+  // so "whichever side is non-zero" under-reports an accepted offer. The
+  // full price is always the larger currency side.
+  const offered = currency(order.offer);
+  const considered = currency(order.consideration);
+  return offered > considered ? offered : considered;
+}
 const TRENCH_ABI = [
   "event Hauled(address indexed keeper, uint256 pot, uint256 distributed, uint256 tip, uint256 totalWeight)",
   "event Delivered(uint256 indexed tokenId, address indexed account, uint256 amount)",
@@ -165,10 +200,11 @@ async function pass(ctx) {
   for (let from = ctx.cursor + 1; from <= head; from += MAX_RANGE) {
     const to = Math.min(from + MAX_RANGE - 1, head);
 
-    const [activations, hauls, deliveries] = await Promise.all([
+    const [activations, hauls, deliveries, transfers] = await Promise.all([
       ctx.whales.queryFilter(ctx.whales.filters.Activated(), from, to),
       ctx.trench.queryFilter(ctx.trench.filters.Hauled(), from, to),
       ctx.trench.queryFilter(ctx.trench.filters.Delivered(), from, to),
+      ctx.whales.queryFilter(ctx.whales.filters.Transfer(), from, to),
     ]);
 
     for (const ev of activations) {
@@ -216,6 +252,37 @@ async function pass(ctx) {
         `📬 <b>${eth(total)} ETH</b>${dollars} delivered into <b>${count}</b> whale wallet${count === 1 ? "" : "s"}\n` +
           `Straight to each whale's own on-chain wallet. Nobody claimed anything.\n\n` +
           `${tx(hash)}`
+      );
+    }
+
+    // Sales: transfers grouped by transaction, then checked for a Seaport
+    // receipt. Mints come from the zero address and are skipped; a sweep of
+    // several whales in one order becomes one message rather than one each.
+    const moved = new Map();
+    for (const ev of transfers) {
+      if (ev.args.from === ethers.ZeroAddress) continue;
+      const entry = moved.get(ev.transactionHash) || { ids: [], buyer: ev.args.to };
+      entry.ids.push(ev.args.tokenId);
+      moved.set(ev.transactionHash, entry);
+    }
+    for (const [hash, { ids, buyer }] of moved) {
+      const receipt = await ctx.provider.getTransactionReceipt(hash).catch(() => null);
+      const orders = (receipt?.logs || []).filter((l) => l.topics[0] === ORDER_FULFILLED);
+      if (orders.length === 0) continue; // a wallet shuffle, not a sale
+
+      let paid = 0n;
+      for (const l of orders) paid += orderPayment(seaport.parseLog(l).args);
+      const dollars = await usd(paid);
+      const captain = `${buyer.slice(0, 6)}…${buyer.slice(-4)}`;
+
+      await post(
+        ids.length === 1
+          ? `💸🐋 <b>Whale #${pad(ids[0])} just sold for ${eth(paid)} ETH</b>${dollars}!\n` +
+              `New captain: <code>${captain}</code>\n\n` +
+              `${tx(hash)} · <a href="${SITE}">whalenft.fun</a>`
+          : `💸🐋 <b>${ids.length} whales swept for ${eth(paid)} ETH</b>${dollars}!\n` +
+              `${ids.map((id) => `#${pad(id)}`).join(", ")} → <code>${captain}</code>\n\n` +
+              `${tx(hash)} · <a href="${SITE}">whalenft.fun</a>`
       );
     }
 
