@@ -78,7 +78,7 @@ function Landing({ ocean, whales, featured, price, wallet, live, error, unreacha
 
 export default function App() {
   const { data: ocean, error, refresh } = useOcean();
-  const { whales, refresh: refreshWhales } = useWhales(ocean?.minted);
+  const { whales, error: podError, refresh: refreshWhales } = useWhales(ocean?.minted);
   const price = useEthPrice();
   const { deep, lit } = useDive();
   const wallet = useWallet();
@@ -139,6 +139,7 @@ export default function App() {
         <Activate
           wallet={wallet}
           whales={held}
+          podError={podError}
           ocean={ocean}
           live={live}
           onDone={onRefresh}
@@ -149,6 +150,7 @@ export default function App() {
         <Portfolio
           wallet={wallet}
           whales={held}
+          podError={podError}
           ocean={ocean}
           price={price}
           live={live}

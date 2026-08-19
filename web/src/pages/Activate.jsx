@@ -96,7 +96,7 @@ function Tile({ whale, selected, onSelect, disabled }) {
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Activate({ wallet, whales, ocean, live, onDone }) {
+export default function Activate({ wallet, whales, ocean, live, podError, onDone }) {
   const account = wallet?.account;
   const [picked, setPicked] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -244,7 +244,14 @@ export default function Activate({ wallet, whales, ocean, live, onDone }) {
             ))}
           </Reveal>
 
-          {pod.length === 0 && (
+          {pod.length === 0 && connected && podError && (
+            <p className="notice error">
+              Could not read the pod from the chain just now, so this is not a reading of what you
+              hold. ({podError})
+            </p>
+          )}
+
+          {pod.length === 0 && !(connected && podError) && (
             <p className="picker-empty">
               No whales in this wallet. Mint one for a dollar, ten a transaction, or pick one up on
               secondary.

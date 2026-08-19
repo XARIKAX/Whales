@@ -91,6 +91,36 @@ export async function readOcean() {
  * each call is comfortably within budget and the chunks run concurrently.
  */
 const WHALE_CHUNK = 100;
+/* Below this there is nothing left to split, so a failure is a real failure. */
+const MIN_CHUNK = 8;
+/* How many of those calls may be in the air at once. Ten at a time is a burst
+   a public endpoint reads as abuse, and being throttled costs the whole read. */
+const IN_FLIGHT = 3;
+
+/**
+ * One chunk, and a smaller one if the node would not wear it.
+ *
+ * A hundred whales is roughly two million gas of `eth_call`, which some
+ * endpoints refuse outright and others refuse only when they are busy. Halving
+ * and retrying turns "your holdings are empty" into a slower answer with the
+ * right number in it.
+ */
+async function readChunk(ids) {
+  try {
+    return await publicClient.readContract({
+      address: ADDRESSES.trench,
+      abi: trenchAbi,
+      functionName: "whaleStates",
+      args: [ids],
+    });
+  } catch (e) {
+    if (ids.length <= MIN_CHUNK) throw e;
+    const half = Math.ceil(ids.length / 2);
+    const head = await readChunk(ids.slice(0, half));
+    const tail = await readChunk(ids.slice(half));
+    return [...head, ...tail];
+  }
+}
 
 export async function readWhales(tokenIds) {
   if (tokenIds.length === 0) return [];
@@ -100,15 +130,17 @@ export async function readWhales(tokenIds) {
     chunks.push(tokenIds.slice(i, i + WHALE_CHUNK));
   }
 
-  const results = await Promise.all(
-    chunks.map((ids) =>
-      publicClient.readContract({
-        address: ADDRESSES.trench,
-        abi: trenchAbi,
-        functionName: "whaleStates",
-        args: [ids],
-      })
-    )
+  /* Order matters — the caller matches these rows against token ids by
+     position — so results are written into their own slot rather than
+     collected in whatever order they finish. */
+  const results = new Array(chunks.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(IN_FLIGHT, chunks.length) }, async () => {
+      for (let i = next++; i < chunks.length; i = next++) {
+        results[i] = await readChunk(chunks[i]);
+      }
+    })
   );
 
   return results.flat();

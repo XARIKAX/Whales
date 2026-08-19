@@ -13,6 +13,7 @@ import { useHauls } from "../hooks.js";
 import { publicClient, withdrawFromWhale, withdrawAll } from "../chain.js";
 import { speciesFor } from "../whales.js";
 import { usd, multiplier, address, eth } from "../format.js";
+import { CHAIN } from "../config.js";
 
 const num = (n, d = 3) => n.toLocaleString(undefined, { maximumFractionDigits: d });
 const clamp = (n) => (Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0);
@@ -234,7 +235,7 @@ function Sweep({ pod, wallet, connected, onDone }) {
 
 /* --- Page ---------------------------------------------------------------- */
 
-export default function Portfolio({ wallet, whales, ocean, price, live, onRefresh }) {
+export default function Portfolio({ wallet, whales, ocean, price, live, podError, onRefresh }) {
   const account = wallet?.account;
   /* Connected means real, even when the honest answer is "none". */
   const connected = Boolean(account) && live;
@@ -434,7 +435,17 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
             ))}
           </Reveal>
 
-          {held === 0 && (
+          {/* "You own nothing" and "we could not ask" look identical on a page
+              like this, and only one of them is the reader's problem. A failed
+              read says so rather than quietly reporting an empty wallet. */}
+          {held === 0 && connected && podError && (
+            <p className="notice error">
+              Could not read the pod from {CHAIN.name} just now, so this is not a reading of what
+              you hold. It retries on its own; the chain is the record either way. ({podError})
+            </p>
+          )}
+
+          {held === 0 && !(connected && podError) && (
             <p className="picker-empty">
               No whales in this wallet. Mint one for $1 on the front page, ten a transaction, or
               pick one up on secondary.
