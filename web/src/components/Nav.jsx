@@ -1,4 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "../router.jsx";
+import { copy } from "./docs/reading.js";
+import { toast } from "./docs/Chrome.jsx";
 import { address } from "../format.js";
 import { CHAIN, LINKS } from "../config.js";
 
@@ -61,22 +64,25 @@ function Socials() {
 /**
  * Every state the connect button can be in, drawn rather than implied.
  *
- * There are five, and the two that used to look identical are the two that
+ * There are four, and the two that used to look identical are the two that
  * matter: a request sitting unanswered behind the browser window, and a wallet
  * connected to the wrong chain. Both used to read as "connected" — the first
  * because nothing changed when you clicked, the second because an address is an
  * address. Now one ripples and the other goes gold, which is the only warning a
  * reader gets before a transaction fails for a reason the error will not
  * explain.
+ *
+ * Connected, the pill opens a menu of its own rather than RainbowKit's account
+ * sheet. That sheet was mounting and closing itself inside the same
+ * millisecond — measured, not guessed — which left no way to disconnect at
+ * all. Ours is three lines of markup, cannot be dismissed by anybody else's
+ * internal logic, and disconnects in one press instead of two.
  */
 function Connect({ wallet }) {
-  const { account, connecting, wrongNetwork, openAccount, switchNetwork, disconnect } = wallet;
+  const { account, connecting, wrongNetwork, switchTo, disconnect } = wallet;
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
 
-  /* An address outranks everything else. Reading `connecting` first meant a
-     connect modal that had been dismissed, or reopened behind an already
-     connected wallet, left the pill saying "Connecting" on top of a working
-     session — with `disabled` making it unpressable, so there was no way back
-     out of it and no way to disconnect. */
   const state = account
     ? wrongNetwork
       ? "wrong"
@@ -92,49 +98,95 @@ function Connect({ wallet }) {
     idle: "Connect",
   }[state];
 
-  /*
-   * Idle, the pill connects. Connected, it has to lead somewhere every time,
-   * and the obvious one-liner — `openAccount?.()` — did not: RainbowKit hands
-   * that hook back as `undefined` whenever the wallet's chain is not one wagmi
-   * was configured with, which is precisely when somebody wants out. The
-   * optional call then swallowed the press and the button looked dead.
-   *
-   * Three fallbacks, worst case a disconnect, so there is no combination of
-   * chain and connector that leaves this inert. On the wrong network the chain
-   * switcher comes first, because switching is what that state is asking for
-   * and disconnecting is the heavier answer to it.
-   */
-  /* Pressing while "Connecting" retries rather than being swallowed. The
-     disabled attribute this button used to carry turned any stuck connecting
-     state — a hung reconnect, a modal dismissed mid-load — into a pill that
-     could never be pressed again. connect() is idempotent: it reopens the
-     modal if one is wanted and does nothing if a wallet is mid-handshake. */
+  /* A menu that outlives the thing it belongs to is a trap: close it on a press
+     anywhere else, on Escape, and the moment the wallet goes away. */
+  useEffect(() => {
+    if (!open) return;
+    const away = (e) => {
+      if (!box.current?.contains(e.target)) setOpen(false);
+    };
+    const key = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!account) setOpen(false);
+  }, [account]);
+
   const press = () => {
     if (!account) {
       wallet.connect();
       return;
     }
-    const step = wrongNetwork
-      ? switchNetwork || openAccount || disconnect
-      : openAccount || switchNetwork || disconnect;
-    step?.();
+    setOpen((was) => !was);
+  };
+
+  const take = async () => {
+    setOpen(false);
+    toast((await copy(account)) ? "Address copied" : "Could not copy");
   };
 
   return (
-    <button
-      className={`nav-wallet mono is-${state}`}
-      onClick={press}
-      title={
-        wrongNetwork
-          ? `This wallet is on another chain. Switch to ${CHAIN.name}`
-          : account
-            ? `${account}. Open wallet`
-            : "Connect a wallet"
-      }
-    >
-      <span className="nav-dot" aria-hidden="true" />
-      {label}
-    </button>
+    <span className="nav-wallet-box" ref={box}>
+      <button
+        className={`nav-wallet mono is-${state}`}
+        onClick={press}
+        aria-expanded={account ? open : undefined}
+        aria-haspopup={account ? "menu" : undefined}
+        title={
+          wrongNetwork
+            ? `This wallet is on another chain. Switch to ${CHAIN.name}`
+            : account
+              ? `${account}. Open wallet menu`
+              : "Connect a wallet"
+        }
+      >
+        <span className="nav-dot" aria-hidden="true" />
+        {label}
+      </button>
+
+      {account && open && (
+        <div className="nav-menu" role="menu">
+          <p className="nav-menu-addr mono">{account}</p>
+
+          {wrongNetwork && switchTo && (
+            <button
+              type="button"
+              role="menuitem"
+              className="nav-menu-item mono warn"
+              onClick={() => {
+                setOpen(false);
+                switchTo();
+              }}
+            >
+              Switch to {CHAIN.name}
+            </button>
+          )}
+
+          <button type="button" role="menuitem" className="nav-menu-item mono" onClick={take}>
+            Copy address
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            className="nav-menu-item mono"
+            onClick={() => {
+              setOpen(false);
+              disconnect?.();
+            }}
+            disabled={!disconnect}
+          >
+            Disconnect
+          </button>
+        </div>
+      )}
+    </span>
   );
 }
 

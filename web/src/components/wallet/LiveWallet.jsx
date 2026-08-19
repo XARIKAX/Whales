@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { WagmiProvider, useAccount, useDisconnect } from "wagmi";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { WagmiProvider, useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   RainbowKitProvider,
@@ -132,6 +132,7 @@ function Bridge({ request, onValue }) {
   const { openAccountModal } = useAccountModal();
   const { openChainModal } = useChainModal();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
   const [error, setError] = useState(null);
 
   /* wagmi reports "reconnecting" while it revives a session stored from a
@@ -141,6 +142,43 @@ function Bridge({ request, onValue }) {
      revival takes, then stop calling it connecting: a reconnect that has not
      landed by then is not going to, and the pill should offer a way in rather
      than report a wait that never ends. */
+  /*
+   * wagmi hands back a *new* `disconnect` and `switchChain` on every render,
+   * and RainbowKit's modal openers come and go with the chain. Naming any of
+   * them as a dependency of the published value made that value new on every
+   * render too — and since publishing it re-renders this component, the two
+   * chased each other forever. wagmi was left flickering between
+   * `reconnecting` and `connected` several times a second, which is not a
+   * cosmetic problem: RainbowKit closes every open sheet on each connect
+   * event, so its account modal was dismissing itself about a millisecond
+   * after it opened and there was no way to disconnect at all.
+   *
+   * So the latest of each lives in a ref and the published callbacks are
+   * stable. The value now changes when something real changes, and nothing
+   * else.
+   */
+  const latest = useRef({});
+  latest.current = { disconnect, switchChain, openAccountModal, openChainModal };
+
+  /* Somebody who has just disconnected is not "connecting". A wallet that
+     still offers its accounts makes wagmi start reconnecting the moment it is
+     let go, and the pill would sit on "Connecting" over a session the reader
+     deliberately ended. Their choice holds until they ask again. */
+  const [dismissed, setDismissed] = useState(false);
+  const doDisconnect = useCallback(() => {
+    setDismissed(true);
+    latest.current.disconnect?.();
+  }, []);
+  const doSwitch = useCallback(() => latest.current.switchChain?.({ chainId: CHAIN.id }), []);
+  const doAccount = useCallback(() => latest.current.openAccountModal?.(), []);
+  const doChain = useCallback(() => latest.current.openChainModal?.(), []);
+
+  /* Whether the openers exist at all is real state; which function they are is
+     not. Tracking the booleans keeps the value stable while still letting the
+     pill fall back when RainbowKit withholds a sheet. */
+  const hasAccountModal = Boolean(openAccountModal);
+  const hasChainModal = Boolean(openChainModal);
+
   const [reviving, setReviving] = useState(true);
   useEffect(() => {
     const patience = setTimeout(() => setReviving(false), 8_000);
@@ -162,6 +200,7 @@ function Bridge({ request, onValue }) {
      race the person still choosing. */
   const connect = useCallback(async () => {
     setError(null);
+    setDismissed(false);
     if (getAccount(wagmiConfig).address) return;
 
     /* RainbowKit withholds the connect modal while wagmi is mid-reconnect, and
@@ -210,13 +249,17 @@ function Bridge({ request, onValue }) {
          the top of a working session, with no way to press it. */
       connecting:
         !address &&
+        !dismissed &&
         (status === "connecting" || (status === "reconnecting" && reviving) || connectModalOpen),
-      /* Disconnecting, switching account and copying the address all live in
-         RainbowKit's own sheet. The pill opens it once there is something to
-         open it for, and falls through to the two below when there is not. */
-      openAccount: openAccountModal ?? null,
-      switchNetwork: openChainModal ?? null,
-      disconnect: address ? disconnect : null,
+      /* The pill draws its own menu for a connected wallet, so what it needs
+         is the actions themselves rather than a sheet to open. `switchTo`
+         asks the wallet directly instead of going through RainbowKit's chain
+         modal — one press instead of two, and nothing to render. The two
+         modal openers stay published for anything that still wants them. */
+      switchTo: address ? doSwitch : null,
+      openAccount: hasAccountModal ? doAccount : null,
+      switchNetwork: hasChainModal ? doChain : null,
+      disconnect: address ? doDisconnect : null,
       chainId: chainId ?? null,
       wrongNetwork: Boolean(address) && chainId != null && chainId !== CHAIN.id,
       /* There is always a way in now — an extension, a QR code or a deep link.
@@ -230,10 +273,14 @@ function Bridge({ request, onValue }) {
       chainId,
       status,
       reviving,
+      dismissed,
       connectModalOpen,
-      openAccountModal,
-      openChainModal,
-      disconnect,
+      hasAccountModal,
+      hasChainModal,
+      doAccount,
+      doChain,
+      doDisconnect,
+      doSwitch,
       connect,
       client,
       error,

@@ -269,4 +269,99 @@ export async function withdrawFromWhale({ client, holder, tokenId, whaleAccount,
   });
 }
 
+/** A wallet saying no, told apart from a wallet that cannot. */
+const rejected = (e) =>
+  e?.code === 4001 ||
+  /user rejected|user denied|rejected the request|request rejected/i.test(
+    e?.shortMessage || e?.message || ""
+  );
+
+/** The calls that empty a pod, in the order they have to happen. */
+function sweepCalls(whales, holder) {
+  const calls = [];
+  for (const whale of whales) {
+    // A whale's wallet address is fixed from the moment the token exists and
+    // ETH can arrive there before any code does, so the account has to be
+    // created before it can be spent from.
+    if (!whale.accountDeployed) {
+      calls.push({
+        to: ADDRESSES.registry,
+        abi: registryAbi,
+        functionName: "createAccount",
+        args: [BigInt(whale.tokenId)],
+      });
+    }
+    calls.push({
+      to: whale.account,
+      abi: whaleAccountAbi,
+      functionName: "execute",
+      args: [holder, whale.accountBalance, "0x"],
+    });
+  }
+  return calls;
+}
+
+/**
+ * Empty every whale's wallet into the holder's, from one press.
+ *
+ * `execute` is restricted on chain to `ownerOf(tokenId)`, so nothing can do
+ * this on a holder's behalf: not a helper contract, not the keeper, not us.
+ * That leaves two honest ways to do it and this tries the better one first.
+ *
+ * EIP-5792 hands the whole list to the wallet as one batch behind one
+ * signature. Wallets without it throw, and the fallback is exactly what the
+ * per-card button already does, once per whale. A *rejected* signature is not
+ * a missing feature, so it stops rather than asking again a different way.
+ *
+ * Nothing here is atomic in the fallback, which is fine: each whale's sweep
+ * stands alone, so a failure halfway leaves the rest already in the holder's
+ * wallet rather than needing to be undone.
+ */
+export async function withdrawAll({ client, holder, whales, onStep }) {
+  const work = whales.filter((w) => (w.accountBalance ?? 0n) > 0n);
+  if (work.length === 0) return { swept: 0, failed: [], stopped: false, batched: false };
+
+  try {
+    onStep?.({ phase: "batch", done: 0, total: work.length });
+    const { id } = await client.sendCalls({
+      account: holder,
+      chain: client.chain,
+      calls: sweepCalls(work, holder),
+    });
+    const result = await client.waitForCallsStatus({ id });
+    if (result.status !== "success") throw new Error("The wallet reported the batch did not land.");
+    return { swept: work.length, failed: [], stopped: false, batched: true };
+  } catch (e) {
+    // Their wallet cannot batch, so do it the long way — unless they said no,
+    // in which case asking again one whale at a time is just nagging.
+    if (rejected(e)) return { swept: 0, failed: [], stopped: true, batched: false };
+  }
+
+  const failed = [];
+  let swept = 0;
+  for (const [i, whale] of work.entries()) {
+    onStep?.({ phase: "sign", done: i, total: work.length, tokenId: whale.tokenId });
+    try {
+      const hash = await withdrawFromWhale({
+        client,
+        holder,
+        tokenId: whale.tokenId,
+        whaleAccount: whale.account,
+        deployed: whale.accountDeployed,
+        amount: whale.accountBalance,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Transaction reverted.");
+      swept += 1;
+    } catch (e) {
+      // One whale that will not move is not a reason to abandon the others;
+      // a holder who has stopped signing is.
+      if (rejected(e)) return { swept, failed, stopped: true, batched: false };
+      failed.push({ tokenId: whale.tokenId, reason: e.shortMessage || e.message });
+    }
+  }
+
+  return { swept, failed, stopped: false, batched: false };
+}
+
 export { ADDRESSES, trenchAbi, whalesAbi, erc20Abi, whaleAccountAbi, registryAbi };

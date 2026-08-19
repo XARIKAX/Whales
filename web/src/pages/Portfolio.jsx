@@ -10,7 +10,7 @@ import { Link } from "../router.jsx";
 import { useWhaleArt } from "../components/WhaleArt.jsx";
 import { SAMPLE_WHALES } from "../placeholder.js";
 import { useHauls } from "../hooks.js";
-import { publicClient, withdrawFromWhale } from "../chain.js";
+import { publicClient, withdrawFromWhale, withdrawAll } from "../chain.js";
 import { speciesFor } from "../whales.js";
 import { usd, multiplier, address, eth } from "../format.js";
 
@@ -139,6 +139,96 @@ function Holding({ whale, price, wallet, connected, onDone, onFocus }) {
 
       {error && <p className="notice error">{error}</p>}
     </article>
+  );
+}
+
+/* --- Every wallet at once ------------------------------------------------ */
+
+/**
+ * One press for a pod.
+ *
+ * Money lands in each whale's own wallet, which is the point of the design and
+ * a chore once you hold six of them: the card-by-card button means six trips
+ * down the page. This does the same thing in one place, in one signature where
+ * the wallet can batch and one per whale where it cannot.
+ *
+ * It only appears when there is more than one whale to sweep. With a single
+ * one, its own card already carries the button and a second way to press the
+ * same thing is noise.
+ */
+function Sweep({ pod, wallet, connected, onDone }) {
+  const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState(null);
+  const [note, setNote] = useState(null);
+
+  const mine = pod.filter(
+    (w) =>
+      (w.accountBalance ?? 0n) > 0n &&
+      wallet?.account?.toLowerCase() === w.holder?.toLowerCase()
+  );
+  const total = mine.reduce((sum, w) => sum + (w.accountBalance ?? 0n), 0n);
+
+  if (!connected || mine.length < 2) return null;
+
+  async function sweep() {
+    setBusy(true);
+    setNote(null);
+    try {
+      const client = await wallet.client();
+      const result = await withdrawAll({
+        client,
+        holder: client.account.address,
+        whales: mine,
+        onStep: setStep,
+      });
+
+      /* Say what actually happened rather than "done": a batch the wallet
+         refused, a signature declined halfway, and a whale whose call
+         reverted are three different outcomes and a holder can tell. */
+      if (result.stopped && result.swept === 0) setNote({ kind: "info", text: "Nothing withdrawn." });
+      else if (result.stopped)
+        setNote({
+          kind: "ok",
+          text: `Withdrew from ${result.swept} of ${mine.length}. The rest are still in their whales' wallets.`,
+        });
+      else if (result.failed.length)
+        setNote({
+          kind: "error",
+          text: `Withdrew from ${result.swept}. #${pad(result.failed[0].tokenId)} would not move: ${result.failed[0].reason}`,
+        });
+      else
+        setNote({
+          kind: "ok",
+          text: `${num(Number(formatEther(total)), 4)} ETH is in your wallet.`,
+        });
+
+      if (result.swept > 0) onDone?.();
+    } catch (e) {
+      setNote({ kind: "error", text: e.shortMessage || e.message });
+    } finally {
+      setBusy(false);
+      setStep(null);
+    }
+  }
+
+  const label = busy
+    ? step?.phase === "sign"
+      ? `Confirm ${step.done + 1} of ${step.total}…`
+      : "Confirm in your wallet…"
+    : `Withdraw all · ${num(Number(formatEther(total)), 4)} ETH`;
+
+  return (
+    <div className="sweep">
+      <button className="btn btn-foam" onClick={sweep} disabled={busy}>
+        {label}
+      </button>
+      <p className="sweep-note mono">
+        {busy
+          ? "Each whale's wallet is emptied into yours. Nothing else moves."
+          : `Waiting in ${mine.length} whale wallets. One signature if your wallet can batch, otherwise one each.`}
+      </p>
+      {note && <p className={`notice ${note.kind}`}>{note.text}</p>}
+    </div>
   );
 }
 
@@ -325,6 +415,8 @@ export default function Portfolio({ wallet, whales, ocean, price, live, onRefres
               {held} in the water, <span className="tide on-dark">{awake} awake.</span>
             </h2>
           </Reveal>
+
+          <Sweep pod={pod} wallet={wallet} connected={connected} onDone={onRefresh} />
 
           <Lane plane="drift" shoal="school" seed={13} tall />
 
