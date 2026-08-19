@@ -320,17 +320,17 @@ export default function Ocean({ ocean, price, live }) {
             foot={`${weight.toFixed(2)}x total weight`}
           />
 
+          {/* The share leads, not the token count. "144.0M" only means
+              something to somebody holding the supply figure in their head;
+              "14.4% of supply" is the same fact already argued. The count
+              keeps its place underneath, where the exact number belongs. */}
           <Stat
             label="$WHALE burned"
-            value={
-              <CountUp
-                value={Number(formatEther(burned))}
-                format={(n) => whale(BigInt(Math.round(n)) * 10n ** 18n)}
-              />
-            }
+            value={<CountUp value={burnedShare} format={(n) => `${n.toFixed(1)}%`} />}
+            unit="of supply"
             meter={burnedShare / 100}
             body="Destroyed to switch whales on, out of a billion. It does not go to us and it does not come back, so supply only ever falls."
-            foot={`${burnedShare.toFixed(2)}% of supply gone for good`}
+            foot={`${whale(burned)} $WHALE gone for good`}
           />
 
           <Stat
