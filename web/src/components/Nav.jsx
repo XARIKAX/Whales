@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "../router.jsx";
 import { copy } from "./docs/reading.js";
 import { toast } from "./docs/Chrome.jsx";
@@ -81,7 +82,9 @@ function Socials() {
 function Connect({ wallet }) {
   const { account, connecting, wrongNetwork, switchTo, disconnect } = wallet;
   const [open, setOpen] = useState(false);
+  const [at, setAt] = useState(null);
   const box = useRef(null);
+  const menu = useRef(null);
 
   const state = account
     ? wrongNetwork
@@ -100,10 +103,37 @@ function Connect({ wallet }) {
 
   /* A menu that outlives the thing it belongs to is a trap: close it on a press
      anywhere else, on Escape, and the moment the wallet goes away. */
+  /*
+   * The menu is drawn into the document body, not into the nav.
+   *
+   * The pill lives in `.nav-pill`, which sets `overflow-x: auto` so the row can
+   * scroll on a narrow screen — and the moment one axis is not `visible`, CSS
+   * makes the other a scroll container too. A menu hanging below the pill was
+   * therefore clipped by it: present in the DOM, reachable by a script, and
+   * invisible to a person. `position: fixed` does not escape it either, because
+   * the pill's `backdrop-filter` makes it the containing block for fixed
+   * children. A portal is the way out, so the position is measured instead of
+   * inherited.
+   */
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const r = box.current?.getBoundingClientRect();
+      if (r) setAt({ top: r.bottom + 10, right: Math.max(12, window.innerWidth - r.right) });
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, { passive: true });
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const away = (e) => {
-      if (!box.current?.contains(e.target)) setOpen(false);
+      if (!box.current?.contains(e.target) && !menu.current?.contains(e.target)) setOpen(false);
     };
     const key = (e) => e.key === "Escape" && setOpen(false);
     document.addEventListener("pointerdown", away);
@@ -150,8 +180,8 @@ function Connect({ wallet }) {
         {label}
       </button>
 
-      {account && open && (
-        <div className="nav-menu" role="menu">
+      {account && open && at && createPortal(
+        <div className="nav-menu" role="menu" ref={menu} style={{ top: at.top, right: at.right }}>
           <p className="nav-menu-addr mono">{account}</p>
 
           {wrongNetwork && switchTo && (
@@ -184,7 +214,8 @@ function Connect({ wallet }) {
           >
             Disconnect
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   );

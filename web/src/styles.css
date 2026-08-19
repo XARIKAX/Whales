@@ -8724,11 +8724,12 @@ input:focus {
   display: inline-flex;
 }
 
+/* Fixed and portalled to the body: the nav pill is a scroll container and a
+   backdrop-filter containing block, so a child menu is clipped by it however
+   it is positioned. Coordinates come from the pill's measured rect. */
 .nav-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 90;
+  position: fixed;
+  z-index: 120;
   min-width: 210px;
   display: grid;
   gap: 2px;
