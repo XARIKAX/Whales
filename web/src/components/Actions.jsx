@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { maxUint256 } from "viem";
 import {
   publicClient,
   ADDRESSES,
@@ -92,7 +91,8 @@ export default function Actions({ ocean, wallet, onDone }) {
           ocean.whaleToken,
           erc20Abi,
           "approve",
-          [ADDRESSES.whales, maxUint256]
+          // Exactly the burn. See Activate.jsx for why this is not unlimited.
+          [ADDRESSES.whales, ACTIVATION_BURN]
         );
         await publicClient.waitForTransactionReceipt({ hash: approval });
       }

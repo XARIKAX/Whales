@@ -41,6 +41,20 @@ export async function getWalletClient() {
 
   const client = await core.getWalletClient(wagmiConfig, { chainId: CHAIN.id });
   if (!client) throw new Error(`This wallet cannot sign on ${CHAIN.name}.`);
+
+  /* Ask the wallet where it actually is, rather than trusting the switch it
+     just reported. Some wallets answer `wallet_switchEthereumChain` happily
+     and stay put, and the failure then surfaces at the worst moment: the
+     transaction is built for this chain, the wallet signs on another, and all
+     the reader sees is their wallet saying it could not sign. */
+  const actual = await client.getChainId().catch(() => null);
+  if (actual !== null && actual !== CHAIN.id) {
+    throw new Error(
+      `Your wallet is still on chain ${actual}, not ${CHAIN.name} (chain ${CHAIN.id}). ` +
+        `Switch it by hand, or use a wallet that supports this network.`
+    );
+  }
+
   return client;
 }
 

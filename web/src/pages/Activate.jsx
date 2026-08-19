@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatEther, maxUint256 } from "viem";
+import { formatEther } from "viem";
 import Reveal from "../components/Reveal.jsx";
 import { Lane } from "../components/Marine.jsx";
 import Portrait from "../components/Portrait.jsx";
@@ -142,9 +142,13 @@ export default function Activate({ wallet, whales, ocean, live, podError, onDone
 
       if (allowance < burn) {
         setMessage({ kind: "info", text: "Approving the burn. Confirm the first of two." });
+        /* Exactly the burn, not everything for ever. An unlimited allowance is
+           the standing permission somebody has to remember to revoke, and it
+           is also the shape wallet simulators flag hardest — Phantom refuses
+           to sign some of them outright. One activation, one allowance. */
         const approval = await write(ocean.whaleToken, erc20Abi, "approve", [
           ADDRESSES.whales,
-          maxUint256,
+          burn,
         ]);
         await publicClient.waitForTransactionReceipt({ hash: approval });
       }
