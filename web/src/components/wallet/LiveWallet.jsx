@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WagmiProvider, useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -158,7 +158,7 @@ function Bridge({ request, onValue }) {
    * else.
    */
   const latest = useRef({});
-  latest.current = { disconnect, switchChain, openAccountModal, openChainModal };
+  latest.current = { disconnect, switchChain, openAccountModal, openChainModal, openConnectModal };
 
   /* Somebody who has just disconnected is not "connecting". A wallet that
      still offers its accounts makes wagmi start reconnecting the moment it is
@@ -176,6 +176,7 @@ function Bridge({ request, onValue }) {
   /* Whether the openers exist at all is real state; which function they are is
      not. Tracking the booleans keeps the value stable while still letting the
      pill fall back when RainbowKit withholds a sheet. */
+  const hasConnectModal = Boolean(openConnectModal);
   const hasAccountModal = Boolean(openAccountModal);
   const hasChainModal = Boolean(openChainModal);
 
@@ -191,8 +192,8 @@ function Bridge({ request, onValue }) {
      happened on. Deliberately not keyed on `address` — that would reopen the
      modal the moment somebody disconnects. */
   useEffect(() => {
-    if (request > 0 && !getAccount(wagmiConfig).address) openConnectModal?.();
-  }, [request, openConnectModal]);
+    if (request > 0 && !getAccount(wagmiConfig).address) latest.current.openConnectModal?.();
+  }, [request, hasConnectModal]);
 
   /* Opening the modal is not the same as connecting, so this resolves when a
      wallet has actually been picked rather than when the sheet appears. The
@@ -208,8 +209,8 @@ function Bridge({ request, onValue }) {
        that leads anywhere is clearing the dead session — wagmi flips to
        disconnected, RainbowKit hands the modal back, and the next press opens
        it. Without this, a press in that state did nothing at all. */
-    if (openConnectModal) openConnectModal();
-    else disconnect();
+    if (latest.current.openConnectModal) latest.current.openConnectModal();
+    else latest.current.disconnect?.();
 
     await new Promise((resolve) => {
       const stop = watchAccount(wagmiConfig, {
@@ -227,7 +228,7 @@ function Bridge({ request, onValue }) {
         resolve();
       }, 120_000);
     });
-  }, [openConnectModal, disconnect]);
+  }, []);
 
   const client = useCallback(async () => {
     try {
@@ -294,7 +295,27 @@ function Bridge({ request, onValue }) {
   return null;
 }
 
-export default function LiveWallet({ request, onValue }) {
+/**
+ * Memoised, and that is load-bearing rather than an optimisation.
+ *
+ * wagmi's `Hydrate` calls `onMount()` — which reconnects — *during render*,
+ * every render, whenever the config is not in SSR mode:
+ *
+ *     // Hydrate for non-SSR
+ *     if (!config._internal.ssr) onMount();
+ *
+ * So every re-render of this subtree reconnects the wallet. Publishing the
+ * wallet value sets state one level up, which re-rendered this, which
+ * reconnected, which changed `status`, which published again: wagmi flipped
+ * between `reconnecting` and `connected` about seventy-five times a second,
+ * and the whole site flickered between its connected and disconnected states
+ * roughly twice a second as a result.
+ *
+ * The props here are a counter that changes only when somebody presses
+ * Connect, and a callback that never changes, so memoising cuts the cycle at
+ * the only place it can be cut.
+ */
+function LiveWallet({ request, onValue }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
@@ -310,3 +331,5 @@ export default function LiveWallet({ request, onValue }) {
     </WagmiProvider>
   );
 }
+
+export default memo(LiveWallet);
